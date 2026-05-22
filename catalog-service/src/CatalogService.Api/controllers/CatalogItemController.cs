@@ -11,8 +11,9 @@ public class CatalogItemsController : ControllerBase
       _useCase = useCase;
   }
   [HttpGet]
-  public async Task<IActionResult> GetAll([FromQuery] Guid tenantId, CancellationToken ct)
+  public async Task<IActionResult> GetAll([FromHeader(Name = "X-Tenant-Id")] Guid tenantId, CancellationToken ct)
   {
+    if (tenantId == Guid.Empty) return Problem(statusCode: StatusCodes.Status400BadRequest, title: "Validation Error", detail: "Tenant ID is required");
       var result = await _useCase.ExecuteAsync(tenantId, ct);
       return Ok(result);
   }

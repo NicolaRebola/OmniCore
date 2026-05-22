@@ -230,9 +230,9 @@ docker-compose -f docker-compose.dev.yml up
 
 The service currently exposes a REST API via ASP.NET Core Controllers.
 
-| Method | Path | Description |
+| Method | Path | Required Headers | Description |
 |---|---|---|
-| `GET` | `/api/v1/catalog-items?tenantId={uuid}` | Returns all catalog items for a tenant |
+| `GET` | `/api/v1/catalog-items` | `X-Tenant-Id: {uuid}` | Returns all catalog items for a tenant |
 
 **OpenAPI spec** (Development only):
 ```
