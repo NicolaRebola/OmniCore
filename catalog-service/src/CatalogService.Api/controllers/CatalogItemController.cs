@@ -18,11 +18,7 @@ public class CatalogItemsController : ControllerBase
     [FromHeader(Name = TenantHeaders.TenantId)] Guid tenantId,
     CancellationToken ct)
   {
-    try {
-      var result = await _useCase.ExecuteAsync(tenantId, ct);
-      return Ok(result);
-    } catch (Exception ex) {
-      return Problem(statusCode: StatusCodes.Status500InternalServerError, title: "Internal Server Error", detail: ex.Message);
-    }
+    var result = await _useCase.ExecuteAsync(tenantId, ct);
+    return Ok(result);
   }
 }

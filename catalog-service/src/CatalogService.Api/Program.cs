@@ -1,5 +1,7 @@
+using CatalogService.Api.Errors;
 using CatalogService.Application;
 using CatalogService.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,4 +19,15 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapControllers();
+
+app.UseExceptionHandler(errorApp => 
+{
+  errorApp.Run(async ctx => 
+  {
+    var result = ProblemDetailsFactory.Create(ctx, CatalogErrors.Unexpected);
+
+    await result.ExecuteResultAsync(new ActionContext{HttpContext = ctx});
+  });
+});
+
 app.Run();

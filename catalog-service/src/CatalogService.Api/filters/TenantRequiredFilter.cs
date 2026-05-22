@@ -1,33 +1,33 @@
 using CatalogService.Api.Contracts;
-using Microsoft.AspNetCore.Mvc;
+using CatalogService.Api.Errors;
 using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace CatalogService.Api.Filters;
 
-public sealed class TenantRequiredFilter : IAsyncActionFilter
+public sealed class TenantRequiredFilter : IAsyncResourceFilter
 {
-    public async Task OnActionExecutionAsync(
-        ActionExecutingContext context,
-        ActionExecutionDelegate next)
+
+    public async Task OnResourceExecutionAsync(ResourceExecutingContext context, ResourceExecutionDelegate next)
     {
-        var request = context.HttpContext.Request;
+        var httpCtx = context.HttpContext;
+        var request = httpCtx.Request;
 
         if (!request.Headers.TryGetValue(TenantHeaders.TenantId, out var headerValues)
-            || string.IsNullOrWhiteSpace(headerValues.FirstOrDefault())
-            || !Guid.TryParse(headerValues.First(), out var tenantId)
-            || tenantId == Guid.Empty)
+            || string.IsNullOrWhiteSpace(headerValues.FirstOrDefault()))
         {
-            context.Result = new ObjectResult(new ProblemDetails
-            {
-                Title = "Validation Error",
-                Detail = "Tenant ID is required",
-                Status = StatusCodes.Status400BadRequest,
-            })
-            {
-                StatusCode = StatusCodes.Status400BadRequest,
-                ContentTypes = { "application/problem+json" },
-            };
+            context.Result = ProblemDetailsFactory.Create(context.HttpContext, CatalogErrors.TenantRequired);
+            return;
+        }
 
+        if (!Guid.TryParse(headerValues.First(), out var tenantId)) 
+        {
+            context.Result = ProblemDetailsFactory.Create(context.HttpContext, CatalogErrors.TenantInvalid);
+            return;
+        }
+        
+        if (tenantId == Guid.Empty) 
+        {
+            context.Result = ProblemDetailsFactory.Create(context.HttpContext, CatalogErrors.TenantRequired);
             return;
         }
 
