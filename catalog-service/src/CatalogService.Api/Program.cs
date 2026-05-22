@@ -1,6 +1,8 @@
 using CatalogService.Api.Errors;
 using CatalogService.Application;
+using CatalogService.Domain.Common.Exceptions;
 using CatalogService.Infrastructure;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,16 +20,25 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.MapControllers();
 
 app.UseExceptionHandler(errorApp => 
 {
   errorApp.Run(async ctx => 
   {
-    var result = ProblemDetailsFactory.Create(ctx, CatalogErrors.Unexpected);
+    var feature = ctx.Features.Get<IExceptionHandlerFeature>();
+    var exception = feature?.Error;
+
+    var result = exception switch
+    {
+      CatalogDomainException domainException => ProblemDetailsFactory.Create(ctx, domainException.Error),
+      _ => ProblemDetailsFactory.Create(ctx, CatalogErrors.Unexpected)
+    };
 
     await result.ExecuteResultAsync(new ActionContext{HttpContext = ctx});
   });
 });
+
+app.MapControllers();
+
 
 app.Run();

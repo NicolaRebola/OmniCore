@@ -29,4 +29,18 @@ public static class DomainErrors
       Title: "Catalog item must have at least one variant",
       Detail: "A catalog item must contain at least one catalog variant to be projected."
     );
+
+  public static readonly DomainError InvalidVisibility = new(
+      Code: "CAT-DOM-004",
+      Layer: "Domain",
+      Title: "Invalid visibility",
+      Detail: "The visibility must be either 'commercial' or 'internal'."
+    );
+
+  public static readonly DomainError InvalidStatus = new(
+      Code: "CAT-DOM-005",
+      Layer: "Domain",
+      Title: "Invalid status",
+      Detail: "The status must be either 'active' or 'inactive'."
+    );
 }
