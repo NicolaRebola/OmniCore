@@ -1,3 +1,5 @@
+using CatalogService.Api.Contracts;
+using CatalogService.Api.Filters;
 using CatalogService.Application.Ports.Inbound;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +13,16 @@ public class CatalogItemsController : ControllerBase
       _useCase = useCase;
   }
   [HttpGet]
-  public async Task<IActionResult> GetAll([FromHeader(Name = "X-Tenant-Id")] Guid tenantId, CancellationToken ct)
+  [TenantRequired]
+  public async Task<IActionResult> GetAll(
+    [FromHeader(Name = TenantHeaders.TenantId)] Guid tenantId,
+    CancellationToken ct)
   {
-    if (tenantId == Guid.Empty) return Problem(statusCode: StatusCodes.Status400BadRequest, title: "Validation Error", detail: "Tenant ID is required");
+    try {
       var result = await _useCase.ExecuteAsync(tenantId, ct);
       return Ok(result);
+    } catch (Exception ex) {
+      return Problem(statusCode: StatusCodes.Status500InternalServerError, title: "Internal Server Error", detail: ex.Message);
+    }
   }
 }

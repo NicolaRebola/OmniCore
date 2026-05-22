@@ -14,7 +14,6 @@ public sealed class InMemoryCatalogItemRepository : ICatalogItemRepository
 
     public Task<IReadOnlyList<CatalogItem>> GetByTenantAsync(Guid tenantId, CancellationToken ct = default)
     {
-        if (tenantId == Guid.Empty) throw new ArgumentException("Tenant ID is required");
         var result = _store
             .Where(x => x.TenantId.Equals(tenantId))
             .ToList();

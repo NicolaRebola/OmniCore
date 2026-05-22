@@ -259,6 +259,20 @@ No external dependencies or secrets are required. The service runs fully in-memo
 | `ASPNETCORE_ENVIRONMENT` | `Development` | Controls environment-specific behavior |
 | `ASPNETCORE_URLS` | `http://+:8080` | Binding address inside the container |
 
+### Tenant Context
+
+### Tenant context
+Tenant-scoped endpoints require the `X-Tenant-Id` header with a valid UUID.
+- Missing or empty header → `400` with `application/problem+json`
+- Valid tenant with no data → `200` with `[]`
+- Valid tenant with data → `200` with JSON array
+Example:
+
+```bash
+curl -H "X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001" \
+http://localhost:5080/api/v1/catalog-items
+```
+
 ### Future configuration (planned)
 
 When persistence is introduced, the following will be required:
