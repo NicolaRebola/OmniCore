@@ -1,0 +1,10 @@
+# catalog-service/Tiltfile
+
+# Levanta el contenedor definido en docker-compose.dev.yml
+docker_compose('./docker-compose.dev.yml')  # pyright: ignore[reportUndefinedVariable]
+
+# Expone el recurso a Tilt para control individual
+dc_resource(  # pyright: ignore[reportUndefinedVariable]
+  'catalog-api',
+  labels=['catalog-service']
+)

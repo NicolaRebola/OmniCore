@@ -1,0 +1,4 @@
+# Orquestador raíz de OmniCore
+# Comentar/descomentar para habilitar servicios a demanda
+
+include('./catalog-service/Tiltfile')
