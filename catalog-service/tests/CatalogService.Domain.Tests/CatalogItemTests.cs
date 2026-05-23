@@ -98,5 +98,56 @@ public sealed class CatalogItemTests
         Assert.NotEmpty(item.Variants);
         Assert.Single(item.Variants);
         Assert.Equal(item.Id, item.Variants[0].CatalogItemId);
+        Assert.Equal(item.Id, item.Variants[0].CatalogItemId);
+        Assert.Equal(item.Name, item.Variants[0].Name);
+        Assert.Equal(item.Description, item.Variants[0].Description);
+        Assert.Equal(item.Status.Value, item.Variants[0].Status.Value);
+    }
+
+    [Fact]
+    public void Create_WithEmptyDescription_ShouldStillCreateDefaultVariant()
+    {
+        var item = CatalogItem.CatalogItem.Create(
+            Guid.NewGuid(),
+            "Burger",
+            "",  // descripción vacía permitida en item
+            CatalogItemType.Simple,
+            Visibility.Commercial,
+            Status.Active,
+            Guid.NewGuid());
+
+        Assert.Single(item.Variants);
+        Assert.Equal("Burger", item.Variants[0].Name);
+        Assert.Equal("", item.Variants[0].Description);
+    }
+
+    [Fact]
+    public void Create_WithInactiveStatus_ShouldCreateDefaultVariantWithSameStatus()
+    {
+        var item = CatalogItem.CatalogItem.Create(
+            Guid.NewGuid(),
+            "Tea",
+            "Herbal",
+            CatalogItemType.Simple,
+            Visibility.Internal,
+            Status.Inactive,
+            Guid.NewGuid());
+
+        Assert.Equal(Status.Inactive.Value, item.Variants[0].Status.Value);
+    }
+
+    [Fact]
+    public void Create_VariableItem_ShouldStillHaveAtLeastOneDefaultVariant()
+    {
+        var item = CatalogItem.CatalogItem.Create(
+            Guid.NewGuid(),
+            "Combo Familiar",
+            "Burger + fries",
+            CatalogItemType.Variable,
+            Visibility.Commercial,
+            Status.Active,
+            Guid.NewGuid());
+
+        Assert.Single(item.Variants);
     }
 }
