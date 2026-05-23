@@ -43,4 +43,18 @@ public static class DomainErrors
       Title: "Invalid status",
       Detail: "The status must be either 'active' or 'inactive'."
     );
+  
+  public static readonly DomainError CatalogVariantIdRequired = new(
+      Code: "CAT-DOM-006",
+      Layer: "Domain",
+      Title: "Catalog variant id is required",
+      Detail: "A catalog variant must have a non-empty id."
+    );
+  
+  public static readonly DomainError CatalogItemIdRequired = new(
+      Code: "CAT-DOM-007",
+      Layer: "Domain",
+      Title: "Catalog item id is required",
+      Detail: "A catalog item must have a non-empty id."
+    );
 }
