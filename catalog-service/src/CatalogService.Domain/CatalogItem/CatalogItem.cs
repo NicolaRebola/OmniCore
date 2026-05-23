@@ -34,10 +34,12 @@ public sealed class CatalogItem
 
     var item = new CatalogItem(id, name.Trim(), description, type, visibility, status, tenantId);
 
-    item._variants.Add(new CatalogVariant(
+    item._variants.Add(CatalogVariant.Create(
       Guid.NewGuid(),
       item.Id,
-      status
+      item.Status,
+      item.Name,
+      item.Description
     ));
     return item;
   }
