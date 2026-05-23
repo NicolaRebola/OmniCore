@@ -33,6 +33,6 @@ public sealed class CatalogVariant
 
         if (string.IsNullOrWhiteSpace(name)) throw new CatalogDomainException(DomainErrors.CatalogItemNameRequired);
 
-        return new CatalogVariant(id, catalogItemId, status, name, description);
+        return new CatalogVariant(id, catalogItemId, status, name.Trim(), description.Trim());
     }
 }

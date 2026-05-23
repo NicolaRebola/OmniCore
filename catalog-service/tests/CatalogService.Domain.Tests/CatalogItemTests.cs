@@ -98,7 +98,6 @@ public sealed class CatalogItemTests
         Assert.NotEmpty(item.Variants);
         Assert.Single(item.Variants);
         Assert.Equal(item.Id, item.Variants[0].CatalogItemId);
-        Assert.Equal(item.Id, item.Variants[0].CatalogItemId);
         Assert.Equal(item.Name, item.Variants[0].Name);
         Assert.Equal(item.Description, item.Variants[0].Description);
         Assert.Equal(item.Status.Value, item.Variants[0].Status.Value);
