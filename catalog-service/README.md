@@ -259,8 +259,6 @@ No external dependencies or secrets are required. The service runs fully in-memo
 | `ASPNETCORE_ENVIRONMENT` | `Development` | Controls environment-specific behavior |
 | `ASPNETCORE_URLS` | `http://+:8080` | Binding address inside the container |
 
-### Tenant Context
-
 ### Tenant context
 Tenant-scoped endpoints require the `X-Tenant-Id` header with a valid UUID.
 - Missing or empty header → `400` with `application/problem+json`
