@@ -149,4 +149,23 @@ public sealed class CatalogItemTests
 
         Assert.Single(item.Variants);
     }
+
+    [Fact]
+    public void Create_WithValidData_ShouldCreateDefaultVariantWithOwnIdentity()
+    {
+        var item = CatalogItem.CatalogItem.Create(
+            Guid.NewGuid(),
+            "Burger",
+            "Classic burger",
+            CatalogItemType.Simple,
+            Visibility.Commercial,
+            Status.Active,
+            Guid.NewGuid());
+
+        var variant = Assert.Single(item.Variants);
+
+        Assert.NotEqual(Guid.Empty, variant.Id);
+        Assert.NotEqual(item.Id, variant.Id);
+        Assert.Equal(item.Id, variant.CatalogItemId);
+    }
 }

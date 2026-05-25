@@ -34,4 +34,38 @@ public sealed class CatalogVariantTests
 
         Assert.Equal(DomainErrors.CatalogItemNameRequired.Code, ex.ErrorCode);
     }
+
+    [Fact]
+    public void Create_WithValidData_ShouldCreateVariant()
+    {
+        var id = Guid.NewGuid();
+        var catalogItemId = Guid.NewGuid();
+
+        var variant = CatalogVariant.Create(
+            id,
+            catalogItemId,
+            Status.Active,
+            "XL",
+            "Extra large size");
+
+        Assert.Equal(id, variant.Id);
+        Assert.Equal(catalogItemId, variant.CatalogItemId);
+        Assert.Equal("XL", variant.Name);
+        Assert.Equal("Extra large size", variant.Description);
+        Assert.Equal(Status.Active.Value, variant.Status.Value);
+    }
+
+    [Fact]
+    public void Create_WithWhitespaceAroundNameAndDescription_ShouldTrimValues()
+    {
+        var variant = CatalogVariant.Create(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Status.Active,
+            "  XL  ",
+            "  Extra large size  ");
+
+        Assert.Equal("XL", variant.Name);
+        Assert.Equal("Extra large size", variant.Description);
+    }
 }
