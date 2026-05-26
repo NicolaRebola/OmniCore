@@ -7,4 +7,5 @@ public interface ICatalogItemRepository
 {
     Task<IReadOnlyList<CatalogItem>> GetByTenantAsync(Guid tenantId, CancellationToken ct = default);
     Task<CatalogItem?> GetByIdAsync(Guid tenantId, Guid id, CancellationToken ct = default); 
+    Task<CatalogItem> CreateAsync(CatalogItem item, CancellationToken ct = default);
 }

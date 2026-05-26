@@ -28,4 +28,10 @@ public sealed class InMemoryCatalogItemRepository : ICatalogItemRepository
         var result = _store.FirstOrDefault(x => x.TenantId.Equals(tenantId) && x.Id.Equals(id));
         return Task.FromResult(result);
     }
+
+    public Task<CatalogItem> CreateAsync(CatalogItem item, CancellationToken ct = default)
+    {
+        _store.Add(item);
+        return Task.FromResult(item);
+    }
 }
