@@ -6,5 +6,6 @@ public sealed record CatalogItemDto(
   string Type,
   string Visibility,
   string Status,
-  Guid TenantId
+  Guid TenantId,
+  IReadOnlyList<CatalogVariantDto> Variants
 );
