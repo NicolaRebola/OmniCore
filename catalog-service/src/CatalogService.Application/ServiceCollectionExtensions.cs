@@ -1,5 +1,4 @@
 using CatalogService.Application.Ports.Inbound;
-using CatalogService.Application.Ports.Outbound;
 using CatalogService.Application.UseCases;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,6 +10,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddScoped<IGetCatalogItemsUseCase, GetCatalogItemsHandler>();
         services.AddScoped<IGetCatalogItemDetailUseCase, GetCatalogItemDetailHandler>();
+        services.AddScoped<ICreateCatalogItemUseCase, CreateCatalogItemHandler>();
         return services;
     }
 }
