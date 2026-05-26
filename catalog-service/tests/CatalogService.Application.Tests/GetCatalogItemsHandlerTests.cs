@@ -90,5 +90,13 @@ public sealed class GetCatalogItemsHandlerTests
       ReceivedTenantId = tenantId;
       return Task.FromResult(_items);
     }
+
+    public Task<CatalogItem?> GetByIdAsync(
+      Guid tenantId,
+      Guid id,
+      CancellationToken ct = default)
+    {
+        return Task.FromResult(_items.FirstOrDefault(i => i.TenantId == tenantId && i.Id == id));
+    }
   }
 }

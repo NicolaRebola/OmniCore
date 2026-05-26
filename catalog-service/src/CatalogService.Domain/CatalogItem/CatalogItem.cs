@@ -39,7 +39,8 @@ public sealed class CatalogItem
       item.Id,
       item.Status,
       item.Name,
-      item.Description
+      item.Description,
+      tenantId
     ));
     return item;
   }

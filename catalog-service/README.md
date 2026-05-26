@@ -233,6 +233,11 @@ The service currently exposes a REST API via ASP.NET Core Controllers.
 | Method | Path | Required Headers | Description |
 |---|---|---|
 | `GET` | `/api/v1/catalog-items` | `X-Tenant-Id: {uuid}` | Returns all catalog items for a tenant |
+| `GET` | `/api/v1/catalog-items/{id}` | `X-Tenant-Id: {uuid}` | Returns the administrative detail for one catalog item, including its variants |
+
+`GET /api/v1/catalog-items/{id}` is an administrative view of the `CatalogItem`
+aggregate. Public catalog/menu projections should consume `CatalogVariant` as the
+primary read unit instead of treating `CatalogItem` as the public-facing resource.
 
 **OpenAPI spec** (Development only):
 ```
@@ -271,6 +276,19 @@ curl -H "X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001" \
 http://localhost:5080/api/v1/catalog-items
 ```
 
+Administrative item detail:
+
+```bash
+curl -H "X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001" \
+http://localhost:5080/api/v1/catalog-items/aaaaaaaa-0000-0000-0000-000000000001
+```
+
+Detail behavior:
+- Existing item in the tenant -> `200` with item fields and `variants`.
+- Unknown item -> `404` with `application/problem+json`.
+- Item belonging to another tenant -> `404` with `application/problem+json`.
+- Empty item id -> `400` with `application/problem+json`.
+
 ### Future configuration (planned)
 
 When persistence is introduced, the following will be required:
@@ -293,6 +311,8 @@ dotnet test CatalogService.sln
 # Specific project
 dotnet test tests/CatalogService.Domain.Tests
 dotnet test tests/CatalogService.Application.Tests
+dotnet test tests/CatalogService.Infrastructure.Tests
+dotnet test tests/CatalogService.Api.Tests
 ```
 
 ---

@@ -26,6 +26,14 @@ public static class CatalogErrors
         Detail: "The X-Tenant-Id header must be a valid UUID.",
         Type: "https://docs.omnicore.local/problems/catalog/api/tenant-invalid");
 
+    public static readonly CatalogError CatalogItemIdInvalid = new(
+        Code: "CAT-API-003",
+        Layer: "Api",
+        StatusCode: StatusCodes.Status400BadRequest,
+        Title: "Catalog item ID is invalid",
+        Detail: "The catalog item ID must be a valid UUID.",
+        Type: "https://docs.omnicore.local/problems/catalog/api/catalog-item-id-invalid");
+
     public static readonly CatalogError Unexpected = new(
         Code: "CAT-API-999",
         Layer: "Api",

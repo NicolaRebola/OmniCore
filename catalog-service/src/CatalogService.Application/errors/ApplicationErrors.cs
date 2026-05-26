@@ -23,10 +23,10 @@ public static class ApplicationErrors
     Detail: "The catalog item cannot be modified because it conflicts with the current application state."
   );
 
-  public static readonly ApplicationError UseCaseValidationFailed = new(
+  public static readonly ApplicationError CatalogItemMustHaveVariant = new(
     Code: "CAT-APP-003",
     Layer: "Application",
-    Title: "Use case validation failed",
-    Detail: "The request could not be processed because one or more application-level rules failed."
+    Title: "Catalog item must have at least one variant",
+    Detail: "A catalog item must contain at least one catalog variant to be projected."
   );
 }

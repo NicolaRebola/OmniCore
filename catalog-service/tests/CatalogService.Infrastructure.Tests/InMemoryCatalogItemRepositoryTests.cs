@@ -51,4 +51,43 @@ public sealed class InMemoryCatalogItemRepositoryTests
     var result = await repo.GetByTenantAsync(DevSeed.TenantId);
     Assert.NotNull(result);
   }
+
+  [Fact]
+  public async Task GetByIdAsync_WithSeedTenantAndExistingItem_ReturnsItem()
+  {
+    var repo = new InMemoryCatalogItemRepository();
+    var tenantId = DevSeed.TenantId;
+    var seedItems = await repo.GetByTenantAsync(tenantId);
+    var expected = seedItems[0];
+
+    var result = await repo.GetByIdAsync(tenantId, expected.Id);
+
+    Assert.NotNull(result);
+    Assert.Equal(expected.Id, result.Id);
+    Assert.Equal(tenantId, result.TenantId);
+  }
+
+  [Fact]
+  public async Task GetByIdAsync_WithUnknownItem_ReturnsNull()
+  {
+    var repo = new InMemoryCatalogItemRepository();
+
+    var result = await repo.GetByIdAsync(DevSeed.TenantId, Guid.NewGuid());
+
+    Assert.Null(result);
+  }
+
+  [Fact]
+  public async Task GetByIdAsync_WithExistingItemFromAnotherTenant_ReturnsNull()
+  {
+    var repo = new InMemoryCatalogItemRepository();
+    var tenantId = DevSeed.TenantId;
+    var otherTenantId = Guid.NewGuid();
+    var seedItems = await repo.GetByTenantAsync(tenantId);
+    var existingItemId = seedItems[0].Id;
+
+    var result = await repo.GetByIdAsync(otherTenantId, existingItemId);
+
+    Assert.Null(result);
+  }
 }
