@@ -33,6 +33,14 @@ public static class CatalogErrors
         Title: "Catalog item ID is invalid",
         Detail: "The catalog item ID must be a valid UUID.",
         Type: "https://docs.omnicore.local/problems/catalog/api/catalog-item-id-invalid");
+    
+    public static readonly CatalogError CreateCatalogItemInvalid = new(
+        Code: "CAT-API-004",
+        Layer: "Api",
+        StatusCode: StatusCodes.Status400BadRequest,
+        Title: "Create catalog item is invalid",
+        Detail: "The create catalog item command is invalid.",
+        Type: "https://docs.omnicore.local/problems/catalog/api/create-catalog-item-invalid");
 
     public static readonly CatalogError Unexpected = new(
         Code: "CAT-API-999",

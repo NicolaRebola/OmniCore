@@ -90,4 +90,5 @@ public sealed class InMemoryCatalogItemRepositoryTests
 
     Assert.Null(result);
   }
+
 }
