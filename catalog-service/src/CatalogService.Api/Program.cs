@@ -1,5 +1,6 @@
 using CatalogService.Api.Errors;
 using CatalogService.Application;
+using CatalogService.Application.Common.Exceptions;
 using CatalogService.Domain.Common.Exceptions;
 using CatalogService.Infrastructure;
 using Microsoft.AspNetCore.Diagnostics;
@@ -31,6 +32,7 @@ app.UseExceptionHandler(errorApp =>
     var result = exception switch
     {
       CatalogDomainException domainException => ProblemDetailsFactory.Create(ctx, domainException.Error),
+      CatalogApplicationException applicationException => ProblemDetailsFactory.Create(ctx, applicationException.Error),
       _ => ProblemDetailsFactory.Create(ctx, CatalogErrors.Unexpected)
     };
 
