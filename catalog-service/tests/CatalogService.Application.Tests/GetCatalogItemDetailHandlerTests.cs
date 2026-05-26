@@ -129,5 +129,12 @@ public sealed class GetCatalogItemDetailHandlerTests
       var item = _items.FirstOrDefault(i => i.TenantId == tenantId && i.Id == id);
       return Task.FromResult(item);
     }
+
+    public Task<CatalogItem> CreateAsync(
+      CatalogItem item,
+      CancellationToken ct = default)
+    {
+      return Task.FromResult(item);
+    }
   }
 }

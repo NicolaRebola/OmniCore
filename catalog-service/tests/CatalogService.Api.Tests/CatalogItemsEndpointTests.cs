@@ -228,4 +228,5 @@ public sealed class CatalogItemsEndpointTests
 
         client.Dispose();
     }
+
 }

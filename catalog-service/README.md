@@ -234,6 +234,7 @@ The service currently exposes a REST API via ASP.NET Core Controllers.
 |---|---|---|
 | `GET` | `/api/v1/catalog-items` | `X-Tenant-Id: {uuid}` | Returns all catalog items for a tenant |
 | `GET` | `/api/v1/catalog-items/{id}` | `X-Tenant-Id: {uuid}` | Returns the administrative detail for one catalog item, including its variants |
+| `POST` | `/api/v1/catalog-items` | `X-Tenant-Id: {uuid}` | Creates a catalog item for a tenant |
 
 `GET /api/v1/catalog-items/{id}` is an administrative view of the `CatalogItem`
 aggregate. Public catalog/menu projections should consume `CatalogVariant` as the
@@ -288,6 +289,25 @@ Detail behavior:
 - Unknown item -> `404` with `application/problem+json`.
 - Item belonging to another tenant -> `404` with `application/problem+json`.
 - Empty item id -> `400` with `application/problem+json`.
+
+Administrative item creation:
+
+```bash
+curl -X POST http://localhost:5080/api/v1/catalog-items \
+  -H "Content-Type: application/json" \
+  -H "X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001" \
+  -d '{
+    "name": "Producto nuevo",
+    "tenantId": "aaaaaaaa-0000-0000-0000-000000000001",
+    "description": "Algo nuevo",
+    "type": "simple",
+    "visibility": "commercial",
+    "status": "active"
+  }'
+```
+
+Creation behavior:
+- A valid item -> `201` with the created item and its default variant.
 
 ### Future configuration (planned)
 
