@@ -57,4 +57,10 @@ public static class DomainErrors
       Title: "Catalog item id is required",
       Detail: "A catalog item must have a non-empty id."
     );
+  public static readonly DomainError InvalidCatalogItemType = new(
+      Code: "CAT-DOM-008",
+      Layer: "Domain",
+      Title: "Invalid catalog item type",
+      Detail: "The catalog item type must be either 'simple' or 'variable'."
+    );
 }
