@@ -168,4 +168,87 @@ public sealed class CatalogItemTests
         Assert.NotEqual(item.Id, variant.Id);
         Assert.Equal(item.Id, variant.CatalogItemId);
     }
+
+    [Fact]
+    public void Update_WithValidData_ShouldUpdateDescriptiveFields()
+    {
+        var item = CreateItem();
+
+        item.Update("  Updated Burger  ", "  Better description  ", Visibility.Internal, Status.Inactive);
+
+        Assert.Equal("Updated Burger", item.Name);
+        Assert.Equal("Better description", item.Description);
+        Assert.Equal(Visibility.Internal.Value, item.Visibility.Value);
+        Assert.Equal(Status.Inactive.Value, item.Status.Value);
+    }
+
+    [Fact]
+    public void Update_WithEmptyName_ShouldThrowCatalogDomainException()
+    {
+        var item = CreateItem();
+
+        var ex = Assert.Throws<CatalogDomainException>(() =>
+            item.Update("   ", "Updated description", Visibility.Internal, Status.Inactive));
+
+        Assert.Equal(DomainErrors.CatalogItemNameRequired.Code, ex.ErrorCode);
+    }
+
+    [Fact]
+    public void Update_WithNullDescription_ShouldNormalizeToEmptyDescription()
+    {
+        var item = CreateItem();
+
+        item.Update("Burger", null, Visibility.Commercial, Status.Active);
+
+        Assert.Equal("", item.Description);
+    }
+
+    [Fact]
+    public void Update_WithNullVisibility_ShouldThrowCatalogDomainException()
+    {
+        var item = CreateItem();
+
+        var ex = Assert.Throws<CatalogDomainException>(() =>
+            item.Update("Burger", "Description", null, Status.Active));
+
+        Assert.Equal(DomainErrors.InvalidVisibility.Code, ex.ErrorCode);
+    }
+
+    [Fact]
+    public void Update_WithNullStatus_ShouldThrowCatalogDomainException()
+    {
+        var item = CreateItem();
+
+        var ex = Assert.Throws<CatalogDomainException>(() =>
+            item.Update("Burger", "Description", Visibility.Commercial, null));
+
+        Assert.Equal(DomainErrors.InvalidStatus.Code, ex.ErrorCode);
+    }
+
+    [Fact]
+    public void Update_ShouldKeepExistingVariantsUnchanged()
+    {
+        var item = CreateItem();
+        var variant = Assert.Single(item.Variants);
+        var originalVariantName = variant.Name;
+        var originalVariantDescription = variant.Description;
+        var originalVariantStatus = variant.Status.Value;
+
+        item.Update("Updated Burger", "Updated description", Visibility.Internal, Status.Inactive);
+
+        var updatedVariant = Assert.Single(item.Variants);
+        Assert.Equal(originalVariantName, updatedVariant.Name);
+        Assert.Equal(originalVariantDescription, updatedVariant.Description);
+        Assert.Equal(originalVariantStatus, updatedVariant.Status.Value);
+    }
+
+    private static CatalogItem.CatalogItem CreateItem() =>
+        CatalogItem.CatalogItem.Create(
+            Guid.NewGuid(),
+            "Burger",
+            "Classic burger",
+            CatalogItemType.Simple,
+            Visibility.Commercial,
+            Status.Active,
+            Guid.NewGuid());
 }
