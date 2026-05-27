@@ -12,14 +12,17 @@ public class CatalogItemsController : ControllerBase
   private readonly IGetCatalogItemsUseCase _getCatalogItemsUseCase;
   private readonly IGetCatalogItemDetailUseCase _getCatalogItemDetailUseCase;
   private readonly ICreateCatalogItemUseCase _createCatalogItemUseCase;
+  private readonly IUpdateCatalogItemsUseCase _updateCatalogItemsUseCase;
   public CatalogItemsController(
     IGetCatalogItemsUseCase getCatalogItemsUseCase,
     IGetCatalogItemDetailUseCase getCatalogItemDetailUseCase,
-    ICreateCatalogItemUseCase createCatalogItemUseCase)
+    ICreateCatalogItemUseCase createCatalogItemUseCase,
+    IUpdateCatalogItemsUseCase updateCatalogItemsUseCase)
   {
       _getCatalogItemsUseCase = getCatalogItemsUseCase;
       _getCatalogItemDetailUseCase = getCatalogItemDetailUseCase;
       _createCatalogItemUseCase = createCatalogItemUseCase;
+      _updateCatalogItemsUseCase = updateCatalogItemsUseCase;
   }
 
   [HttpGet]
@@ -54,5 +57,19 @@ public class CatalogItemsController : ControllerBase
     if (command == null) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.CreateCatalogItemInvalid);
     var result = await _createCatalogItemUseCase.ExecuteAsync(tenantId, command, ct);
     return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+  }
+
+  [HttpPut("{id:guid}")]
+  [TenantRequired]
+  public async Task<IActionResult> Update(
+    [FromHeader(Name = TenantHeaders.TenantId)] Guid tenantId,
+    [FromRoute] Guid id,
+    [FromBody] UpdateCatalogItemCommand command,
+    CancellationToken ct)
+  {
+    if (id == Guid.Empty) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.CatalogItemIdInvalid);
+    if (command == null) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.UpdateCatalogItemInvalid);
+    var result = await _updateCatalogItemsUseCase.ExecuteAsync(tenantId, id, command, ct);
+    return Ok(result);
   }
 }

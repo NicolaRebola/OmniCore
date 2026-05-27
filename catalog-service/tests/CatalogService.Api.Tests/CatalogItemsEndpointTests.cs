@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
@@ -228,5 +229,139 @@ public sealed class CatalogItemsEndpointTests
 
         client.Dispose();
     }
+
+    [Fact]
+    public async Task UpdateCatalogItem_WithValidRequest_ShouldReturnOkAndUpdatedItem()
+    {
+        // Arrange
+        var client = CreateClient();
+        var tenantId = Guid.NewGuid().ToString();
+        var itemId = await CreateCatalogItemAsync(client, tenantId);
+        var request = new HttpRequestMessage(
+            HttpMethod.Put,
+            $"/api/v1/catalog-items/{itemId}");
+        request.Headers.Add("X-Tenant-Id", tenantId);
+        request.Content = JsonContent("""
+            {
+              "name": "Updated item",
+              "description": "Updated description",
+              "visibility": "internal",
+              "status": "inactive"
+            }
+            """);
+
+        // Act
+        var response = await client.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal(itemId, json.RootElement.GetProperty("id").GetString());
+        Assert.Equal("Updated item", json.RootElement.GetProperty("name").GetString());
+        Assert.Equal("Updated description", json.RootElement.GetProperty("description").GetString());
+        Assert.Equal("internal", json.RootElement.GetProperty("visibility").GetString());
+        Assert.Equal("inactive", json.RootElement.GetProperty("status").GetString());
+        Assert.Equal(tenantId, json.RootElement.GetProperty("tenantId").GetString());
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task UpdateCatalogItem_WithEmptyName_ShouldReturnDomainProblem()
+    {
+        // Arrange
+        var client = CreateClient();
+        var tenantId = Guid.NewGuid().ToString();
+        var itemId = await CreateCatalogItemAsync(client, tenantId);
+        var request = new HttpRequestMessage(
+            HttpMethod.Put,
+            $"/api/v1/catalog-items/{itemId}");
+        request.Headers.Add("X-Tenant-Id", tenantId);
+        request.Content = JsonContent("""
+            {
+              "name": "   ",
+              "description": "Updated description",
+              "visibility": "commercial",
+              "status": "active"
+            }
+            """);
+
+        // Act
+        var response = await client.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal("CAT-DOM-001", json.RootElement.GetProperty("errorCode").GetString());
+        Assert.Equal("Domain", json.RootElement.GetProperty("layer").GetString());
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task UpdateCatalogItem_WithUnknownItem_ShouldReturnNotFoundProblem()
+    {
+        // Arrange
+        var client = CreateClient();
+        var request = new HttpRequestMessage(
+            HttpMethod.Put,
+            $"/api/v1/catalog-items/{Guid.NewGuid()}");
+        request.Headers.Add("X-Tenant-Id", _seedTenantId);
+        request.Content = JsonContent("""
+            {
+              "name": "Updated item",
+              "description": "Updated description",
+              "visibility": "commercial",
+              "status": "active"
+            }
+            """);
+
+        // Act
+        var response = await client.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal("CAT-APP-001", json.RootElement.GetProperty("errorCode").GetString());
+        Assert.Equal("Application", json.RootElement.GetProperty("layer").GetString());
+
+        client.Dispose();
+    }
+
+    private static async Task<string> CreateCatalogItemAsync(HttpClient client, string tenantId)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/catalog-items");
+        request.Headers.Add("X-Tenant-Id", tenantId);
+        request.Content = JsonContent($$"""
+            {
+              "name": "Created item",
+              "tenantId": "{{tenantId}}",
+              "description": "Initial description",
+              "type": "simple",
+              "visibility": "commercial",
+              "status": "active"
+            }
+            """);
+
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+        return json.RootElement.GetProperty("id").GetString()!;
+    }
+
+    private static StringContent JsonContent(string json) =>
+        new(json, Encoding.UTF8, "application/json");
 
 }

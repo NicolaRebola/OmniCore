@@ -136,5 +136,10 @@ public sealed class GetCatalogItemDetailHandlerTests
     {
       return Task.FromResult(item);
     }
+
+    public Task<CatalogItem> SaveAsync(CatalogItem item, CancellationToken ct = default)
+    {
+      return Task.FromResult(item);
+    }
   }
 }

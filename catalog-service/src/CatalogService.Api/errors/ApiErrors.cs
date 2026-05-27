@@ -42,6 +42,14 @@ public static class CatalogErrors
         Detail: "The create catalog item command is invalid.",
         Type: "https://docs.omnicore.local/problems/catalog/api/create-catalog-item-invalid");
 
+    public static readonly CatalogError UpdateCatalogItemInvalid = new(
+        Code: "CAT-API-005",
+        Layer: "Api",
+        StatusCode: StatusCodes.Status400BadRequest,
+        Title: "Update catalog item is invalid",
+        Detail: "The update catalog item command is invalid.",
+        Type: "https://docs.omnicore.local/problems/catalog/api/update-catalog-item-invalid");
+
     public static readonly CatalogError Unexpected = new(
         Code: "CAT-API-999",
         Layer: "Api",
