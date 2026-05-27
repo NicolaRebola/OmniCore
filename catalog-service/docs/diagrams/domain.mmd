@@ -16,6 +16,9 @@ classDiagram
     class CatalogVariant {
         <<Entity>>
         UUID id
+        UUID catalogItemId
+        string name
+        string description
         Status status
         Price price?
     }
@@ -152,6 +155,6 @@ classDiagram
 
     %% Projection invariant:
     %% The system generates at least one CatalogVariant for each CatalogItem.
-    %% This generated variant has no "Default" label; it only guarantees projection readiness.
+    %% The generated variant inherits the parent item name, description, and status.
     %% Projections always list CatalogVariants, enriched by CatalogItem + CatalogTemplate.
     %% A CatalogVariant can own identifiers, media, price, and optionally override category.

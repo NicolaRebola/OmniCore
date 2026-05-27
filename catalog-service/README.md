@@ -128,6 +128,7 @@ classDiagram
 
 **Key invariants:**
 - Every `CatalogItem` has at least one `CatalogVariant` (auto-generated).
+- The auto-generated variant guarantees a minimum child entity; it is not kept synchronized with later descriptive updates to the `CatalogItem`.
 - `CatalogTemplate` is global (not tenant-scoped) and defines the attribute schema.
 - `CatalogItem`, `CatalogVariant`, `Option`, and `Category` are tenant-scoped.
 - `Catalog` and `Menu` are **runtime projections** — they are computed on read and are never persisted.
@@ -235,6 +236,7 @@ The service currently exposes a REST API via ASP.NET Core Controllers.
 | `GET` | `/api/v1/catalog-items` | `X-Tenant-Id: {uuid}` | Returns all catalog items for a tenant |
 | `GET` | `/api/v1/catalog-items/{id}` | `X-Tenant-Id: {uuid}` | Returns the administrative detail for one catalog item, including its variants |
 | `POST` | `/api/v1/catalog-items` | `X-Tenant-Id: {uuid}` | Creates a catalog item for a tenant |
+| `PUT` | `/api/v1/catalog-items/{id}` | `X-Tenant-Id: {uuid}` | Replaces descriptive catalog item data |
 
 `GET /api/v1/catalog-items/{id}` is an administrative view of the `CatalogItem`
 aggregate. Public catalog/menu projections should consume `CatalogVariant` as the
@@ -308,6 +310,26 @@ curl -X POST http://localhost:5080/api/v1/catalog-items \
 
 Creation behavior:
 - A valid item -> `201` with the created item and its default variant.
+
+Administrative item update:
+
+```bash
+curl -X PUT http://localhost:5080/api/v1/catalog-items/aaaaaaaa-0000-0000-0000-000000000001 \
+  -H "Content-Type: application/json" \
+  -H "X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001" \
+  -d '{
+    "name": "Producto actualizado",
+    "description": "Descripcion actualizada",
+    "visibility": "internal",
+    "status": "inactive"
+  }'
+```
+
+Update behavior:
+- Existing item in the tenant -> `200` with the updated item.
+- Unknown item or item belonging to another tenant -> `404` with `application/problem+json`.
+- Invalid name, visibility, or status -> `400` with `application/problem+json`.
+- Existing variants are preserved as independent child entities; update does not synchronize their descriptive fields.
 
 ### Future configuration (planned)
 

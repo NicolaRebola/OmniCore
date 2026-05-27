@@ -19,6 +19,7 @@ Planning and product/domain analysis for the Catalog Service live in Notion.
 - Phase statuses are managed in Notion.
 - Do not mark a phase as `Completed` without explicit user confirmation.
 - The current domain model is centered on `CatalogItem`, with `CatalogVariant` as the universal projected unit.
+- The default variant created with a `CatalogItem` guarantees at least one variant; later `CatalogItem` descriptive updates do not synchronize variant fields.
 - Catalog and Menu are runtime projections, not persisted domain entities.
 - `CatalogTemplate` is shared/global, not tenant-scoped.
 - `CatalogItem`, `CatalogVariant`, `Option`, and `Category` are tenant-scoped.
