@@ -34,4 +34,14 @@ public sealed class InMemoryCatalogItemRepository : ICatalogItemRepository
         _store.Add(item);
         return Task.FromResult(item);
     }
+
+    public Task<CatalogItem> SaveAsync(CatalogItem item, CancellationToken ct = default)
+    {
+        if (item.Id == Guid.Empty) return CreateAsync(item, ct);
+        var existingItem = _store.FirstOrDefault(x => x.Id.Equals(item.Id));
+        if (existingItem == null) return CreateAsync(item, ct);
+        _store.Remove(existingItem);
+        _store.Add(item);
+        return Task.FromResult(item);
+    }
 }

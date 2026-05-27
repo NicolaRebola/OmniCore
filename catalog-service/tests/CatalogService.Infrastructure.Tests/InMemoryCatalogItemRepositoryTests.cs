@@ -1,5 +1,7 @@
 using CatalogService.Infrastructure.Dev;
 using CatalogService.Infrastructure.Repositories;
+using CatalogService.Domain.CatalogItem;
+using CatalogService.Domain.Common.Enums;
 using Xunit;
 namespace CatalogService.Infrastructure.Tests;
 
@@ -89,6 +91,36 @@ public sealed class InMemoryCatalogItemRepositoryTests
     var result = await repo.GetByIdAsync(otherTenantId, existingItemId);
 
     Assert.Null(result);
+  }
+
+  [Fact]
+  public async Task SaveAsync_WithExistingItem_ShouldPersistUpdatedStateWithoutAddingDuplicate()
+  {
+    var repo = new InMemoryCatalogItemRepository();
+    var tenantId = Guid.NewGuid();
+    var item = CatalogItem.Create(
+      Guid.NewGuid(),
+      "New item",
+      "Initial description",
+      CatalogItemType.Simple,
+      Visibility.Commercial,
+      Status.Active,
+      tenantId);
+
+    await repo.CreateAsync(item);
+    item.Update("Updated item", "Updated description", Visibility.Internal, Status.Inactive);
+    await repo.SaveAsync(item);
+
+    var updatedItem = await repo.GetByIdAsync(tenantId, item.Id);
+    var tenantItems = await repo.GetByTenantAsync(tenantId);
+
+    Assert.NotNull(updatedItem);
+    Assert.Equal("Updated item", updatedItem.Name);
+    Assert.Equal("Updated description", updatedItem.Description);
+    Assert.Equal(Visibility.Internal.Value, updatedItem.Visibility.Value);
+    Assert.Equal(Status.Inactive.Value, updatedItem.Status.Value);
+    Assert.Single(tenantItems);
+    Assert.Single(tenantItems, x => x.Id == item.Id);
   }
 
 }
