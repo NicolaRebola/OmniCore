@@ -91,6 +91,7 @@ classDiagram
         <<AggregateRoot>>
         UUID id
         UUID tenantId
+        UUID categoryId?
         string name
         string description
         Type type
@@ -102,6 +103,7 @@ classDiagram
     class CatalogVariant {
         <<Entity>>
         UUID id
+        UUID categoryId?
         Status status
         Price price?
     }
@@ -118,18 +120,20 @@ classDiagram
         UUID id
         UUID tenantId
         string name
+        Status status
     }
 
     CatalogItem "1" *-- "1..*" CatalogVariant : contains
     CatalogItem "0..*" --> "1" CatalogTemplate : decorated by
-    CatalogItem "0..*" --> "1" Category : grouped by
-    CatalogVariant "0..*" --> "0..1" Category : overrides grouping
+    CatalogItem "0..*" --> "0..1" Category : grouped by
+    CatalogVariant "0..*" --> "0..1" Category : carries grouping
 ```
 
 **Key invariants:**
 - Every `CatalogItem` has at least one `CatalogVariant` (auto-generated).
 - `CatalogTemplate` is global (not tenant-scoped) and defines the attribute schema.
 - `CatalogItem`, `CatalogVariant`, `Option`, and `Category` are tenant-scoped.
+- `CatalogItem.CategoryId` is optional. When present on create, it must point to an active category from the same tenant.
 - `Catalog` and `Menu` are **runtime projections** — they are computed on read and are never persisted.
 
 Full domain diagram: [`docs/diagrams/domain.mmd`](./docs/diagrams/domain.mmd)
@@ -236,6 +240,10 @@ The service currently exposes a REST API via ASP.NET Core Controllers.
 | `GET` | `/api/v1/catalog-items` | `X-Tenant-Id: {uuid}` | Returns all catalog items for a tenant |
 | `GET` | `/api/v1/catalog-items/{id}` | `X-Tenant-Id: {uuid}` | Returns the administrative detail for one catalog item, including its variants |
 | `POST` | `/api/v1/catalog-items` | `X-Tenant-Id: {uuid}` | Creates a catalog item for a tenant |
+| `GET` | `/api/v1/categories` | `X-Tenant-Id: {uuid}` | Returns active categories for a tenant |
+| `POST` | `/api/v1/categories` | `X-Tenant-Id: {uuid}` | Creates a tenant-scoped category |
+| `PATCH` | `/api/v1/categories/{id}` | `X-Tenant-Id: {uuid}` | Updates a category name and/or status |
+| `DELETE` | `/api/v1/categories/{id}` | `X-Tenant-Id: {uuid}` | Deactivates a category |
 
 `GET /api/v1/catalog-items/{id}` is an administrative view of the `CatalogItem`
 aggregate. Public catalog/menu projections should consume `CatalogVariant` as the
@@ -303,12 +311,45 @@ curl -X POST http://localhost:5080/api/v1/catalog-items \
     "description": "Algo nuevo",
     "type": "simple",
     "visibility": "commercial",
-    "status": "active"
+    "status": "active",
+    "categoryId": "aaaaaaaa-0000-0000-0000-000000000001"
   }'
 ```
 
 Creation behavior:
 - A valid item -> `201` with the created item and its default variant.
+- `categoryId` is optional.
+- A provided `categoryId` must belong to the current tenant and be active.
+- Unknown or other-tenant category -> `404` with `CAT-APP-004`.
+- Inactive category -> `400` with `CAT-APP-007`.
+
+Administrative category management:
+
+```bash
+curl -X POST http://localhost:5080/api/v1/categories \
+  -H "Content-Type: application/json" \
+  -H "X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001" \
+  -d '{ "name": "Bebidas" }'
+
+curl -H "X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001" \
+  http://localhost:5080/api/v1/categories
+
+curl -X PATCH http://localhost:5080/api/v1/categories/{id} \
+  -H "Content-Type: application/json" \
+  -H "X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001" \
+  -d '{ "name": "Bebidas frias", "status": "active" }'
+
+curl -X DELETE http://localhost:5080/api/v1/categories/{id} \
+  -H "X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001"
+```
+
+Category behavior:
+- `GET /api/v1/categories` returns active categories only.
+- `DELETE` is semantic deactivation; it does not cascade into catalog items.
+- Existing item references are preserved when a category becomes inactive.
+
+Full API notes: [`docs/api.md`](./docs/api.md)  
+Command/DTO contracts: [`docs/contracts.md`](./docs/contracts.md)
 
 ### Future configuration (planned)
 
@@ -357,6 +398,10 @@ This service is planned and documented in **Notion**. The repository stays align
 | Phase 3 — Architectural Analysis | [Notion](https://www.notion.so/367bd6def30d81aaabe9d99c8cfc7ed6) |
 | Domain diagram | [`docs/diagrams/domain.mmd`](./docs/diagrams/domain.mmd) |
 | Test strategy | [`docs/testing.md`](./docs/testing.md) |
+| API contract | [`docs/api.md`](./docs/api.md) |
+| Commands and DTOs | [`docs/contracts.md`](./docs/contracts.md) |
+| RFC-014 | [`docs/rfcs/RFC-014-category-domain-and-api.md`](./docs/rfcs/RFC-014-category-domain-and-api.md) |
+| ADR-003 | [`docs/adrs/ADR-003-category-item-association.md`](./docs/adrs/ADR-003-category-item-association.md) |
 | Notion reference index | [`docs/notion.md`](./docs/notion.md) |
 
 > Phase statuses are tracked in Notion. See [`docs/notion.md`](./docs/notion.md) for the full reference.
