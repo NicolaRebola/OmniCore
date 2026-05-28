@@ -173,6 +173,7 @@ catalog-service/
 │
 ├── docs/
 │   ├── notion.md                           # Links to Notion planning pages
+│   ├── testing.md                          # Test strategy, local verification, CI notes
 │   └── diagrams/
 │       ├── domain.mmd                      # Domain model (Mermaid)
 │       └── use-cases.mmd                   # Use case diagram (Mermaid)
@@ -324,9 +325,15 @@ Secrets will never be committed to the repository. They will be managed via envi
 
 ## Running Tests
 
+Testing is organized by architectural layer. See [`docs/testing.md`](./docs/testing.md) for the full strategy, naming conventions, CI behavior and future gaps.
+
 ```bash
 # All tests
 dotnet test CatalogService.sln
+
+# Build plus tests
+dotnet build CatalogService.sln
+dotnet test CatalogService.sln --no-build
 
 # Specific project
 dotnet test tests/CatalogService.Domain.Tests
@@ -349,6 +356,7 @@ This service is planned and documented in **Notion**. The repository stays align
 | Phase 2 — Requirements Engineering | [Notion](https://www.notion.so/367bd6def30d810eadcbc99d51959aed) |
 | Phase 3 — Architectural Analysis | [Notion](https://www.notion.so/367bd6def30d81aaabe9d99c8cfc7ed6) |
 | Domain diagram | [`docs/diagrams/domain.mmd`](./docs/diagrams/domain.mmd) |
+| Test strategy | [`docs/testing.md`](./docs/testing.md) |
 | Notion reference index | [`docs/notion.md`](./docs/notion.md) |
 
 > Phase statuses are tracked in Notion. See [`docs/notion.md`](./docs/notion.md) for the full reference.

@@ -14,6 +14,10 @@ Planning and product/domain analysis for the Catalog Service live in Notion.
 
 - [Expected Outputs](https://www.notion.so/8cbbb8580c1847fea19391446b8212d3)
 
+## Local Documentation
+
+- [Testing Strategy](./testing.md)
+
 ## Notes
 
 - Phase statuses are managed in Notion.
