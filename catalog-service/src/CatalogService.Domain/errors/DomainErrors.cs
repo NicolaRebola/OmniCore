@@ -63,4 +63,18 @@ public static class DomainErrors
       Title: "Invalid catalog item type",
       Detail: "The catalog item type must be either 'simple' or 'variable'."
     );
+
+  public static readonly DomainError CategoryNameRequired = new(
+      Code: "CAT-DOM-009",
+      Layer: "Domain",
+      Title: "Category name is required",
+      Detail: "A category must have a non-empty name."
+    );
+
+  public static readonly DomainError CategoryTenantRequired = new(
+      Code: "CAT-DOM-010",
+      Layer: "Domain",
+      Title: "Category tenant is required",
+      Detail: "A category must belong to a non-empty tenant."
+  );
 }
