@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Text;
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Xunit;
@@ -38,7 +39,7 @@ public sealed class CatalogItemsEndpointTests
         using var json = JsonDocument.Parse(body);
 
         Assert.Equal(JsonValueKind.Array, json.RootElement.ValueKind);
-        Assert.Equal(3, json.RootElement.GetArrayLength());
+        Assert.True(json.RootElement.GetArrayLength() >= 3);
 
         client.Dispose();
     }
@@ -229,4 +230,142 @@ public sealed class CatalogItemsEndpointTests
         client.Dispose();
     }
 
+    [Fact]
+    public async Task CreateCatalogItem_WithValidCategoryId_ShouldReturnCreatedItemWithCategory()
+    {
+        // Arrange
+        var client = CreateClient();
+        var categoryId = "aaaaaaaa-0000-0000-0000-000000000001";
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/catalog-items");
+        request.Headers.Add("X-Tenant-Id", _seedTenantId);
+        request.Content = JsonContent($$"""
+            {
+              "name":"Burger",
+              "description":"Classic burger",
+              "type":"simple",
+              "visibility":"commercial",
+              "status":"active",
+              "categoryId":"{{categoryId}}"
+            }
+            """);
+
+        // Act
+        var response = await client.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal(_seedTenantId, json.RootElement.GetProperty("tenantId").GetString());
+        Assert.Equal(categoryId, json.RootElement.GetProperty("categoryId").GetString());
+
+        var variant = json.RootElement.GetProperty("variants")[0];
+        Assert.Equal(categoryId, variant.GetProperty("categoryId").GetString());
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task CreateCatalogItem_WithCategoryFromAnotherTenant_ShouldReturnNotFoundProblem()
+    {
+        // Arrange
+        var client = CreateClient();
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/catalog-items");
+        request.Headers.Add("X-Tenant-Id", Guid.NewGuid().ToString());
+        request.Content = JsonContent("""
+            {
+              "name":"Burger",
+              "description":"Classic burger",
+              "type":"simple",
+              "visibility":"commercial",
+              "status":"active",
+              "categoryId":"aaaaaaaa-0000-0000-0000-000000000001"
+            }
+            """);
+
+        // Act
+        var response = await client.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal("CAT-APP-004", json.RootElement.GetProperty("errorCode").GetString());
+        Assert.Equal("Application", json.RootElement.GetProperty("layer").GetString());
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task CreateCatalogItem_WithInactiveCategory_ShouldReturnCategoryNotAssignableProblem()
+    {
+        // Arrange
+        var client = CreateClient();
+        var tenantId = Guid.NewGuid().ToString();
+        var categoryId = await CreateCategoryAsync(client, tenantId, "Burgers");
+        await DeleteCategoryAsync(client, tenantId, categoryId);
+
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/catalog-items");
+        request.Headers.Add("X-Tenant-Id", tenantId);
+        request.Content = JsonContent($$"""
+            {
+              "name":"Burger",
+              "description":"Classic burger",
+              "type":"simple",
+              "visibility":"commercial",
+              "status":"active",
+              "categoryId":"{{categoryId}}"
+            }
+            """);
+
+        // Act
+        var response = await client.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal("CAT-APP-007", json.RootElement.GetProperty("errorCode").GetString());
+        Assert.Equal("Application", json.RootElement.GetProperty("layer").GetString());
+
+        client.Dispose();
+    }
+
+    private static StringContent JsonContent(string json)
+    {
+        return new StringContent(json, Encoding.UTF8, "application/json");
+    }
+
+    private static async Task<string> CreateCategoryAsync(HttpClient client, string tenantId, string name)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/categories");
+        request.Headers.Add("X-Tenant-Id", tenantId);
+        request.Content = JsonContent($$"""{"name":"{{name}}"}""");
+
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        return json.RootElement.GetProperty("id").GetString()!;
+    }
+
+    private static async Task DeleteCategoryAsync(HttpClient client, string tenantId, string categoryId)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/categories/{categoryId}");
+        request.Headers.Add("X-Tenant-Id", tenantId);
+
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
 }

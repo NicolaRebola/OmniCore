@@ -27,6 +27,7 @@ public sealed class GetCatalogItemDetailHandlerTests
     Assert.Equal("commercial", result.Visibility);
     Assert.Equal("active", result.Status);
     Assert.Equal(tenantId, result.TenantId);
+    Assert.Equal(item.CategoryId, result.CategoryId);
   }
 
   [Fact]
@@ -45,6 +46,7 @@ public sealed class GetCatalogItemDetailHandlerTests
     Assert.Equal(item.Variants[0].Description, variant.Description);
     Assert.Equal(item.Variants[0].Status.Value, variant.Status);
     Assert.Equal(tenantId, variant.TenantId);
+    Assert.Equal(item.CategoryId, variant.CategoryId);
   }
 
   [Fact]
@@ -97,7 +99,8 @@ public sealed class GetCatalogItemDetailHandlerTests
       CatalogItemType.Simple,
       Visibility.Commercial,
       Status.Active,
-      tenantId);
+      tenantId,
+      Guid.NewGuid());
 
   private sealed class FakeCatalogItemRepository : ICatalogItemRepository
   {

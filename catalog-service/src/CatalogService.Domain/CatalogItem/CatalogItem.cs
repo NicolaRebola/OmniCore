@@ -15,9 +15,9 @@ public sealed class CatalogItem
   public Status Status { get; }
   public Guid TenantId { get; }
   public IReadOnlyList<CatalogVariant> Variants => _variants.AsReadOnly();
+  public Guid? CategoryId { get; private set; }
 
-
-  private CatalogItem(Guid id, string name, string description, CatalogItemType type, Visibility visibility, Status status, Guid tenantId)
+  private CatalogItem(Guid id, string name, string description, CatalogItemType type, Visibility visibility, Status status, Guid tenantId, Guid? categoryId)
   {
     Id = id;
     Name = name;
@@ -26,13 +26,14 @@ public sealed class CatalogItem
     Visibility = visibility;
     Status = status;
     TenantId = tenantId;
+    CategoryId = categoryId;
   }
 
-  public static CatalogItem Create(Guid id, string name, string description, CatalogItemType type, Visibility visibility, Status status, Guid tenantId) {
+  public static CatalogItem Create(Guid id, string name, string description, CatalogItemType type, Visibility visibility, Status status, Guid tenantId, Guid? categoryId) {
     if (string.IsNullOrWhiteSpace(name)) throw new CatalogDomainException(DomainErrors.CatalogItemNameRequired);
     if (tenantId == Guid.Empty) throw new CatalogDomainException(DomainErrors.CatalogItemTenantRequired);
 
-    var item = new CatalogItem(id, name.Trim(), description, type, visibility, status, tenantId);
+    var item = new CatalogItem(id, name.Trim(), description, type, visibility, status, tenantId, categoryId);
 
     item._variants.Add(CatalogVariant.Create(
       Guid.NewGuid(),
@@ -40,7 +41,8 @@ public sealed class CatalogItem
       item.Status,
       item.Name,
       item.Description,
-      tenantId
+      tenantId,
+      categoryId
     ));
     return item;
   }

@@ -1,4 +1,6 @@
 using CatalogService.Application.DTOs;
+using CatalogService.Application.Common.Exceptions;
+using CatalogService.Application.Errors;
 using CatalogService.Application.Ports.Inbound;
 using CatalogService.Application.Ports.Outbound;
 using CatalogService.Domain.CatalogItem;
@@ -8,14 +10,25 @@ namespace CatalogService.Application.UseCases;
 
 public sealed class CreateCatalogItemHandler : ICreateCatalogItemUseCase
 {
-    private readonly ICatalogItemRepository _repository;
-    public CreateCatalogItemHandler(ICatalogItemRepository repository)
+    private readonly ICatalogItemRepository _catalogItemRepository;
+    private readonly ICategoryRepository _categoryRepository;
+    public CreateCatalogItemHandler(
+        ICatalogItemRepository catalogItemRepository,
+        ICategoryRepository categoryRepository)
     {
-        _repository = repository;
+        _catalogItemRepository = catalogItemRepository;
+        _categoryRepository = categoryRepository;
     }
 
     public async Task<CatalogItemDto> ExecuteAsync(Guid tenantId, CreateCatalogItemCommand catalogItemCommand, CancellationToken ct)
     {
+        if (catalogItemCommand.CategoryId.HasValue)
+        {
+            var category = await _categoryRepository.GetByIdAsync(tenantId, catalogItemCommand.CategoryId.Value, ct);
+            if (category == null) throw new CatalogApplicationException(ApplicationErrors.CategoryNotFound);
+            if (category.Status.Value != Status.Active.Value) throw new CatalogApplicationException(ApplicationErrors.CategoryNotAssignable);
+        }
+
         var type = CatalogItemType.From(catalogItemCommand.Type);
         var visibility = Visibility.From(catalogItemCommand.Visibility);
         var status = Status.From(catalogItemCommand.Status);
@@ -26,10 +39,11 @@ public sealed class CreateCatalogItemHandler : ICreateCatalogItemUseCase
             type,
             visibility,
             status,
-            tenantId
+            tenantId,
+            catalogItemCommand.CategoryId
         );
 
-        var catalogItem = await _repository.CreateAsync(item, ct);
+        var catalogItem = await _catalogItemRepository.CreateAsync(item, ct);
         return new CatalogItemDto(
             catalogItem.Id,
             catalogItem.Name,
@@ -38,7 +52,8 @@ public sealed class CreateCatalogItemHandler : ICreateCatalogItemUseCase
             catalogItem.Visibility.Value,
             catalogItem.Status.Value,
             catalogItem.TenantId,
-            catalogItem.Variants.Select(v => new CatalogVariantDto(v.Id, v.Name, v.Description, v.Status.Value, v.TenantId)).ToList().AsReadOnly()
+            catalogItem.CategoryId,
+            catalogItem.Variants.Select(v => new CatalogVariantDto(v.Id, v.Name, v.Description, v.Status.Value, v.TenantId, v.CategoryId)).ToList().AsReadOnly()
         );
     }
 }

@@ -26,11 +26,8 @@ public sealed class GetCatalogItemsHandler : IGetCatalogItemsUseCase
         i.Visibility.Value,
         i.Status.Value,
         i.TenantId,
-        i.Variants
-          .Select(v => new CatalogVariantDto(v.Id, v.Name, v.Description, v.Status.Value, v.TenantId))
-          .ToList()
-          .AsReadOnly()))
-      .ToList()
-      .AsReadOnly();
+        i.CategoryId,
+        i.Variants.Select(v => new CatalogVariantDto(v.Id, v.Name, v.Description, v.Status.Value, v.TenantId, v.CategoryId)).ToList().AsReadOnly()
+      )).ToList().AsReadOnly();
   }
 }

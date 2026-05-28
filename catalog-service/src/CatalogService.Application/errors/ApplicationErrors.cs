@@ -50,4 +50,11 @@ public static class ApplicationErrors
     Title: "Invalid category status",
     Detail: "The category status must be either 'active' or 'inactive'."
   );
+
+  public static readonly ApplicationError CategoryNotAssignable = new(
+    Code: "CAT-APP-007",
+    Layer: "Application",
+    Title: "Category cannot be assigned",
+    Detail: "The category must be active and belong to the current tenant before it can be assigned to a catalog item."
+  );
 }
