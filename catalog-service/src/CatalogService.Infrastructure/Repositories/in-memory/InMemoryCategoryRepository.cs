@@ -23,4 +23,10 @@ public sealed class InMemoryCategoryRepository : ICategoryRepository
 
         return Task.FromResult<IReadOnlyList<Category>>(result);
     }
+
+    public Task<Category> CreateAsync(Category category, CancellationToken ct = default)
+    {
+        _store.Add(category);
+        return Task.FromResult(category);
+    }
 }

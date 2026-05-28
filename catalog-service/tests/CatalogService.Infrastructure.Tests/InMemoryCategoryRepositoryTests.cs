@@ -1,4 +1,6 @@
 using CatalogService.Application.Ports.Outbound;
+using CatalogService.Domain.Categories;
+using CatalogService.Domain.Common.Enums;
 using CatalogService.Infrastructure.Dev;
 using CatalogService.Infrastructure.Repositories;
 using Xunit;
@@ -51,5 +53,27 @@ public sealed class InMemoryCategoryRepositoryTests
         // Assert
         Assert.NotEmpty(seedResult);
         Assert.Empty(otherResult);
+    }
+
+    [Fact]
+    public async Task CreateAsync_WithValidCategory_ShouldPersistCategoryForTenant()
+    {
+        // Arrange
+        ICategoryRepository repo = new InMemoryCategoryRepository();
+        var tenantId = Guid.NewGuid();
+        var category = Category.Create(Guid.NewGuid(), "Burgers", Status.Active, tenantId);
+
+        // Act
+        var created = await repo.CreateAsync(category);
+        var result = await repo.GetByTenantAsync(tenantId);
+
+        // Assert
+        Assert.Equal(category.Id, created.Id);
+
+        var storedCategory = Assert.Single(result);
+        Assert.Equal(category.Id, storedCategory.Id);
+        Assert.Equal(tenantId, storedCategory.TenantId);
+        Assert.Equal("Burgers", storedCategory.Name);
+        Assert.Equal("active", storedCategory.Status.Value);
     }
 }

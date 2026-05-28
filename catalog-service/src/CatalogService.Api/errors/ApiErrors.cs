@@ -49,4 +49,12 @@ public static class CatalogErrors
         Title: "Unexpected error",
         Detail: "An unexpected error occurred.",
         Type: "https://docs.omnicore.local/problems/catalog/api/unexpected");
+
+    public static readonly CatalogError CreateCategoryCommandInvalid = new(
+        Code: "CAT-API-005",
+        Layer: "Api",
+        StatusCode: StatusCodes.Status400BadRequest,
+        Title: "Create category command is invalid",
+        Detail: "The create category command is invalid.",
+        Type: "https://docs.omnicore.local/problems/catalog/api/create-category-command-invalid");
 }

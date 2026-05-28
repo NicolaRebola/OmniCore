@@ -12,6 +12,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IGetCatalogItemDetailUseCase, GetCatalogItemDetailHandler>();
         services.AddScoped<ICreateCatalogItemUseCase, CreateCatalogItemHandler>();
         services.AddScoped<IGetCategoriesUseCase, GetCategoriesHandler>();
+        services.AddScoped<ICreateCategoryUseCase, CreateCategoryHandler>();
         return services;
     }
 }
