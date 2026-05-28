@@ -1,0 +1,41 @@
+name: catalog-service-ci
+
+on:
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - "catalog-service/**"
+      - ".github/workflows/catalog-service-ci.yml"
+  push:
+    branches: [develop, main]
+    paths:
+      - "catalog-service/**"
+      - ".github/workflows/catalog-service-ci.yml"
+  workflow_dispatch: {}
+
+jobs:
+  build-and-test:
+    name: Build and test (catalog-service)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: catalog-service
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore
+        run: dotnet restore CatalogService.sln
+
+      - name: Build (Release)
+        run: dotnet build CatalogService.sln --configuration Release --no-restore
+
+      - name: Test (Release)
+        run: dotnet test CatalogService.sln --configuration Release --no-build --verbosity normal
