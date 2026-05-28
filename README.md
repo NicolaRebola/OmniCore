@@ -115,6 +115,10 @@ include('./catalog-service/Tiltfile')
 
 Each service maintains its own `README.md` and a `docs/` directory. Strategic documentation (PRDs, ADRs, domain analysis, requirements) is maintained in **Notion** and referenced from each service's `docs/notion.md`.
 
-| Service | README | Notion |
-|---|---|---|
-| `catalog-service` | [catalog-service/README.md](./catalog-service/README.md) | [Catalog Notion Workspace](./catalog-service/docs/notion.md) |
+| Service | README | Docs | Notion |
+|---|---|---|---|
+| `catalog-service` | [catalog-service/README.md](./catalog-service/README.md) | [Testing Strategy](./catalog-service/docs/testing.md) | [Catalog Notion Workspace](./catalog-service/docs/notion.md) |
+
+## Continuous Integration
+
+Service-specific CI workflows live under `.github/workflows`. The `catalog-service` workflow restores, builds and tests the .NET solution on pull requests and pushes targeting `develop` or `main` when service files change.
