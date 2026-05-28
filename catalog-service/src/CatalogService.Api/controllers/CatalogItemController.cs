@@ -39,7 +39,7 @@ public class CatalogItemsController : ControllerBase
     [FromRoute] Guid id,
     CancellationToken ct)
   {
-    if (id == Guid.Empty) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.CatalogItemIdInvalid);
+    if (id == Guid.Empty) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.InvalidId);
     var result = await _getCatalogItemDetailUseCase.ExecuteAsync(tenantId, id, ct);
     return Ok(result);
   }

@@ -66,6 +66,14 @@ public sealed class CreateCategoryHandlerTests
     {
         public Category? CreatedCategory { get; private set; }
 
+        public Task<Category?> GetByIdAsync(
+            Guid tenantId,
+            Guid id,
+            CancellationToken ct = default)
+        {
+            return Task.FromResult<Category?>(null);
+        }
+
         public Task<IReadOnlyList<Category>> GetByTenantAsync(
             Guid tenantId,
             CancellationToken ct = default)
@@ -76,6 +84,14 @@ public sealed class CreateCategoryHandlerTests
         public Task<Category> CreateAsync(Category category, CancellationToken ct = default)
         {
             CreatedCategory = category;
+            return Task.FromResult(category);
+        }
+
+        public Task<Category> UpdateAsync(
+            Guid tenantId,
+            Category category,
+            CancellationToken ct = default)
+        {
             return Task.FromResult(category);
         }
     }

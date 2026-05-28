@@ -62,4 +62,43 @@ public sealed class CategoryTests
         // Assert
         Assert.Equal(DomainErrors.CategoryTenantRequired.Code, ex.ErrorCode);
     }
+
+    [Fact]
+    public void Rename_WithValidName_ShouldTrimAndUpdateName()
+    {
+        // Arrange
+        var category = Category.Create(Guid.NewGuid(), "Burgers", Status.Active, Guid.NewGuid());
+
+        // Act
+        category.Rename("  Pizza  ");
+
+        // Assert
+        Assert.Equal("Pizza", category.Name);
+    }
+
+    [Fact]
+    public void Rename_WithEmptyName_ShouldThrowCatalogDomainException()
+    {
+        // Arrange
+        var category = Category.Create(Guid.NewGuid(), "Burgers", Status.Active, Guid.NewGuid());
+
+        // Act
+        var ex = Assert.Throws<CatalogDomainException>(() => category.Rename("   "));
+
+        // Assert
+        Assert.Equal(DomainErrors.CategoryNameRequired.Code, ex.ErrorCode);
+    }
+
+    [Fact]
+    public void ChangeStatus_WithInactiveStatus_ShouldUpdateStatus()
+    {
+        // Arrange
+        var category = Category.Create(Guid.NewGuid(), "Burgers", Status.Active, Guid.NewGuid());
+
+        // Act
+        category.ChangeStatus(Status.Inactive);
+
+        // Assert
+        Assert.Equal(Status.Inactive.Value, category.Status.Value);
+    }
 }

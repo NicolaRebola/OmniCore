@@ -1,4 +1,6 @@
+using CatalogService.Application.Common.Exceptions;
 using CatalogService.Application.DTOs;
+using CatalogService.Application.Errors;
 using CatalogService.Application.Ports.Inbound;
 using CatalogService.Application.Ports.Outbound;
 
@@ -14,6 +16,7 @@ public sealed class GetCatalogItemsHandler : IGetCatalogItemsUseCase
   public async Task<IReadOnlyList<CatalogItemDto>> ExecuteAsync(Guid tenantId, CancellationToken ct)
   {
     var items = await _repository.GetByTenantAsync(tenantId, ct);
+    if (items == null) throw new CatalogApplicationException(ApplicationErrors.CatalogItemNotFound);
     return items
       .Select(i => new CatalogItemDto(
         i.Id,

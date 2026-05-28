@@ -77,4 +77,11 @@ public static class DomainErrors
       Title: "Category tenant is required",
       Detail: "A category must belong to a non-empty tenant."
   );
+
+  public static readonly DomainError CategoryNotFound = new(
+      Code: "CAT-DOM-011",
+      Layer: "Domain",
+      Title: "Category not found",
+      Detail: "The requested category could not be found."
+    );
 }

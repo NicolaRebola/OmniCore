@@ -18,4 +18,12 @@ public sealed class Status
             "inactive" => Inactive,
             _ => throw new CatalogDomainException(DomainErrors.InvalidStatus)
         };
+
+    public static bool IsValid(string value) =>
+        value switch
+        {
+            "active" => true,
+            "inactive" => true,
+            _ => false
+        };
 }

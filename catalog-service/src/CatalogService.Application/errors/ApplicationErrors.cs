@@ -29,4 +29,25 @@ public static class ApplicationErrors
     Title: "Catalog item must have at least one variant",
     Detail: "A catalog item must contain at least one catalog variant to be projected."
   );
+
+  public static readonly ApplicationError CategoryNotFound = new(
+    Code: "CAT-APP-004",
+    Layer: "Application",
+    Title: "Category not found",
+    Detail: "The requested category could not be found for the current tenant."
+  );
+
+  public static readonly ApplicationError CategoryIdRequired = new(
+    Code: "CAT-APP-005",
+    Layer: "Application",
+    Title: "Category ID is required",
+    Detail: "The category ID is required to update a category."
+  );
+
+  public static readonly ApplicationError InvalidCategoryStatus = new(
+    Code: "CAT-APP-006",
+    Layer: "Application",
+    Title: "Invalid category status",
+    Detail: "The category status must be either 'active' or 'inactive'."
+  );
 }
