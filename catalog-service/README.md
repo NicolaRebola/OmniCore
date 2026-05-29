@@ -252,9 +252,10 @@ The service currently exposes a REST API via ASP.NET Core Controllers.
 aggregate. Public catalog/menu projections should consume `CatalogVariant` as the
 primary read unit instead of treating `CatalogItem` as the public-facing resource.
 
-**OpenAPI spec** (Development only):
+**Swagger / OpenAPI** (Development only):
 ```
-GET http://localhost:5080/openapi/v1.json
+GET http://localhost:5080/swagger
+GET http://localhost:5080/swagger/v1/swagger.json
 ```
 
 ### Planned transports
