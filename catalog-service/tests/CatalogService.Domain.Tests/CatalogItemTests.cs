@@ -222,6 +222,26 @@ public sealed class CatalogItemTests
         Assert.All(item.Variants, variant => Assert.Equal(categoryId, variant.CategoryId));
     }
 
+    [Fact]
+    public void RemoveCategory_WithAssignedCategory_ShouldRemoveCategoryFromItemAndVariants()
+    {
+        var categoryId = Guid.NewGuid();
+        var item = CatalogItem.CatalogItem.Create(
+            Guid.NewGuid(),
+            "Burger",
+            "Classic burger",
+            CatalogItemType.Simple,
+            Visibility.Commercial,
+            Status.Active,
+            Guid.NewGuid(),
+            categoryId);
+        item.AddVariant(Guid.NewGuid(), "XL", "Extra large", Status.Active, null);
+
+        item.RemoveCategory();
+
+        Assert.Null(item.CategoryId);
+        Assert.All(item.Variants, variant => Assert.Null(variant.CategoryId));
+    }
 
     [Fact]
     public void AddVariant_WithValidData_ShouldAppendVariant()

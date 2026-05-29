@@ -73,6 +73,12 @@ public sealed class CatalogItem
     _variants.ForEach(v => v.ChangeCategory(categoryId));
   }
 
+  public void RemoveCategory()
+  {
+    CategoryId = null;
+    _variants.ForEach(v => v.ChangeCategory(null));
+  }
+
   private static bool IsValidName(string name)
   {
     return !string.IsNullOrWhiteSpace(name) && name is not null;

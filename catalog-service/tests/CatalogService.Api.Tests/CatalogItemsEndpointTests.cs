@@ -567,6 +567,31 @@ public sealed class CatalogItemsEndpointTests
         client.Dispose();
     }
 
+    [Fact]
+    public async Task DeleteCatalogItemCategory_WithAssignedCategory_ShouldReturnNoContentAndRemoveCategory()
+    {
+        // Arrange
+        var client = CreateClient();
+        var tenantId = Guid.NewGuid().ToString();
+        var categoryId = await CreateCategoryAsync(client, tenantId, "Burgers");
+        var itemId = await CreateCatalogItemWithCategoryAsync(client, tenantId, categoryId);
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/catalog-items/{itemId}/category");
+        request.Headers.Add("X-Tenant-Id", tenantId);
+
+        // Act
+        var response = await client.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        var item = await GetCatalogItemAsync(client, tenantId, itemId);
+        Assert.Equal(JsonValueKind.Null, item.GetProperty("categoryId").ValueKind);
+        Assert.All(
+            item.GetProperty("variants").EnumerateArray(),
+            variant => Assert.Equal(JsonValueKind.Null, variant.GetProperty("categoryId").ValueKind));
+
+        client.Dispose();
+    }
 
     [Fact]
     public async Task GetCatalogItems_WithActiveStatusFilter_ShouldExcludeInactiveItems()

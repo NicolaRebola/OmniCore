@@ -16,6 +16,7 @@ public class CatalogItemsController : ControllerBase
   private readonly IUpdateCatalogVariantUseCase _updateCatalogVariantUseCase;
   private readonly IDeactivateCatalogVariantUseCase _deactivateCatalogVariantUseCase;
   private readonly IUpdateCatalogItemUseCase _updateCatalogItemUseCase;
+  private readonly IRemoveCatalogItemCategoryUseCase _removeCatalogItemCategoryUseCase;
   public CatalogItemsController(
     IGetCatalogItemsUseCase getCatalogItemsUseCase,
     IGetCatalogItemDetailUseCase getCatalogItemDetailUseCase,
@@ -24,7 +25,7 @@ public class CatalogItemsController : ControllerBase
     IUpdateCatalogVariantUseCase updateCatalogVariantUseCase,
     IDeactivateCatalogVariantUseCase deactivateCatalogVariantUseCase,
     IUpdateCatalogItemUseCase updateCatalogItemUseCase,
-    IDeactivateCatalogVariantUseCase deactivateCatalogVariantUseCase)
+    IRemoveCatalogItemCategoryUseCase removeCatalogItemCategoryUseCase)
   {
       _getCatalogItemsUseCase = getCatalogItemsUseCase;
       _getCatalogItemDetailUseCase = getCatalogItemDetailUseCase;
@@ -33,6 +34,7 @@ public class CatalogItemsController : ControllerBase
       _updateCatalogVariantUseCase = updateCatalogVariantUseCase;
       _deactivateCatalogVariantUseCase = deactivateCatalogVariantUseCase;
       _updateCatalogItemUseCase = updateCatalogItemUseCase;
+      _removeCatalogItemCategoryUseCase = removeCatalogItemCategoryUseCase;
   }
 
   [HttpGet]
@@ -153,4 +155,16 @@ public class CatalogItemsController : ControllerBase
     return Ok(result);
   }
 
+  [HttpDelete("{itemId:guid}/category")]
+  [TenantRequired]
+  public async Task<IActionResult> RemoveCategory(
+    [FromHeader(Name = TenantHeaders.TenantId)] Guid tenantId,
+    [FromRoute] Guid itemId,
+    CancellationToken ct)
+  {
+    if (itemId == Guid.Empty) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.InvalidId);
+
+    await _removeCatalogItemCategoryUseCase.ExecuteAsync(tenantId, itemId, ct);
+    return NoContent();
+  }
 }
