@@ -11,7 +11,7 @@
         "items": [
           {
             "method": "GET",
-            "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-items",
+            "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-items?page=1&pageSize=10",
             "headers": {
               "X-Tenant-Id": "{{tenantId}}"
             },
@@ -25,7 +25,7 @@
             "postResponseScript": "",
             "type": "request",
             "id": "mpqa-catalog-items-get-all",
-            "name": "Get All by Tenant Id"
+            "name": "List by Tenant Id (paged)"
           },
           {
             "method": "GET",

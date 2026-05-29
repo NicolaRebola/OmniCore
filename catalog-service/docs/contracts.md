@@ -78,7 +78,34 @@ public sealed record UpdateCatalogVariantCommand(
 );
 ```
 
+## Queries
+
+### `CatalogItemListQuery`
+
+```csharp
+public sealed record CatalogItemListQuery(
+  Guid TenantId,
+  int Page,
+  int PageSize,
+  string? Type,
+  string? Visibility,
+  string? Status,
+  Guid? CategoryId
+);
+```
+
 ## DTOs
+
+### `PagedResultDto<T>`
+
+```csharp
+public sealed record PagedResultDto<T>(
+  IReadOnlyList<T> Items,
+  int Page,
+  int PageSize,
+  int Total
+);
+```
 
 ### `CatalogItemDto`
 

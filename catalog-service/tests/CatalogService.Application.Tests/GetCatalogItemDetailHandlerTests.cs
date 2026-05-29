@@ -114,11 +114,23 @@ public sealed class GetCatalogItemDetailHandlerTests
       _items = items;
     }
 
-    public Task<IReadOnlyList<CatalogItem>> GetByTenantAsync(
-      Guid tenantId,
+    public Task<PagedResult<CatalogItem>> ListAsync(
+      CatalogItemListCriteria criteria,
       CancellationToken ct = default)
     {
-      return Task.FromResult(_items);
+      var pageItems = _items
+        .Where(i => i.TenantId == criteria.TenantId)
+        .OrderBy(i => i.Id)
+        .Skip((criteria.Page - 1) * criteria.PageSize)
+        .Take(criteria.PageSize)
+        .ToList();
+
+      var total = _items.Count(i => i.TenantId == criteria.TenantId);
+      return Task.FromResult(new PagedResult<CatalogItem>(
+        pageItems.AsReadOnly(),
+        criteria.Page,
+        criteria.PageSize,
+        total));
     }
 
     public Task<CatalogItem?> GetByIdAsync(

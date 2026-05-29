@@ -35,9 +35,34 @@ public class CatalogItemsController : ControllerBase
   [TenantRequired]
   public async Task<IActionResult> GetAll(
     [FromHeader(Name = TenantHeaders.TenantId)] Guid tenantId,
+    [FromQuery] CatalogItemListFilter filter,
     CancellationToken ct)
   {
-    var result = await _getCatalogItemsUseCase.ExecuteAsync(tenantId, ct);
+    if (!filter.HasRequiredPagination())
+    {
+      return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.PaginationRequired);
+    }
+
+    if (!filter.HasValidPagination())
+    {
+      return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.InvalidPagination);
+    }
+
+    if (!filter.HasValidCategoryFilter())
+    {
+      return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.InvalidId);
+    }
+
+    var query = new CatalogItemListQuery(
+      tenantId,
+      filter.Page!.Value,
+      filter.PageSize!.Value,
+      filter.Type,
+      filter.Visibility,
+      filter.Status,
+      filter.CategoryId);
+
+    var result = await _getCatalogItemsUseCase.ExecuteAsync(query, ct);
     return Ok(result);
   }
   

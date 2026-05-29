@@ -106,5 +106,5 @@ dotnet test "catalog-service"
 
 - Add item update when that use case exists.
 - Define whether category names must be unique per tenant.
-- Add item filtering by `categoryId` under SPEC-019.
+- Item filtering by `categoryId` is implemented under SPEC-019.
 - Revisit persistence shape when moving from in-memory storage to PostgreSQL.

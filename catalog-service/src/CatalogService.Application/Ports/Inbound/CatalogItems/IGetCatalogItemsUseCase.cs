@@ -4,5 +4,5 @@ namespace CatalogService.Application.Ports.Inbound;
 
 public interface IGetCatalogItemsUseCase
 {
-  Task<IReadOnlyList<CatalogItemDto>> ExecuteAsync(Guid tenantId, CancellationToken ct);
+  Task<PagedResultDto<CatalogItemDto>> ExecuteAsync(CatalogItemListQuery query, CancellationToken ct);
 }

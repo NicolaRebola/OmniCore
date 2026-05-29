@@ -20,26 +20,210 @@ public sealed class CatalogItemsEndpointTests
     }
 
     [Fact]
-    public async Task GetCatalogItems_WithSeedTenant_ShouldReturnOkAndItems()
+    public async Task GetCatalogItems_WithSeedTenant_ShouldReturnOkAndPagedItems()
     {
-        // Arrange
         var client = CreateClient();
 
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/catalog-items");
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "/api/v1/catalog-items?page=1&pageSize=20");
         request.Headers.Add("X-Tenant-Id", _seedTenantId);
 
-        // Act
         var response = await client.SendAsync(request);
 
-        // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
 
         var body = await response.Content.ReadAsStringAsync();
         using var json = JsonDocument.Parse(body);
 
-        Assert.Equal(JsonValueKind.Array, json.RootElement.ValueKind);
-        Assert.True(json.RootElement.GetArrayLength() >= 3);
+        Assert.Equal(JsonValueKind.Object, json.RootElement.ValueKind);
+        Assert.True(json.RootElement.GetProperty("total").GetInt32() >= 3);
+        Assert.True(json.RootElement.GetProperty("items").GetArrayLength() >= 3);
+        Assert.Equal(1, json.RootElement.GetProperty("page").GetInt32());
+        Assert.Equal(20, json.RootElement.GetProperty("pageSize").GetInt32());
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task GetCatalogItems_WithoutPaginationParams_ShouldReturnPaginationRequiredProblem()
+    {
+        var client = CreateClient();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/catalog-items");
+        request.Headers.Add("X-Tenant-Id", _seedTenantId);
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal("CAT-API-007", json.RootElement.GetProperty("errorCode").GetString());
+
+        client.Dispose();
+    }
+
+    [Theory]
+    [InlineData("/api/v1/catalog-items?page=0&pageSize=20")]
+    [InlineData("/api/v1/catalog-items?page=1&pageSize=0")]
+    [InlineData("/api/v1/catalog-items?page=1&pageSize=101")]
+    public async Task GetCatalogItems_WithInvalidPagination_ShouldReturnInvalidPaginationProblem(string url)
+    {
+        var client = CreateClient();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Add("X-Tenant-Id", _seedTenantId);
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal("CAT-API-008", json.RootElement.GetProperty("errorCode").GetString());
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task GetCatalogItems_WithPageSizeTwo_ShouldReturnTwoItemsAndTotalThree()
+    {
+        var client = CreateClient();
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "/api/v1/catalog-items?page=1&pageSize=2");
+        request.Headers.Add("X-Tenant-Id", _seedTenantId);
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal(2, json.RootElement.GetProperty("items").GetArrayLength());
+        Assert.Equal(3, json.RootElement.GetProperty("total").GetInt32());
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task GetCatalogItems_WithCombinedFilters_ShouldReturnOnlyMatchingItems()
+    {
+        var client = CreateClient();
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "/api/v1/catalog-items?page=1&pageSize=20&type=simple&visibility=commercial&status=active");
+        request.Headers.Add("X-Tenant-Id", _seedTenantId);
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        var items = json.RootElement.GetProperty("items");
+        Assert.True(items.GetArrayLength() >= 1);
+        Assert.Equal(items.GetArrayLength(), json.RootElement.GetProperty("total").GetInt32());
+
+        foreach (var item in items.EnumerateArray())
+        {
+            Assert.Equal("simple", item.GetProperty("type").GetString());
+            Assert.Equal("commercial", item.GetProperty("visibility").GetString());
+            Assert.Equal("active", item.GetProperty("status").GetString());
+        }
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task GetCatalogItems_WithEmptyCategoryIdFilter_ShouldReturnInvalidIdProblem()
+    {
+        var client = CreateClient();
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "/api/v1/catalog-items?page=1&pageSize=10&categoryId=00000000-0000-0000-0000-000000000000");
+        request.Headers.Add("X-Tenant-Id", _seedTenantId);
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal("CAT-API-003", json.RootElement.GetProperty("errorCode").GetString());
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task GetCatalogItems_WithValidCategoryIdWithoutMatches_ShouldReturnEmptyPage()
+    {
+        var client = CreateClient();
+        var categoryId = Guid.NewGuid();
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"/api/v1/catalog-items?page=1&pageSize=10&categoryId={categoryId}");
+        request.Headers.Add("X-Tenant-Id", _seedTenantId);
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal(0, json.RootElement.GetProperty("items").GetArrayLength());
+        Assert.Equal(0, json.RootElement.GetProperty("total").GetInt32());
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task GetCatalogItems_WithInvalidTypeFilter_ShouldReturnBadRequestProblem()
+    {
+        var client = CreateClient();
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "/api/v1/catalog-items?page=1&pageSize=10&type=unknown");
+        request.Headers.Add("X-Tenant-Id", _seedTenantId);
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        client.Dispose();
+    }
+
+    [Theory]
+    [InlineData("/api/v1/catalog-items?page=1&pageSize=10&visibility=unknown")]
+    [InlineData("/api/v1/catalog-items?page=1&pageSize=10&status=unknown")]
+    public async Task GetCatalogItems_WithInvalidEnumFilter_ShouldReturnBadRequestProblem(string url)
+    {
+        var client = CreateClient();
+
+        var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Add("X-Tenant-Id", _seedTenantId);
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
 
         client.Dispose();
     }
@@ -93,25 +277,25 @@ public sealed class CatalogItemsEndpointTests
     }
 
     [Fact]
-    public async Task GetCatalogItems_WithUnknownTenant_ShouldReturnOkAndEmptyArray()
+    public async Task GetCatalogItems_WithUnknownTenant_ShouldReturnOkAndEmptyPage()
     {
-        // Arrange
         var client = CreateClient();
 
-        var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/catalog-items");
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "/api/v1/catalog-items?page=1&pageSize=20");
         request.Headers.Add("X-Tenant-Id", Guid.NewGuid().ToString());
 
-        // Act
         var response = await client.SendAsync(request);
 
-        // Assert
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsStringAsync();
         using var json = JsonDocument.Parse(body);
 
-        Assert.Equal(JsonValueKind.Array, json.RootElement.ValueKind);
-        Assert.Equal(0, json.RootElement.GetArrayLength());
+        Assert.Equal(JsonValueKind.Object, json.RootElement.ValueKind);
+        Assert.Equal(0, json.RootElement.GetProperty("items").GetArrayLength());
+        Assert.Equal(0, json.RootElement.GetProperty("total").GetInt32());
 
         client.Dispose();
     }
