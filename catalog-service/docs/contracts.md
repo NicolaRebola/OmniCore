@@ -13,6 +13,15 @@ public sealed record PriceDto(
 );
 ```
 
+### `AttributeValueDto`
+
+```csharp
+public sealed record AttributeValueDto(
+  string Key,
+  string Value
+);
+```
+
 ### `CreateCatalogItemCommand`
 
 ```csharp
@@ -23,7 +32,9 @@ public sealed record CreateCatalogItemCommand(
   string Type,
   string Visibility,
   string Status,
-  Guid? CategoryId
+  Guid? CategoryId,
+  Guid TemplateId,
+  IReadOnlyList<AttributeValueDto>? Attributes = null
 );
 ```
 
@@ -31,6 +42,8 @@ Notes:
 
 - `TenantId` in the request body is legacy/compatibility shape for the current API; the trusted tenant context is the `X-Tenant-Id` header.
 - `CategoryId` is optional.
+- `TemplateId` is required for new catalog items and must point to an active global catalog template.
+- `Attributes` is optional and carries item-level attribute values by template attribute key.
 - When `CategoryId` is provided, `CreateCatalogItemHandler` validates that the category exists for the current tenant and has `status = "active"`.
 - A valid create operation also creates one default `CatalogVariant` with the same `CategoryId`.
 
@@ -50,7 +63,8 @@ public sealed record UpdateCatalogItemCommand(
   string? Description,
   string? Visibility,
   string? Status,
-  Guid? CategoryId
+  Guid? CategoryId,
+  IReadOnlyList<AttributeValueDto>? Attributes = null
 );
 ```
 
@@ -60,6 +74,7 @@ Notes:
 - `Type` is immutable and is intentionally not part of the command.
 - When `CategoryId` is provided, the category must belong to the same tenant and be active.
 - A valid category change is propagated to all variants.
+- When `Attributes` is provided, it replaces item-level attribute values after validation against the item's global template.
 
 ### `UpdateCategoryCommand`
 
@@ -82,7 +97,8 @@ public sealed record CreateCatalogVariantCommand(
   string Name,
   string? Description,
   string Status,
-  PriceDto? Price
+  PriceDto? Price,
+  IReadOnlyList<AttributeValueDto>? Attributes = null
 );
 ```
 
@@ -93,7 +109,8 @@ public sealed record UpdateCatalogVariantCommand(
   string? Name,
   string? Description,
   string? Status,
-  PriceDto? Price
+  PriceDto? Price,
+  IReadOnlyList<AttributeValueDto>? Attributes = null
 );
 ```
 
@@ -141,7 +158,22 @@ public sealed record CatalogTemplateDto(
   Guid Id,
   string Name,
   string Description,
-  string Status
+  string Status,
+  IReadOnlyList<AttributeDefinitionDto> Attributes
+);
+```
+
+### `AttributeDefinitionDto`
+
+```csharp
+public sealed record AttributeDefinitionDto(
+  Guid Id,
+  string Key,
+  string Name,
+  string Type,
+  bool Required,
+  string? DefaultValue,
+  IReadOnlyList<string> Options
 );
 ```
 
@@ -156,7 +188,9 @@ public sealed record CatalogItemDto(
   string Visibility,
   string Status,
   Guid TenantId,
+  Guid TemplateId,
   Guid? CategoryId,
+  IReadOnlyList<AttributeValueDto> Attributes,
   IReadOnlyList<CatalogVariantDto> Variants
 );
 ```
@@ -171,7 +205,8 @@ public sealed record CatalogVariantDto(
   string Status,
   Guid TenantId,
   Guid? CategoryId,
-  PriceDto? Price
+  PriceDto? Price,
+  IReadOnlyList<AttributeValueDto> Attributes
 );
 ```
 
@@ -196,9 +231,14 @@ public sealed record CategoryDto(
 | `CAT-APP-008` | Application | Variant was not found inside the tenant-scoped item. |
 | `CAT-APP-009` | Application | Variant status is not valid. |
 | `CAT-APP-010` | Application | Catalog template was not found. |
+| `CAT-APP-011` | Application | Catalog template is inactive and cannot be assigned. |
 | `CAT-DOM-009` | Domain | Category name is required. |
 | `CAT-DOM-014` | Domain | Catalog template id is required. |
 | `CAT-DOM-015` | Domain | Catalog template name is required. |
+| `CAT-DOM-016` | Domain | Catalog item template id is required. |
+| `CAT-DOM-020` | Domain | Attribute type is invalid. |
+| `CAT-DOM-025` | Domain | Attribute value is invalid for its definition. |
+| `CAT-DOM-027` | Domain | Required attribute value is missing. |
 | `CAT-DOM-013` | Domain | Price amount/currency are invalid. |
 
 `CAT-APP-004` intentionally maps to `404` to avoid leaking whether a category exists in another tenant.

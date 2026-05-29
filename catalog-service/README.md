@@ -132,8 +132,9 @@ classDiagram
 
 **Key invariants:**
 - Every `CatalogItem` has at least one `CatalogVariant` (auto-generated).
-- `CatalogTemplate` is global (not tenant-scoped), managed by Omnicore, and exposes basic read metadata in MVP 1.
-- Template attribute definitions are intentionally deferred to `SPEC-016`.
+- `CatalogTemplate` is global (not tenant-scoped), managed by Omnicore, and exposes read metadata plus attribute definitions in MVP 1.
+- `CatalogItem.TemplateId` is required, immutable, and must point to an active global template when the item is created.
+- Item and variant attributes are explicit values validated against the selected template definitions.
 - `CatalogItem`, `CatalogVariant`, `Option`, and `Category` are tenant-scoped.
 - `CatalogItem.CategoryId` is optional. When present on create, it must point to an active category from the same tenant.
 - `Catalog` and `Menu` are **runtime projections** — they are computed on read and are never persisted.
@@ -319,7 +320,7 @@ Template behavior:
 - Catalog template endpoints are global and do not require `X-Tenant-Id`.
 - `GET /api/v1/catalog-templates` returns all templates, including inactive templates, with explicit `status`.
 - `GET /api/v1/catalog-templates/{id}` returns `404` with `CAT-APP-010` when the template does not exist.
-- Template responses do not include `tenantId` or `attributes` in MVP 1.
+- Template responses do not include `tenantId`, but they do include global Omnicore-managed attribute definitions.
 
 Administrative item creation:
 
@@ -334,12 +335,17 @@ curl -X POST http://localhost:5080/api/v1/catalog-items \
     "type": "simple",
     "visibility": "commercial",
     "status": "active",
-    "categoryId": "aaaaaaaa-0000-0000-0000-000000000001"
+    "templateId": "bbbbbbbb-0000-0000-0000-000000000001",
+    "categoryId": "aaaaaaaa-0000-0000-0000-000000000001",
+    "attributes": [
+      { "key": "spicy", "value": "false" }
+    ]
   }'
 ```
 
 Creation behavior:
 - A valid item -> `201` with the created item and its default variant.
+- `templateId` is required and must point to an active global template.
 - `categoryId` is optional.
 - A provided `categoryId` must belong to the current tenant and be active.
 - Unknown or other-tenant category -> `404` with `CAT-APP-004`.

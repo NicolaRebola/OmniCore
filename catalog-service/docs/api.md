@@ -41,13 +41,24 @@ Response:
       "id": "uuid",
       "name": "Restaurant Item",
       "description": "Template for menu-style products",
-      "status": "active"
+      "status": "active",
+      "attributes": [
+        {
+          "id": "uuid",
+          "key": "serving-size",
+          "name": "Serving Size",
+          "type": "select",
+          "required": true,
+          "defaultValue": "regular",
+          "options": ["regular", "large"]
+        }
+      ]
     }
   ]
 }
 ```
 
-The MVP response includes `status` and intentionally omits attribute definitions. Attribute definitions are covered by `SPEC-016`.
+The MVP response includes global Omnicore-managed attribute definitions. Templates remain global; item and variant attribute values are tenant-scoped through their owning item/variant.
 
 ### Get Catalog Template
 
@@ -64,7 +75,18 @@ Response:
   "id": "uuid",
   "name": "Restaurant Item",
   "description": "Template for menu-style products",
-  "status": "active"
+  "status": "active",
+  "attributes": [
+    {
+      "id": "uuid",
+      "key": "serving-size",
+      "name": "Serving Size",
+      "type": "select",
+      "required": true,
+      "defaultValue": "regular",
+      "options": ["regular", "large"]
+    }
+  ]
 }
 ```
 
@@ -115,8 +137,10 @@ Response:
       "type": "simple",
       "visibility": "commercial",
       "status": "active",
+      "templateId": "uuid",
       "tenantId": "uuid",
       "categoryId": "uuid",
+      "attributes": [],
       "variants": []
     }
   ],
@@ -147,11 +171,15 @@ Request:
   "type": "simple",
   "visibility": "commercial",
   "status": "active",
-  "categoryId": "aaaaaaaa-0000-0000-0000-000000000001"
+  "templateId": "bbbbbbbb-0000-0000-0000-000000000001",
+  "categoryId": "aaaaaaaa-0000-0000-0000-000000000001",
+  "attributes": [
+    { "key": "spicy", "value": "false" }
+  ]
 }
 ```
 
-`categoryId` is optional. When provided, the category must belong to the same tenant and be active.
+`templateId` is required and must point to an active global template. `categoryId` is optional. When provided, the category must belong to the same tenant and be active.
 
 Response:
 
@@ -164,7 +192,11 @@ Response:
   "visibility": "commercial",
   "status": "active",
   "tenantId": "uuid",
+  "templateId": "uuid",
   "categoryId": "uuid",
+  "attributes": [
+    { "key": "spicy", "value": "false" }
+  ],
   "variants": [
     {
       "id": "uuid",
@@ -173,7 +205,8 @@ Response:
       "status": "active",
       "tenantId": "uuid",
       "categoryId": "uuid",
-      "price": null
+      "price": null,
+      "attributes": []
     }
   ]
 }
@@ -184,6 +217,12 @@ Creation errors:
 | Scenario | Status | Error code |
 |---|---:|---|
 | Invalid item name | `400` | `CAT-DOM-001` |
+| Missing or empty `templateId` | `400` | `CAT-DOM-016` |
+| Template does not exist | `404` | `CAT-APP-010` |
+| Template is inactive | `400` | `CAT-APP-011` |
+| Attribute value references an unknown template key | `400` | `CAT-DOM-026` |
+| Attribute value does not match template options | `400` | `CAT-DOM-025` |
+| Required attribute cannot be resolved | `400` | `CAT-DOM-027` |
 | Category does not exist for tenant | `404` | `CAT-APP-004` |
 | Category exists but is inactive | `400` | `CAT-APP-007` |
 
@@ -237,7 +276,10 @@ Request:
   "price": {
     "amount": 12.5,
     "currency": "ARS"
-  }
+  },
+  "attributes": [
+    { "key": "serving-size", "value": "large" }
+  ]
 }
 ```
 
@@ -254,7 +296,10 @@ Response:
   "price": {
     "amount": 12.5,
     "currency": "ARS"
-  }
+  },
+  "attributes": [
+    { "key": "serving-size", "value": "large" }
+  ]
 }
 ```
 
@@ -270,7 +315,10 @@ Request:
   "price": {
     "amount": 9.99,
     "currency": "USD"
-  }
+  },
+  "attributes": [
+    { "key": "serving-size", "value": "regular" }
+  ]
 }
 ```
 
