@@ -49,6 +49,7 @@ public sealed class CatalogVariantHandlerTests
         var tenantId = Guid.NewGuid();
         var item = CreateItem(tenantId);
         var variantId = item.Variants[0].Id;
+        item.AddVariant(Guid.NewGuid(), "XL", "Extra large", Status.Active, null);
         var repository = new FakeCatalogItemRepository([item]);
         var handler = new UpdateCatalogVariantHandler(repository);
         var command = new UpdateCatalogVariantCommand("Small", "Small size", "inactive", new PriceDto(9.99m, "usd"));
@@ -76,6 +77,21 @@ public sealed class CatalogVariantHandlerTests
             handler.ExecuteAsync(tenantId, item.Id, Guid.NewGuid(), command, CancellationToken.None));
 
         Assert.Equal(ApplicationErrors.CatalogVariantNotFound.Code, ex.ErrorCode);
+    }
+
+    [Fact]
+    public async Task UpdateVariant_WithLastActiveVariantInactive_ShouldThrowCatalogItemConflict()
+    {
+        var tenantId = Guid.NewGuid();
+        var item = CreateItem(tenantId);
+        var repository = new FakeCatalogItemRepository([item]);
+        var handler = new UpdateCatalogVariantHandler(repository);
+        var command = new UpdateCatalogVariantCommand(null, null, "inactive", null);
+
+        var ex = await Assert.ThrowsAsync<CatalogApplicationException>(() =>
+            handler.ExecuteAsync(tenantId, item.Id, item.Variants[0].Id, command, CancellationToken.None));
+
+        Assert.Equal(ApplicationErrors.CatalogItemConflict.Code, ex.ErrorCode);
     }
 
     [Fact]

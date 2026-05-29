@@ -222,13 +222,37 @@ public sealed class CatalogItemTests
         var variantId = item.Variants[0].Id;
         var price = Price.Create(9.99m, "usd");
 
-        var variant = item.UpdateVariant(variantId, "Small", "Small size", Status.Inactive, price);
+        var variant = item.UpdateVariant(variantId, "Small", "Small size", Status.Active, price);
 
         Assert.Equal("Small", variant.Name);
         Assert.Equal("Small size", variant.Description);
-        Assert.Equal(Status.Inactive.Value, variant.Status.Value);
+        Assert.Equal(Status.Active.Value, variant.Status.Value);
         Assert.Equal(9.99m, variant.Price?.Amount);
         Assert.Equal("USD", variant.Price?.Currency);
+    }
+
+    [Fact]
+    public void UpdateVariant_WithMultipleActiveVariants_ShouldAllowInactiveStatus()
+    {
+        var item = CreateItem();
+        var variantId = item.Variants[0].Id;
+        item.AddVariant(Guid.NewGuid(), "XL", "Extra large", Status.Active, null);
+
+        var variant = item.UpdateVariant(variantId, null, null, Status.Inactive, null);
+
+        Assert.Equal(Status.Inactive.Value, variant.Status.Value);
+    }
+
+    [Fact]
+    public void UpdateVariant_WithLastActiveVariantInactive_ShouldThrowCatalogDomainException()
+    {
+        var item = CreateItem();
+        var variantId = item.Variants[0].Id;
+
+        var ex = Assert.Throws<CatalogDomainException>(() =>
+            item.UpdateVariant(variantId, null, null, Status.Inactive, null));
+
+        Assert.Equal(DomainErrors.CatalogItemMustHaveVariant.Code, ex.ErrorCode);
     }
 
     [Fact]
