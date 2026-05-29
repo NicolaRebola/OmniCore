@@ -476,6 +476,7 @@ This service is planned and documented in **Notion**. The repository stays align
 | Test strategy | [`docs/testing.md`](./docs/testing.md) |
 | API contract | [`docs/api.md`](./docs/api.md) |
 | Commands and DTOs | [`docs/contracts.md`](./docs/contracts.md) |
+| MVP 1 closure | [`docs/mvp-1-closure.md`](./docs/mvp-1-closure.md) |
 | RFC-013 | [`docs/rfcs/RFC-013-catalog-variant-management.md`](./docs/rfcs/RFC-013-catalog-variant-management.md) |
 | RFC-014 | [`docs/rfcs/RFC-014-category-domain-and-api.md`](./docs/rfcs/RFC-014-category-domain-and-api.md) |
 | ADR-003 | [`docs/adrs/ADR-003-category-item-association.md`](./docs/adrs/ADR-003-category-item-association.md) |
@@ -493,7 +494,9 @@ This service is planned and documented in **Notion**. The repository stays align
 | Phase 1 | Domain analysis & model | Done |
 | Phase 2 | Requirements engineering | Done |
 | Phase 3 | Architecture & project setup | In Progress |
-| Phase 4 | REST API — CRUD for CatalogItems | Pending |
-| Phase 5 | Persistence — PostgreSQL + EF Core | Pending |
+| Phase 4 | REST API — Catalog MVP 1 | Done |
+| Phase 5 | Persistence — PostgreSQL provider | Backlog |
 | Phase 6 | gRPC transport | Pending |
 | Phase 7 | Domain events & messaging | Pending |
+
+MVP 1 closes as a REST API milestone backed by in-memory repositories. PostgreSQL, gRPC, events, OpenTelemetry, authentication, authorization, and production deployment are intentionally deferred.

@@ -164,6 +164,23 @@ The CI job performs:
 
 This is CI only. CD is intentionally deferred until there is a real deployment target, image registry and release environment.
 
+## MVP 1 Closure Verification
+
+MVP 1 closes when the full test suite passes for the implemented REST API scope:
+
+```bash
+dotnet build CatalogService.sln -v q
+dotnet test CatalogService.sln --no-build
+```
+
+Manual smoke checks should cover:
+
+- Tenant-scoped catalog item, category, and variant flows.
+- Global catalog template discovery.
+- Catalog projection at `GET /api/v1/projections/catalog`.
+
+See [MVP 1 Closure](./mvp-1-closure.md) for included and deferred scope.
+
 ## Future Gaps
 
 - Add PostgreSQL-backed integration tests when persistence is implemented.
