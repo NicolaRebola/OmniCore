@@ -1,6 +1,22 @@
 @catalog_service_HostAddress = http://localhost:5213
+@catalog_template_id = bbbbbbbb-0000-0000-0000-000000000001
 
 GET {{catalog_service_HostAddress}}/weatherforecast/
 Accept: application/json
+
+###
+
+GET {{catalog_service_HostAddress}}/api/v1/catalog-templates
+Accept: application/json
+
+###
+
+GET {{catalog_service_HostAddress}}/api/v1/catalog-templates/{{catalog_template_id}}
+Accept: application/json
+
+###
+
+GET {{catalog_service_HostAddress}}/api/v1/catalog-templates/99999999-9999-9999-9999-999999999999
+Accept: application/problem+json
 
 ###

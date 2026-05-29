@@ -98,4 +98,18 @@ public static class DomainErrors
       Title: "Invalid price",
       Detail: "A price must have a non-negative amount and a non-empty currency."
     );
+
+  public static readonly DomainError CatalogTemplateIdRequired = new(
+      Code: "CAT-DOM-014",
+      Layer: "Domain",
+      Title: "Catalog template id is required",
+      Detail: "A catalog template must have a non-empty id."
+    );
+
+  public static readonly DomainError CatalogTemplateNameRequired = new(
+      Code: "CAT-DOM-015",
+      Layer: "Domain",
+      Title: "Catalog template name is required",
+      Detail: "A catalog template must have a non-empty name."
+    );
 }

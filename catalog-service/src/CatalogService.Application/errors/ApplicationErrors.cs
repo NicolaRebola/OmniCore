@@ -71,4 +71,11 @@ public static class ApplicationErrors
     Title: "Invalid catalog variant status",
     Detail: "The catalog variant status must be either 'active' or 'inactive'."
   );
+
+  public static readonly ApplicationError CatalogTemplateNotFound = new(
+    Code: "CAT-APP-010",
+    Layer: "Application",
+    Title: "Catalog template not found",
+    Detail: "The requested catalog template could not be found."
+  );
 }

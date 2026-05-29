@@ -126,6 +126,25 @@ public sealed record PagedResultDto<T>(
 );
 ```
 
+### `CatalogTemplateListDto`
+
+```csharp
+public sealed record CatalogTemplateListDto(
+  IReadOnlyList<CatalogTemplateDto> Items
+);
+```
+
+### `CatalogTemplateDto`
+
+```csharp
+public sealed record CatalogTemplateDto(
+  Guid Id,
+  string Name,
+  string Description,
+  string Status
+);
+```
+
 ### `CatalogItemDto`
 
 ```csharp
@@ -176,7 +195,10 @@ public sealed record CategoryDto(
 | `CAT-APP-007` | Application | Category exists but cannot be assigned to a catalog item. |
 | `CAT-APP-008` | Application | Variant was not found inside the tenant-scoped item. |
 | `CAT-APP-009` | Application | Variant status is not valid. |
+| `CAT-APP-010` | Application | Catalog template was not found. |
 | `CAT-DOM-009` | Domain | Category name is required. |
+| `CAT-DOM-014` | Domain | Catalog template id is required. |
+| `CAT-DOM-015` | Domain | Catalog template name is required. |
 | `CAT-DOM-013` | Domain | Price amount/currency are invalid. |
 
 `CAT-APP-004` intentionally maps to `404` to avoid leaking whether a category exists in another tenant.
