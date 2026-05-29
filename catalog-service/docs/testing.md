@@ -55,7 +55,7 @@ API tests are integration-style contract tests. They run the ASP.NET Core host w
 - Problem Details payloads with `application/problem+json`.
 - Cross-tenant isolation by returning `404` for resources outside the current tenant.
 - Category assignment contract: valid category creates an item, inactive category rejects with `400`, and other-tenant category rejects with `404`.
-- Variant management contract: valid add/update returns variant DTOs, semantic delete returns `204`, and last-active delete returns `409`.
+- Variant management contract: valid add/update returns variant DTOs, semantic delete returns `204`, invalid variant references return `404`, invalid price returns `400`, and last-active deactivation through `PATCH` or `DELETE` returns `409`.
 
 Infrastructure tests validate the active adapter behavior. While the repository is in-memory, coverage should stay focused:
 

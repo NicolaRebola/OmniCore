@@ -11,7 +11,7 @@ Notion reference: [SPEC-013 - CatalogVariant Management](https://www.notion.so/3
 - Add variants to an existing item.
 - Patch variant name, description, status and optional price.
 - Deactivate variants instead of hard-deleting them.
-- Reject deactivation of the last active variant with `409 Conflict`.
+- Reject deactivation of the last active variant with `409 Conflict`, whether requested through `PATCH` or `DELETE`.
 - Keep item detail as the read path for embedded variants.
 
 ## Domain Rules
@@ -37,7 +37,7 @@ All routes require `X-Tenant-Id`.
 | Scenario | Error | Status |
 |---|---|---:|
 | Item not found for tenant | `CAT-APP-001` | `404` |
-| Last active variant deactivation | `CAT-APP-002` | `409` |
+| Last active variant deactivation through `PATCH` or `DELETE` | `CAT-APP-002` | `409` |
 | Variant not found in item | `CAT-APP-008` | `404` |
 | Invalid variant status | `CAT-APP-009` | `400` |
 | Invalid price | `CAT-DOM-013` | `400` |

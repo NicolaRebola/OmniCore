@@ -136,7 +136,7 @@ Variant errors:
 | Item does not exist for tenant | `404` | `CAT-APP-001` |
 | Variant does not exist in item | `404` | `CAT-APP-008` |
 | Invalid variant status | `400` | `CAT-APP-009` |
-| Deactivating the last active variant | `409` | `CAT-APP-002` |
+| Deactivating the last active variant through `PATCH` or `DELETE` | `409` | `CAT-APP-002` |
 | Invalid price | `400` | `CAT-DOM-013` |
 
 ## Categories

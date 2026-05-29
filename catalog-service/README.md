@@ -382,7 +382,7 @@ Variant behavior:
 - Variant mutations happen through the parent `CatalogItem` aggregate.
 - `price` is optional and descriptive.
 - `DELETE` marks the variant as `inactive`.
-- Deactivating the last active variant returns `409` with `CAT-APP-002`.
+- Deactivating the last active variant through `PATCH` or `DELETE` returns `409` with `CAT-APP-002`.
 
 Full API notes: [`docs/api.md`](./docs/api.md)  
 Command/DTO contracts: [`docs/contracts.md`](./docs/contracts.md)
