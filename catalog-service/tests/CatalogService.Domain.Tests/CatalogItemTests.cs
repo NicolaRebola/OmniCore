@@ -1,4 +1,5 @@
 using CatalogService.Domain.CatalogItem;
+using CatalogService.Domain.Common;
 using CatalogService.Domain.Common.Enums;
 using CatalogService.Domain.Common.Exceptions;
 using CatalogService.Domain.Errors;
@@ -196,5 +197,83 @@ public sealed class CatalogItemTests
 
         Assert.Equal(categoryId, item.CategoryId);
         Assert.Equal(categoryId, variant.CategoryId);
+    }
+
+    [Fact]
+    public void AddVariant_WithValidData_ShouldAppendVariant()
+    {
+        var item = CreateItem();
+        var price = Price.Create(12.5m, "ARS");
+
+        var variant = item.AddVariant(Guid.NewGuid(), "XL", "Extra large", Status.Active, price);
+
+        Assert.Equal(2, item.Variants.Count);
+        Assert.Equal(item.Id, variant.CatalogItemId);
+        Assert.Equal("XL", variant.Name);
+        Assert.Equal("Extra large", variant.Description);
+        Assert.Equal(Status.Active.Value, variant.Status.Value);
+        Assert.Equal(price, variant.Price);
+    }
+
+    [Fact]
+    public void UpdateVariant_WithValidData_ShouldUpdateVariant()
+    {
+        var item = CreateItem();
+        var variantId = item.Variants[0].Id;
+        var price = Price.Create(9.99m, "usd");
+
+        var variant = item.UpdateVariant(variantId, "Small", "Small size", Status.Inactive, price);
+
+        Assert.Equal("Small", variant.Name);
+        Assert.Equal("Small size", variant.Description);
+        Assert.Equal(Status.Inactive.Value, variant.Status.Value);
+        Assert.Equal(9.99m, variant.Price?.Amount);
+        Assert.Equal("USD", variant.Price?.Currency);
+    }
+
+    [Fact]
+    public void DeactivateVariant_WithMultipleActiveVariants_ShouldMarkVariantInactive()
+    {
+        var item = CreateItem();
+        var variant = item.AddVariant(Guid.NewGuid(), "XL", "Extra large", Status.Active, null);
+
+        var deactivated = item.DeactivateVariant(variant.Id);
+
+        Assert.Equal(Status.Inactive.Value, deactivated.Status.Value);
+    }
+
+    [Fact]
+    public void DeactivateVariant_WithLastActiveVariant_ShouldThrowCatalogDomainException()
+    {
+        var item = CreateItem();
+        var variantId = item.Variants[0].Id;
+
+        var ex = Assert.Throws<CatalogDomainException>(() => item.DeactivateVariant(variantId));
+
+        Assert.Equal(DomainErrors.CatalogItemMustHaveVariant.Code, ex.ErrorCode);
+    }
+
+    [Fact]
+    public void UpdateVariant_WithUnknownVariant_ShouldThrowCatalogDomainException()
+    {
+        var item = CreateItem();
+
+        var ex = Assert.Throws<CatalogDomainException>(() =>
+            item.UpdateVariant(Guid.NewGuid(), "Small", null, null, null));
+
+        Assert.Equal(DomainErrors.CatalogVariantNotFound.Code, ex.ErrorCode);
+    }
+
+    private static CatalogItem.CatalogItem CreateItem()
+    {
+        return CatalogItem.CatalogItem.Create(
+            Guid.NewGuid(),
+            "Burger",
+            "Classic burger",
+            CatalogItemType.Simple,
+            Visibility.Commercial,
+            Status.Active,
+            Guid.NewGuid(),
+            null);
     }
 }
