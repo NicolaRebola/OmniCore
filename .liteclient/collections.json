@@ -173,6 +173,61 @@
     ]
   },
   {
+    "id": "mpqa-catalog-templates-collection",
+    "name": "Catalog Templates",
+    "variables": [],
+    "items": [
+      {
+        "method": "GET",
+        "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-templates",
+        "headers": {},
+        "body": {
+          "mode": "none"
+        },
+        "auth": {
+          "type": "none"
+        },
+        "preRequestScript": "",
+        "postResponseScript": "",
+        "type": "request",
+        "id": "mpqa-catalog-templates-get-all",
+        "name": "Get All"
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-templates/{{catalogTemplateId}}",
+        "headers": {},
+        "body": {
+          "mode": "none"
+        },
+        "auth": {
+          "type": "none"
+        },
+        "preRequestScript": "",
+        "postResponseScript": "",
+        "type": "request",
+        "id": "mpqa-catalog-templates-get-by-id",
+        "name": "Get Detail by Id"
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-templates/99999999-9999-9999-9999-999999999999",
+        "headers": {},
+        "body": {
+          "mode": "none"
+        },
+        "auth": {
+          "type": "none"
+        },
+        "preRequestScript": "",
+        "postResponseScript": "",
+        "type": "request",
+        "id": "mpqa-catalog-templates-get-missing",
+        "name": "Get Missing Template"
+      }
+    ]
+  },
+  {
     "id": "b0c59b69-a3c8-4177-ae3b-60df6f3c7a66",
     "name": "Categories",
     "variables": [],

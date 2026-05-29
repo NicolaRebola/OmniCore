@@ -42,6 +42,13 @@
         "initialValue": "33333333-3333-3333-3333-333333333333",
         "type": "default",
         "enabled": true
+      },
+      {
+        "id": "mpqa-env-catalog-template-id",
+        "name": "catalogTemplateId",
+        "initialValue": "bbbbbbbb-0000-0000-0000-000000000001",
+        "type": "default",
+        "enabled": true
       }
     ]
   }
