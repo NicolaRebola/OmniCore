@@ -309,7 +309,7 @@ public sealed class CatalogItemsEndpointTests
         var client = CreateClient();
         var tenantId = Guid.NewGuid().ToString();
         var categoryId = await CreateCategoryAsync(client, tenantId, "Burgers");
-        await DeleteCategoryAsync(client, tenantId, categoryId);
+        await DeactivateCategoryAsync(client, tenantId, categoryId);
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/catalog-items");
         request.Headers.Add("X-Tenant-Id", tenantId);
@@ -360,10 +360,11 @@ public sealed class CatalogItemsEndpointTests
         return json.RootElement.GetProperty("id").GetString()!;
     }
 
-    private static async Task DeleteCategoryAsync(HttpClient client, string tenantId, string categoryId)
+    private static async Task DeactivateCategoryAsync(HttpClient client, string tenantId, string categoryId)
     {
-        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/categories/{categoryId}");
+        var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/v1/categories/{categoryId}");
         request.Headers.Add("X-Tenant-Id", tenantId);
+        request.Content = JsonContent("""{"status":"inactive"}""");
 
         var response = await client.SendAsync(request);
         response.EnsureSuccessStatusCode();
