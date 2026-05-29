@@ -49,6 +49,10 @@ public sealed class UpdateCatalogVariantHandler : IUpdateCatalogVariantUseCase
     {
       throw new CatalogApplicationException(ApplicationErrors.CatalogVariantNotFound);
     }
+    catch (CatalogDomainException ex) when (ex.ErrorCode == DomainErrors.CatalogItemMustHaveVariant.Code)
+    {
+      throw new CatalogApplicationException(ApplicationErrors.CatalogItemConflict);
+    }
   }
 
   private static Price? ToPrice(PriceDto? price)

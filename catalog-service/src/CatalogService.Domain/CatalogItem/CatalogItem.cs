@@ -72,7 +72,15 @@ public sealed class CatalogItem
 
     if (name is not null) variant.Rename(name);
     if (description is not null) variant.ChangeDescription(description);
-    if (status is not null) variant.ChangeStatus(status);
+    if (status is not null)
+    {
+      if (status.Value == Status.Inactive.Value && variant.Status.Value == Status.Active.Value && ActiveVariantCount() == 1)
+      {
+        throw new CatalogDomainException(DomainErrors.CatalogItemMustHaveVariant);
+      }
+
+      variant.ChangeStatus(status);
+    }
     if (price is not null) variant.ChangePrice(price);
 
     return variant;
