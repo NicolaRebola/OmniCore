@@ -27,7 +27,15 @@ public sealed class GetCatalogItemsHandler : IGetCatalogItemsUseCase
         i.Status.Value,
         i.TenantId,
         i.CategoryId,
-        i.Variants.Select(v => new CatalogVariantDto(v.Id, v.Name, v.Description, v.Status.Value, v.TenantId, v.CategoryId)).ToList().AsReadOnly()
+        i.Variants.Select(v => new CatalogVariantDto(
+          v.Id,
+          v.Name,
+          v.Description,
+          v.Status.Value,
+          v.TenantId,
+          v.CategoryId,
+          v.Price is null ? null : new PriceDto(v.Price.Amount, v.Price.Currency)
+        )).ToList().AsReadOnly()
       )).ToList().AsReadOnly();
   }
 }
