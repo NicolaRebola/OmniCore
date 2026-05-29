@@ -139,5 +139,13 @@ public sealed class GetCatalogItemDetailHandlerTests
     {
       return Task.FromResult(item);
     }
+
+    public Task<CatalogItem> UpdateAsync(
+      Guid tenantId,
+      CatalogItem item,
+      CancellationToken ct = default)
+    {
+      return Task.FromResult(item);
+    }
   }
 }
