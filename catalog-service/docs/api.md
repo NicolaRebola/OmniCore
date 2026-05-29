@@ -235,10 +235,16 @@ Category errors:
 | Category does not exist for tenant | `404` | `CAT-APP-004` |
 | Invalid category status | `400` | `CAT-APP-006` |
 
-## OpenAPI
+## Swagger / OpenAPI
 
-The built-in OpenAPI JSON is available only in Development:
+Swagger UI and the generated OpenAPI JSON are available only in Development:
 
 ```bash
-curl http://localhost:5080/openapi/v1.json
+curl http://localhost:5080/swagger/v1/swagger.json
+```
+
+Open the interactive UI at:
+
+```text
+http://localhost:5080/swagger
 ```
