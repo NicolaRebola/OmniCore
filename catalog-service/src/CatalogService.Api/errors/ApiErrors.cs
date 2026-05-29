@@ -65,4 +65,20 @@ public static class CatalogErrors
         Title: "Update category command is invalid",
         Detail: "The update category command is invalid.",
         Type: "https://docs.omnicore.local/problems/catalog/api/update-category-command-invalid");
+
+    public static readonly CatalogError PaginationRequired = new(
+        Code: "CAT-API-007",
+        Layer: "Api",
+        StatusCode: StatusCodes.Status400BadRequest,
+        Title: "Pagination parameters are required",
+        Detail: "Both page and pageSize query parameters are required.",
+        Type: "https://docs.omnicore.local/problems/catalog/api/pagination-required");
+
+    public static readonly CatalogError InvalidPagination = new(
+        Code: "CAT-API-008",
+        Layer: "Api",
+        StatusCode: StatusCodes.Status400BadRequest,
+        Title: "Pagination parameters are invalid",
+        Detail: "page must be >= 1 and pageSize must be between 1 and 100.",
+        Type: "https://docs.omnicore.local/problems/catalog/api/invalid-pagination");
 }
