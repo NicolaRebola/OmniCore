@@ -15,6 +15,90 @@ Tenant errors:
 | Missing or empty tenant header | `400` | `CAT-API-001` |
 | Invalid tenant UUID | `400` | `CAT-API-002` |
 
+## Catalog Projection
+
+The catalog projection is a runtime read model for consumers. It is not persisted and is generated from active commercial items, active variants, active categories, global templates, and resolved attributes.
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/v1/projections/catalog` | Returns the tenant catalog projection grouped by category. |
+
+Optional query parameters:
+
+| Parameter | Required | Description |
+|---|---|---|
+| `categoryId` | No | Restricts the response to one active category. |
+| `itemType` | No | Restricts projected items by type (`simple`, `variable`). |
+| `itemId` | No | Restricts the response to one catalog item. |
+| `variantId` | No | Restricts the response to one variant. |
+
+Example:
+
+```bash
+curl -H "X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001" \
+  http://localhost:5080/api/v1/projections/catalog
+```
+
+Response:
+
+```json
+{
+  "tenantId": "uuid",
+  "createdAt": "2026-05-29T12:00:00Z",
+  "categories": [
+    {
+      "categoryId": "uuid",
+      "key": "burgers",
+      "name": "Burgers",
+      "isVirtual": false,
+      "items": [
+        {
+          "variantId": "uuid",
+          "itemId": "uuid",
+          "itemName": "Burger",
+          "itemDescription": "Classic burger",
+          "type": "simple",
+          "visibility": "commercial",
+          "status": "active",
+          "categoryId": "uuid",
+          "categoryName": "Burgers",
+          "variantName": "Burger",
+          "variantDescription": "Classic burger",
+          "price": { "amount": 12.5, "currency": "ARS" },
+          "attributes": {
+            "spicy": false,
+            "serving-size": "regular"
+          }
+        }
+      ]
+    },
+    {
+      "categoryId": null,
+      "key": "uncategorized",
+      "name": "Uncategorized",
+      "isVirtual": true,
+      "items": []
+    }
+  ]
+}
+```
+
+Projection rules:
+
+- Includes only active catalog items with `visibility = "commercial"`.
+- Includes only active variants.
+- Includes active categories even when they have no projected items.
+- Groups items without an active category under the virtual `uncategorized` category.
+- Resolves attributes with `variant value > item value > template default`.
+- Does not paginate in MVP 1.
+
+Projection errors:
+
+| Scenario | Status | Error code |
+|---|---:|---|
+| Missing or invalid tenant header | `400` | `CAT-API-001` / `CAT-API-002` |
+| Empty filter UUID | `400` | `CAT-API-003` |
+
 ## Catalog Templates
 
 Catalog templates are global structures managed by Omnicore. They are not tenant-scoped in this MVP, so these endpoints do not require `X-Tenant-Id`.

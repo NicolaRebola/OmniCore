@@ -54,6 +54,17 @@ public sealed class InMemoryCatalogItemRepository : ICatalogItemRepository
         return Task.FromResult(result);
     }
 
+    public Task<IReadOnlyList<CatalogItem>> ListByTenantAsync(Guid tenantId, CancellationToken ct = default)
+    {
+        var result = _store
+            .Where(x => x.TenantId.Equals(tenantId))
+            .OrderBy(x => x.Id)
+            .ToList()
+            .AsReadOnly();
+
+        return Task.FromResult<IReadOnlyList<CatalogItem>>(result);
+    }
+
     public Task<CatalogItem?> GetByIdAsync(Guid tenantId, Guid id, CancellationToken ct = default)
     {
         var result = _store.FirstOrDefault(x => x.TenantId.Equals(tenantId) && x.Id.Equals(id));

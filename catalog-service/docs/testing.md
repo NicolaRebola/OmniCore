@@ -48,6 +48,7 @@ Application tests verify orchestration:
 - Validate variant management use cases through the item aggregate: add, patch, deactivate and last-active-variant conflict.
 - Validate catalog template read use cases: list all global templates, return an empty list when none exist, return detail by id, and throw not found for missing templates.
 - Validate item creation with active template ids, missing/inactive template rejection, and item/variant attribute value mapping.
+- Validate catalog projection use cases: active commercial filtering, active variants, category grouping, empty categories, virtual uncategorized category, optional filters, and attribute precedence.
 
 ## Integration And Contract Tests
 
@@ -63,6 +64,7 @@ API tests are integration-style contract tests. They run the ASP.NET Core host w
 - Category assignment contract: valid category creates an item, inactive category rejects with `400`, and other-tenant category rejects with `404`.
 - Variant management contract: valid add/update returns variant DTOs, semantic delete returns `204`, invalid variant references return `404`, invalid price returns `400`, and last-active deactivation through `PATCH` or `DELETE` returns `409`.
 - Catalog template contract: list and detail endpoints return global templates without `tenantId`, include attribute definitions, include inactive templates with explicit `status`, and return `CAT-APP-010` for missing templates.
+- Catalog projection contract: tenant header is required, empty filter ids return `CAT-API-003`, the response is grouped by categories, includes a virtual uncategorized category, and exposes resolved attributes.
 
 Infrastructure tests validate the active adapter behavior. While the repository is in-memory, coverage should stay focused:
 
@@ -131,6 +133,17 @@ curl http://localhost:5080/api/v1/catalog-templates/bbbbbbbb-0000-0000-0000-0000
 ```
 
 These requests intentionally omit `X-Tenant-Id` because catalog templates are global in MVP 1.
+
+The `Catalog Projections` collection covers the positive smoke path:
+
+- `GET /api/v1/projections/catalog`
+
+Equivalent curl check:
+
+```bash
+curl -H "X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001" \
+  http://localhost:5080/api/v1/projections/catalog
+```
 
 ## CI Strategy
 

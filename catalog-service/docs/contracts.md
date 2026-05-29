@@ -130,6 +130,18 @@ public sealed record CatalogItemListQuery(
 );
 ```
 
+### `CatalogProjectionQuery`
+
+```csharp
+public sealed record CatalogProjectionQuery(
+  Guid TenantId,
+  Guid? CategoryId,
+  string? ItemType,
+  Guid? ItemId,
+  Guid? VariantId
+);
+```
+
 ## DTOs
 
 ### `PagedResultDto<T>`
@@ -218,6 +230,40 @@ public sealed record CategoryDto(
   Guid TenantId,
   string Name,
   string Status
+);
+```
+
+### `CatalogProjectionDto`
+
+```csharp
+public sealed record CatalogProjectionDto(
+  Guid TenantId,
+  DateTimeOffset CreatedAt,
+  IReadOnlyList<CatalogProjectionCategoryDto> Categories
+);
+
+public sealed record CatalogProjectionCategoryDto(
+  Guid? CategoryId,
+  string Key,
+  string Name,
+  bool IsVirtual,
+  IReadOnlyList<CatalogProjectionItemDto> Items
+);
+
+public sealed record CatalogProjectionItemDto(
+  Guid VariantId,
+  Guid ItemId,
+  string ItemName,
+  string ItemDescription,
+  string Type,
+  string Visibility,
+  string Status,
+  Guid? CategoryId,
+  string? CategoryName,
+  string VariantName,
+  string VariantDescription,
+  PriceDto? Price,
+  IReadOnlyDictionary<string, object> Attributes
 );
 ```
 

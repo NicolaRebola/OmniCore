@@ -212,6 +212,31 @@
     ]
   },
   {
+    "id": "mpqa-catalog-projections-collection",
+    "name": "Catalog Projections",
+    "variables": [],
+    "items": [
+      {
+        "method": "GET",
+        "url": "http://localhost:{{catalogServicePort}}/api/v1/projections/catalog",
+        "headers": {
+          "X-Tenant-Id": "{{tenantId}}"
+        },
+        "body": {
+          "mode": "none"
+        },
+        "auth": {
+          "type": "none"
+        },
+        "preRequestScript": "",
+        "postResponseScript": "",
+        "type": "request",
+        "id": "mpqa-catalog-projections-get-catalog",
+        "name": "Get Catalog Projection"
+      }
+    ]
+  },
+  {
     "id": "b0c59b69-a3c8-4177-ae3b-60df6f3c7a66",
     "name": "Categories",
     "variables": [],

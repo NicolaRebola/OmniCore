@@ -159,6 +159,12 @@ public sealed class CatalogVariantHandlerTests
             return Task.FromResult(new PagedResult<CatalogItem>([], criteria.Page, criteria.PageSize, 0));
         }
 
+        public Task<IReadOnlyList<CatalogItem>> ListByTenantAsync(Guid tenantId, CancellationToken ct = default)
+        {
+            var result = _items.Where(i => i.TenantId == tenantId).ToList().AsReadOnly();
+            return Task.FromResult<IReadOnlyList<CatalogItem>>(result);
+        }
+
         public Task<CatalogItem?> GetByIdAsync(Guid tenantId, Guid id, CancellationToken ct = default)
         {
             return Task.FromResult(_items.FirstOrDefault(i => i.TenantId == tenantId && i.Id == id));
