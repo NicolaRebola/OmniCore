@@ -82,6 +82,24 @@ public sealed class CatalogItemTests
     }
 
     [Fact]
+    public void Create_WithEmptyTemplateId_ShouldThrowCatalogDomainException()
+    {
+        var ex = Assert.Throws<CatalogDomainException>(() =>
+            CatalogItem.CatalogItem.Create(
+                Guid.NewGuid(),
+                Guid.Empty,
+                "Burger",
+                "Classic burger",
+                CatalogItemType.Simple,
+                Visibility.Commercial,
+                Status.Active,
+                Guid.NewGuid(),
+                null));
+
+        Assert.Equal(DomainErrors.CatalogItemTemplateRequired.Code, ex.ErrorCode);
+    }
+
+    [Fact]
     public void Create_WithValidData_ShouldCreateDefaultVariant()
     {
         // Arrange

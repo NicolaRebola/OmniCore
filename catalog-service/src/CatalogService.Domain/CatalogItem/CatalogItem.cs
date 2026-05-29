@@ -2,13 +2,18 @@ using CatalogService.Domain.Common;
 using CatalogService.Domain.Common.Exceptions;
 using CatalogService.Domain.Common.Enums;
 using CatalogService.Domain.Errors;
+using CatalogService.Domain.CatalogTemplates;
 
 namespace CatalogService.Domain.CatalogItem;
 
 public sealed class CatalogItem
 {
+  public static readonly Guid DefaultTemplateId = Guid.Parse("bbbbbbbb-0000-0000-0000-000000000001");
+
   private readonly List<CatalogVariant> _variants = new();
+  private readonly List<AttributeValue> _attributes = new();
   public Guid Id { get; }
+  public Guid TemplateId { get; }
   public string Name { get; private set; }
   public string Description { get; private set; }
   public CatalogItemType Type { get; }
@@ -16,11 +21,13 @@ public sealed class CatalogItem
   public Status Status { get; private set; }
   public Guid TenantId { get; }
   public IReadOnlyList<CatalogVariant> Variants => _variants.AsReadOnly();
+  public IReadOnlyList<AttributeValue> Attributes => _attributes.AsReadOnly();
   public Guid? CategoryId { get; private set; }
 
-  private CatalogItem(Guid id, string name, string description, CatalogItemType type, Visibility visibility, Status status, Guid tenantId, Guid? categoryId)
+  private CatalogItem(Guid id, Guid templateId, string name, string description, CatalogItemType type, Visibility visibility, Status status, Guid tenantId, Guid? categoryId)
   {
     Id = id;
+    TemplateId = templateId;
     Name = name;
     Description = description;
     Type = type;
@@ -30,11 +37,23 @@ public sealed class CatalogItem
     CategoryId = categoryId;
   }
 
-  public static CatalogItem Create(Guid id, string name, string description, CatalogItemType type, Visibility visibility, Status status, Guid tenantId, Guid? categoryId) {
+  public static CatalogItem Create(
+    Guid id,
+    Guid templateId,
+    string name,
+    string description,
+    CatalogItemType type,
+    Visibility visibility,
+    Status status,
+    Guid tenantId,
+    Guid? categoryId,
+    IReadOnlyList<AttributeValue>? attributes = null) {
     if (string.IsNullOrWhiteSpace(name)) throw new CatalogDomainException(DomainErrors.CatalogItemNameRequired);
     if (tenantId == Guid.Empty) throw new CatalogDomainException(DomainErrors.CatalogItemTenantRequired);
+    if (templateId == Guid.Empty) throw new CatalogDomainException(DomainErrors.CatalogItemTemplateRequired);
 
-    var item = new CatalogItem(id, name.Trim(), description, type, visibility, status, tenantId, categoryId);
+    var item = new CatalogItem(id, templateId, name.Trim(), description, type, visibility, status, tenantId, categoryId);
+    item.ReplaceAttributes(attributes ?? []);
 
     item._variants.Add(CatalogVariant.Create(
       Guid.NewGuid(),
@@ -44,9 +63,29 @@ public sealed class CatalogItem
       item.Description,
       tenantId,
       categoryId,
-      null
+      null,
+      []
     ));
     return item;
+  }
+
+  public static CatalogItem Create(Guid id, string name, string description, CatalogItemType type, Visibility visibility, Status status, Guid tenantId, Guid? categoryId)
+  {
+    return Create(id, DefaultTemplateId, name, description, type, visibility, status, tenantId, categoryId, []);
+  }
+
+  public void ReplaceAttributes(IReadOnlyList<AttributeValue> attributes)
+  {
+    _attributes.Clear();
+    foreach (var attribute in attributes)
+    {
+      if (_attributes.Any(x => x.Key.Equals(attribute.Key, StringComparison.OrdinalIgnoreCase)))
+      {
+        _attributes.RemoveAll(x => x.Key.Equals(attribute.Key, StringComparison.OrdinalIgnoreCase));
+      }
+
+      _attributes.Add(attribute);
+    }
   }
 
   public void RenameItem(string name) {
@@ -84,7 +123,7 @@ public sealed class CatalogItem
     return !string.IsNullOrWhiteSpace(name) && name is not null;
   }
 
-  public CatalogVariant AddVariant(Guid id, string name, string description, Status status, Price? price)
+  public CatalogVariant AddVariant(Guid id, string name, string description, Status status, Price? price, IReadOnlyList<AttributeValue>? attributes = null)
   {
     var variant = CatalogVariant.Create(
       id,
@@ -94,14 +133,15 @@ public sealed class CatalogItem
       description,
       TenantId,
       CategoryId,
-      price
+      price,
+      attributes ?? []
     );
 
     _variants.Add(variant);
     return variant;
   }
 
-  public CatalogVariant UpdateVariant(Guid variantId, string? name, string? description, Status? status, Price? price)
+  public CatalogVariant UpdateVariant(Guid variantId, string? name, string? description, Status? status, Price? price, IReadOnlyList<AttributeValue>? attributes = null)
   {
     var variant = GetVariantOrThrow(variantId);
 
@@ -117,6 +157,7 @@ public sealed class CatalogItem
       variant.ChangeStatus(status);
     }
     if (price is not null) variant.ChangePrice(price);
+    if (attributes is not null) variant.ReplaceAttributes(attributes);
 
     return variant;
   }
