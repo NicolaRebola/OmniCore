@@ -57,4 +57,18 @@ public static class ApplicationErrors
     Title: "Category cannot be assigned",
     Detail: "The category must be active and belong to the current tenant before it can be assigned to a catalog item."
   );
+
+  public static readonly ApplicationError CatalogVariantNotFound = new(
+    Code: "CAT-APP-008",
+    Layer: "Application",
+    Title: "Catalog variant not found",
+    Detail: "The requested catalog variant could not be found for the current catalog item and tenant."
+  );
+
+  public static readonly ApplicationError InvalidCatalogVariantStatus = new(
+    Code: "CAT-APP-009",
+    Layer: "Application",
+    Title: "Invalid catalog variant status",
+    Detail: "The catalog variant status must be either 'active' or 'inactive'."
+  );
 }

@@ -5,5 +5,6 @@ public sealed record CatalogVariantDto(
   string Description,
   string Status,
   Guid TenantId,
-  Guid? CategoryId
+  Guid? CategoryId,
+  PriceDto? Price
 );
