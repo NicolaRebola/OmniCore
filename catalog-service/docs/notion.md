@@ -47,8 +47,8 @@ Planning and product/domain analysis for the Catalog Service live in Notion.
 - GitHub Projects is intentionally not used for now because Notion owns planning and task tracking.
 - The current domain model is centered on `CatalogItem`, with `CatalogVariant` as the universal projected unit.
 - Catalog and Menu are runtime projections, not persisted domain entities.
-- `CatalogTemplate`, `CatalogItem`, `CatalogVariant`, `Option`, and `Category` are tenant-scoped.
-- Multiple active catalog templates may exist per tenant.
+- `CatalogTemplate` is global and managed by Omnicore for MVP 1; `CatalogItem`, `CatalogVariant`, `Option`, and `Category` are tenant-scoped.
+- Multiple catalog templates may exist globally and are selectable by tenants.
 - `CatalogItem` is associated with one `CatalogTemplate`; that association is immutable for MVP 1.
 - Catalog does not persist or define inventory behavior. Inventory will build its own model from catalog items and variants later.
 - Phase 3 uses C# / .NET 9, Hexagonal Architecture (Ports & Adapters), transport-agnostic design (REST, gRPC, Queue, IPC), and no ORM coupling in the domain layer.

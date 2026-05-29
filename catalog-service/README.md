@@ -11,7 +11,7 @@ This service is part of the [OmniCore](../README.md) portfolio project.
 - Manage **CatalogItems** — the canonical representation of a product within a tenant's catalog.
 - Manage **CatalogVariants** — the projected unit of a catalog item (the entity that consumers and downstream systems interact with).
 - Manage **Categories** — tenant-scoped groupings for catalog items and variants.
-- Manage **CatalogTemplates** — shared, tenant-agnostic structural templates that define the attribute schema applied to catalog items.
+- Manage **CatalogTemplates** — global, Omnicore-managed structural templates that tenants can select when creating catalog items.
 - Expose **Catalog and Menu projections** — runtime read views derived from items, variants, and templates. These are not persisted entities.
 - Support **multi-tenancy** at the data level: all tenant-scoped entities are isolated by `tenantId`.
 
@@ -112,7 +112,8 @@ classDiagram
         <<AggregateRoot>>
         UUID id
         string name
-        string metadata
+        string description
+        Status status
     }
 
     class Category {
@@ -131,7 +132,8 @@ classDiagram
 
 **Key invariants:**
 - Every `CatalogItem` has at least one `CatalogVariant` (auto-generated).
-- `CatalogTemplate` is global (not tenant-scoped) and defines the attribute schema.
+- `CatalogTemplate` is global (not tenant-scoped), managed by Omnicore, and exposes basic read metadata in MVP 1.
+- Template attribute definitions are intentionally deferred to `SPEC-016`.
 - `CatalogItem`, `CatalogVariant`, `Option`, and `Category` are tenant-scoped.
 - `CatalogItem.CategoryId` is optional. When present on create, it must point to an active category from the same tenant.
 - `Catalog` and `Menu` are **runtime projections** — they are computed on read and are never persisted.
@@ -237,6 +239,8 @@ The service currently exposes a REST API via ASP.NET Core Controllers.
 
 | Method | Path | Required Headers | Description |
 |---|---|---|
+| `GET` | `/api/v1/catalog-templates` | None | Returns all global catalog templates |
+| `GET` | `/api/v1/catalog-templates/{id}` | None | Returns one global catalog template by id |
 | `GET` | `/api/v1/catalog-items` | `X-Tenant-Id: {uuid}` | Returns all catalog items for a tenant |
 | `GET` | `/api/v1/catalog-items/{id}` | `X-Tenant-Id: {uuid}` | Returns the administrative detail for one catalog item, including its variants |
 | `POST` | `/api/v1/catalog-items` | `X-Tenant-Id: {uuid}` | Creates a catalog item for a tenant |
@@ -302,6 +306,20 @@ Detail behavior:
 - Unknown item -> `404` with `application/problem+json`.
 - Item belonging to another tenant -> `404` with `application/problem+json`.
 - Empty item id -> `400` with `application/problem+json`.
+
+Global catalog template discovery:
+
+```bash
+curl http://localhost:5080/api/v1/catalog-templates
+
+curl http://localhost:5080/api/v1/catalog-templates/bbbbbbbb-0000-0000-0000-000000000001
+```
+
+Template behavior:
+- Catalog template endpoints are global and do not require `X-Tenant-Id`.
+- `GET /api/v1/catalog-templates` returns all templates, including inactive templates, with explicit `status`.
+- `GET /api/v1/catalog-templates/{id}` returns `404` with `CAT-APP-010` when the template does not exist.
+- Template responses do not include `tenantId` or `attributes` in MVP 1.
 
 Administrative item creation:
 

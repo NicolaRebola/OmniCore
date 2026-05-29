@@ -15,6 +15,68 @@ Tenant errors:
 | Missing or empty tenant header | `400` | `CAT-API-001` |
 | Invalid tenant UUID | `400` | `CAT-API-002` |
 
+## Catalog Templates
+
+Catalog templates are global structures managed by Omnicore. They are not tenant-scoped in this MVP, so these endpoints do not require `X-Tenant-Id`.
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/v1/catalog-templates` | Lists all catalog templates. |
+| `GET` | `/api/v1/catalog-templates/{id}` | Returns one catalog template by id. |
+
+### List Catalog Templates
+
+Example:
+
+```bash
+curl http://localhost:5080/api/v1/catalog-templates
+```
+
+Response:
+
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "name": "Restaurant Item",
+      "description": "Template for menu-style products",
+      "status": "active"
+    }
+  ]
+}
+```
+
+The MVP response includes `status` and intentionally omits attribute definitions. Attribute definitions are covered by `SPEC-016`.
+
+### Get Catalog Template
+
+Example:
+
+```bash
+curl http://localhost:5080/api/v1/catalog-templates/bbbbbbbb-0000-0000-0000-000000000001
+```
+
+Response:
+
+```json
+{
+  "id": "uuid",
+  "name": "Restaurant Item",
+  "description": "Template for menu-style products",
+  "status": "active"
+}
+```
+
+Template errors:
+
+| Scenario | Status | Error code |
+|---|---:|---|
+| Invalid template UUID | `400` | `CAT-API-003` |
+| Template does not exist | `404` | `CAT-APP-010` |
+
+The endpoints are intentionally global. Do not send `X-Tenant-Id`; tenant-owned templates are outside MVP 1.
+
 ## Catalog Items
 
 | Method | Path | Description |
