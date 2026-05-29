@@ -4,6 +4,15 @@ This document captures application-facing command and DTO shapes. These records 
 
 ## Commands
 
+### `PriceDto`
+
+```csharp
+public sealed record PriceDto(
+  decimal Amount,
+  string Currency
+);
+```
+
 ### `CreateCatalogItemCommand`
 
 ```csharp
@@ -47,6 +56,28 @@ Notes:
 - `PATCH /api/v1/categories/{id}` uses this command directly.
 - `DELETE /api/v1/categories/{id}` reuses the same mutation semantics with `Status = "inactive"`.
 
+### `CreateCatalogVariantCommand`
+
+```csharp
+public sealed record CreateCatalogVariantCommand(
+  string Name,
+  string? Description,
+  string Status,
+  PriceDto? Price
+);
+```
+
+### `UpdateCatalogVariantCommand`
+
+```csharp
+public sealed record UpdateCatalogVariantCommand(
+  string? Name,
+  string? Description,
+  string? Status,
+  PriceDto? Price
+);
+```
+
 ## DTOs
 
 ### `CatalogItemDto`
@@ -74,7 +105,8 @@ public sealed record CatalogVariantDto(
   string Description,
   string Status,
   Guid TenantId,
-  Guid? CategoryId
+  Guid? CategoryId,
+  PriceDto? Price
 );
 ```
 
@@ -96,6 +128,10 @@ public sealed record CategoryDto(
 | `CAT-APP-004` | Application | Category was not found for the current tenant. |
 | `CAT-APP-006` | Application | Category status is not valid. |
 | `CAT-APP-007` | Application | Category exists but cannot be assigned to a catalog item. |
+| `CAT-APP-008` | Application | Variant was not found inside the tenant-scoped item. |
+| `CAT-APP-009` | Application | Variant status is not valid. |
 | `CAT-DOM-009` | Domain | Category name is required. |
+| `CAT-DOM-013` | Domain | Price amount/currency are invalid. |
 
 `CAT-APP-004` intentionally maps to `404` to avoid leaking whether a category exists in another tenant.
+`CAT-APP-002` maps to `409` and protects aggregate consistency, including the last-active-variant rule.

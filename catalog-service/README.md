@@ -240,6 +240,9 @@ The service currently exposes a REST API via ASP.NET Core Controllers.
 | `GET` | `/api/v1/catalog-items` | `X-Tenant-Id: {uuid}` | Returns all catalog items for a tenant |
 | `GET` | `/api/v1/catalog-items/{id}` | `X-Tenant-Id: {uuid}` | Returns the administrative detail for one catalog item, including its variants |
 | `POST` | `/api/v1/catalog-items` | `X-Tenant-Id: {uuid}` | Creates a catalog item for a tenant |
+| `POST` | `/api/v1/catalog-items/{itemId}/variants` | `X-Tenant-Id: {uuid}` | Adds a variant to an existing catalog item |
+| `PATCH` | `/api/v1/catalog-items/{itemId}/variants/{variantId}` | `X-Tenant-Id: {uuid}` | Updates variant name, description, status and optional price |
+| `DELETE` | `/api/v1/catalog-items/{itemId}/variants/{variantId}` | `X-Tenant-Id: {uuid}` | Deactivates a variant |
 | `GET` | `/api/v1/categories` | `X-Tenant-Id: {uuid}` | Returns active categories for a tenant |
 | `POST` | `/api/v1/categories` | `X-Tenant-Id: {uuid}` | Creates a tenant-scoped category |
 | `PATCH` | `/api/v1/categories/{id}` | `X-Tenant-Id: {uuid}` | Updates a category name and/or status |
@@ -348,6 +351,39 @@ Category behavior:
 - `DELETE` is semantic deactivation; it does not cascade into catalog items.
 - Existing item references are preserved when a category becomes inactive.
 
+Administrative variant management:
+
+```bash
+curl -X POST http://localhost:5080/api/v1/catalog-items/{itemId}/variants \
+  -H "Content-Type: application/json" \
+  -H "X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001" \
+  -d '{
+    "name": "XL",
+    "description": "Extra large",
+    "status": "active",
+    "price": { "amount": 12.5, "currency": "ARS" }
+  }'
+
+curl -X PATCH http://localhost:5080/api/v1/catalog-items/{itemId}/variants/{variantId} \
+  -H "Content-Type: application/json" \
+  -H "X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001" \
+  -d '{
+    "name": "Small",
+    "description": "Small size",
+    "status": "inactive",
+    "price": { "amount": 9.99, "currency": "USD" }
+  }'
+
+curl -X DELETE http://localhost:5080/api/v1/catalog-items/{itemId}/variants/{variantId} \
+  -H "X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001"
+```
+
+Variant behavior:
+- Variant mutations happen through the parent `CatalogItem` aggregate.
+- `price` is optional and descriptive.
+- `DELETE` marks the variant as `inactive`.
+- Deactivating the last active variant through `PATCH` or `DELETE` returns `409` with `CAT-APP-002`.
+
 Full API notes: [`docs/api.md`](./docs/api.md)  
 Command/DTO contracts: [`docs/contracts.md`](./docs/contracts.md)
 
@@ -400,6 +436,7 @@ This service is planned and documented in **Notion**. The repository stays align
 | Test strategy | [`docs/testing.md`](./docs/testing.md) |
 | API contract | [`docs/api.md`](./docs/api.md) |
 | Commands and DTOs | [`docs/contracts.md`](./docs/contracts.md) |
+| RFC-013 | [`docs/rfcs/RFC-013-catalog-variant-management.md`](./docs/rfcs/RFC-013-catalog-variant-management.md) |
 | RFC-014 | [`docs/rfcs/RFC-014-category-domain-and-api.md`](./docs/rfcs/RFC-014-category-domain-and-api.md) |
 | ADR-003 | [`docs/adrs/ADR-003-category-item-association.md`](./docs/adrs/ADR-003-category-item-association.md) |
 | Notion reference index | [`docs/notion.md`](./docs/notion.md) |

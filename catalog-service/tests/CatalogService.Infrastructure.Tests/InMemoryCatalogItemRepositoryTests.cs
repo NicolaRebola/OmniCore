@@ -1,5 +1,6 @@
 using CatalogService.Infrastructure.Dev;
 using CatalogService.Infrastructure.Repositories;
+using CatalogService.Domain.Common.Enums;
 using Xunit;
 namespace CatalogService.Infrastructure.Tests;
 
@@ -89,6 +90,23 @@ public sealed class InMemoryCatalogItemRepositoryTests
     var result = await repo.GetByIdAsync(otherTenantId, existingItemId);
 
     Assert.Null(result);
+  }
+
+  [Fact]
+  public async Task UpdateAsync_WithVariantMutation_ShouldPersistUpdatedAggregate()
+  {
+    var repo = new InMemoryCatalogItemRepository();
+    var tenantId = DevSeed.TenantId;
+    var seedItems = await repo.GetByTenantAsync(tenantId);
+    var item = seedItems[0];
+    var variant = item.AddVariant(Guid.NewGuid(), "XL", "Extra large", Status.Active, null);
+
+    await repo.UpdateAsync(tenantId, item);
+
+    var result = await repo.GetByIdAsync(tenantId, item.Id);
+
+    Assert.NotNull(result);
+    Assert.Contains(result.Variants, v => v.Id == variant.Id && v.Name == "XL");
   }
 
 }

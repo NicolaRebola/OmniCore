@@ -31,6 +31,8 @@ Domain tests verify rules that must hold regardless of caller:
 - Descriptive updates validate name, visibility and status in the domain.
 - The default variant guarantees minimum existence; it is not synchronized with later `CatalogItem` descriptive updates.
 - `CatalogVariant` validates its own identity and catalog item reference, and can expose optional category grouping context.
+- `CatalogVariant` can expose optional `Price`.
+- `CatalogItem` rejects deactivation of the last active variant.
 
 Application tests verify orchestration:
 
@@ -40,6 +42,7 @@ Application tests verify orchestration:
 - Persist through outbound ports only after successful validation.
 - Use fake repositories controlled by the test.
 - Validate category assignment rules before creating catalog items: same tenant, active status, and no cross-tenant leakage.
+- Validate variant management use cases through the item aggregate: add, patch, deactivate and last-active-variant conflict.
 
 ## Integration And Contract Tests
 
@@ -52,6 +55,7 @@ API tests are integration-style contract tests. They run the ASP.NET Core host w
 - Problem Details payloads with `application/problem+json`.
 - Cross-tenant isolation by returning `404` for resources outside the current tenant.
 - Category assignment contract: valid category creates an item, inactive category rejects with `400`, and other-tenant category rejects with `404`.
+- Variant management contract: valid add/update returns variant DTOs, semantic delete returns `204`, invalid variant references return `404`, invalid price returns `400`, and last-active deactivation through `PATCH` or `DELETE` returns `409`.
 
 Infrastructure tests validate the active adapter behavior. While the repository is in-memory, coverage should stay focused:
 

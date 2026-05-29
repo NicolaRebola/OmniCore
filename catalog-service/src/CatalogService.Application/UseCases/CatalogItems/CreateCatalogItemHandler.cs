@@ -53,7 +53,15 @@ public sealed class CreateCatalogItemHandler : ICreateCatalogItemUseCase
             catalogItem.Status.Value,
             catalogItem.TenantId,
             catalogItem.CategoryId,
-            catalogItem.Variants.Select(v => new CatalogVariantDto(v.Id, v.Name, v.Description, v.Status.Value, v.TenantId, v.CategoryId)).ToList().AsReadOnly()
+            catalogItem.Variants.Select(v => new CatalogVariantDto(
+                v.Id,
+                v.Name,
+                v.Description,
+                v.Status.Value,
+                v.TenantId,
+                v.CategoryId,
+                v.Price is null ? null : new PriceDto(v.Price.Amount, v.Price.Currency)
+            )).ToList().AsReadOnly()
         );
     }
 }

@@ -21,7 +21,15 @@ public sealed class GetCatalogItemDetailHandler : IGetCatalogItemDetailUseCase
     if (item == null) throw new CatalogApplicationException(ApplicationErrors.CatalogItemNotFound);
 
     if (item.Variants.Count == 0) throw new CatalogApplicationException(ApplicationErrors.CatalogItemMustHaveVariant);
-    var variants = item.Variants.Select(v => new CatalogVariantDto(v.Id, v.Name, v.Description, v.Status.Value, v.TenantId, v.CategoryId)).ToList().AsReadOnly();
+    var variants = item.Variants.Select(v => new CatalogVariantDto(
+      v.Id,
+      v.Name,
+      v.Description,
+      v.Status.Value,
+      v.TenantId,
+      v.CategoryId,
+      v.Price is null ? null : new PriceDto(v.Price.Amount, v.Price.Currency)
+    )).ToList().AsReadOnly();
     return new CatalogItemDto(item.Id, item.Name, item.Description, item.Type.Value, item.Visibility.Value, item.Status.Value, item.TenantId, item.CategoryId, variants);
   }
 }

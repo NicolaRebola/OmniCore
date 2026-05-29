@@ -1,0 +1,48 @@
+[
+  {
+    "id": "globals",
+    "name": "Globals",
+    "variables": []
+  },
+  {
+    "id": "793c9a51-0623-41a0-ac09-9550c41b0ef5",
+    "name": "Local",
+    "variables": [
+      {
+        "id": "add69a2e-c87b-4128-ab95-7805a022ffec",
+        "name": "tenantId",
+        "initialValue": "aaaaaaaa-0000-0000-0000-000000000001",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "id": "bd367a99-d155-4b52-a789-cf2028084e8d",
+        "name": "catalogServicePort",
+        "initialValue": "5080",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "id": "mpqa-env-category-id",
+        "name": "categoryId",
+        "initialValue": "11111111-1111-1111-1111-111111111111",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "id": "mpqa-env-catalog-item-id",
+        "name": "catalogItemId",
+        "initialValue": "22222222-2222-2222-2222-222222222222",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "id": "mpqa-env-catalog-variant-id",
+        "name": "catalogVariantId",
+        "initialValue": "33333333-3333-3333-3333-333333333333",
+        "type": "default",
+        "enabled": true
+      }
+    ]
+  }
+]

@@ -12,14 +12,23 @@ public class CatalogItemsController : ControllerBase
   private readonly IGetCatalogItemsUseCase _getCatalogItemsUseCase;
   private readonly IGetCatalogItemDetailUseCase _getCatalogItemDetailUseCase;
   private readonly ICreateCatalogItemUseCase _createCatalogItemUseCase;
+  private readonly IAddCatalogVariantUseCase _addCatalogVariantUseCase;
+  private readonly IUpdateCatalogVariantUseCase _updateCatalogVariantUseCase;
+  private readonly IDeactivateCatalogVariantUseCase _deactivateCatalogVariantUseCase;
   public CatalogItemsController(
     IGetCatalogItemsUseCase getCatalogItemsUseCase,
     IGetCatalogItemDetailUseCase getCatalogItemDetailUseCase,
-    ICreateCatalogItemUseCase createCatalogItemUseCase)
+    ICreateCatalogItemUseCase createCatalogItemUseCase,
+    IAddCatalogVariantUseCase addCatalogVariantUseCase,
+    IUpdateCatalogVariantUseCase updateCatalogVariantUseCase,
+    IDeactivateCatalogVariantUseCase deactivateCatalogVariantUseCase)
   {
       _getCatalogItemsUseCase = getCatalogItemsUseCase;
       _getCatalogItemDetailUseCase = getCatalogItemDetailUseCase;
       _createCatalogItemUseCase = createCatalogItemUseCase;
+      _addCatalogVariantUseCase = addCatalogVariantUseCase;
+      _updateCatalogVariantUseCase = updateCatalogVariantUseCase;
+      _deactivateCatalogVariantUseCase = deactivateCatalogVariantUseCase;
   }
 
   [HttpGet]
@@ -54,5 +63,50 @@ public class CatalogItemsController : ControllerBase
     if (command == null) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.CreateCatalogItemInvalid);
     var result = await _createCatalogItemUseCase.ExecuteAsync(tenantId, command, ct);
     return CreatedAtAction(nameof(Create), new { id = result.Id }, result);
+  }
+
+  [HttpPost("{itemId:guid}/variants")]
+  [TenantRequired]
+  public async Task<IActionResult> AddVariant(
+    [FromHeader(Name = TenantHeaders.TenantId)] Guid tenantId,
+    [FromRoute] Guid itemId,
+    [FromBody] CreateCatalogVariantCommand command,
+    CancellationToken ct)
+  {
+    if (itemId == Guid.Empty) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.InvalidId);
+    if (command == null) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.CreateCatalogItemInvalid);
+
+    var result = await _addCatalogVariantUseCase.ExecuteAsync(tenantId, itemId, command, ct);
+    return CreatedAtAction(nameof(GetById), new { id = itemId }, result);
+  }
+
+  [HttpPatch("{itemId:guid}/variants/{variantId:guid}")]
+  [TenantRequired]
+  public async Task<IActionResult> PatchVariant(
+    [FromHeader(Name = TenantHeaders.TenantId)] Guid tenantId,
+    [FromRoute] Guid itemId,
+    [FromRoute] Guid variantId,
+    [FromBody] UpdateCatalogVariantCommand command,
+    CancellationToken ct)
+  {
+    if (itemId == Guid.Empty || variantId == Guid.Empty) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.InvalidId);
+    if (command == null) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.CreateCatalogItemInvalid);
+
+    var result = await _updateCatalogVariantUseCase.ExecuteAsync(tenantId, itemId, variantId, command, ct);
+    return Ok(result);
+  }
+
+  [HttpDelete("{itemId:guid}/variants/{variantId:guid}")]
+  [TenantRequired]
+  public async Task<IActionResult> DeleteVariant(
+    [FromHeader(Name = TenantHeaders.TenantId)] Guid tenantId,
+    [FromRoute] Guid itemId,
+    [FromRoute] Guid variantId,
+    CancellationToken ct)
+  {
+    if (itemId == Guid.Empty || variantId == Guid.Empty) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.InvalidId);
+
+    await _deactivateCatalogVariantUseCase.ExecuteAsync(tenantId, itemId, variantId, ct);
+    return NoContent();
   }
 }

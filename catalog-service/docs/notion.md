@@ -14,6 +14,7 @@ Planning and product/domain analysis for the Catalog Service live in Notion.
 
 - [Expected Outputs](https://www.notion.so/8cbbb8580c1847fea19391446b8212d3)
 - [SPEC-014 - Category Domain and API](https://www.notion.so/368bd6def30d815cbbe3eeb0ca07938c)
+- [SPEC-013 - CatalogVariant Management](https://www.notion.so/368bd6def30d81f0af04ee23d07f22bd)
 - [RFC-014 - Category Domain and API Implementation](https://www.notion.so/36ebd6def30d81feb901c529f6b1235e)
 - [ADR-003 - Optional Category Association on CatalogItem](https://www.notion.so/36ebd6def30d8162b3ebf7528d970413)
 
@@ -23,6 +24,7 @@ Planning and product/domain analysis for the Catalog Service live in Notion.
 - [REST API Contract](./api.md)
 - [Commands and DTO Contracts](./contracts.md)
 - [RFC-014 - Category Domain and API](./rfcs/RFC-014-category-domain-and-api.md)
+- [RFC-013 - CatalogVariant Management](./rfcs/RFC-013-catalog-variant-management.md)
 - [ADR-003 - Optional Category Association on CatalogItem](./adrs/ADR-003-category-item-association.md)
 
 ## Notes
