@@ -76,6 +76,7 @@ public static class ProblemDetailsFactory
             "CAT-APP-002" => StatusCodes.Status409Conflict,
             "CAT-APP-004" => StatusCodes.Status404NotFound,
             "CAT-APP-008" => StatusCodes.Status404NotFound,
+            "CAT-APP-010" => StatusCodes.Status404NotFound,
             _ => StatusCodes.Status400BadRequest
         };
 }
