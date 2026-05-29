@@ -4,5 +4,6 @@ public sealed record UpdateCatalogVariantCommand(
   string? Name,
   string? Description,
   string? Status,
-  PriceDto? Price
+  PriceDto? Price,
+  IReadOnlyList<AttributeValueDto>? Attributes = null
 );

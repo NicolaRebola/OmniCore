@@ -9,8 +9,25 @@ public sealed class InMemoryCatalogTemplateRepository : ICatalogTemplateReposito
 {
     private readonly List<CatalogTemplate> _store =
     [
-        CatalogTemplate.Create(DevSeed.RestaurantCatalogTemplateId, "Restaurant Item", "Template for menu-style products", Status.Active),
-        CatalogTemplate.Create(DevSeed.RetailCatalogTemplateId, "Retail Product", "Template for retail products", Status.Active),
+        CatalogTemplate.Create(
+            DevSeed.RestaurantCatalogTemplateId,
+            "Restaurant Item",
+            "Template for menu-style products",
+            Status.Active,
+            [
+                AttributeDefinition.Create(Guid.Parse("bbbbbbbb-1000-0000-0000-000000000001"), "spicy", "Spicy", AttributeType.Boolean, false, "false", []),
+                AttributeDefinition.Create(Guid.Parse("bbbbbbbb-1000-0000-0000-000000000002"), "tags", "Tags", AttributeType.MultiSelect, false, null, ["vegetarian", "gluten-free"]),
+                AttributeDefinition.Create(Guid.Parse("bbbbbbbb-1000-0000-0000-000000000003"), "serving-size", "Serving Size", AttributeType.Select, true, "regular", ["regular", "large"])
+            ]),
+        CatalogTemplate.Create(
+            DevSeed.RetailCatalogTemplateId,
+            "Retail Product",
+            "Template for retail products",
+            Status.Active,
+            [
+                AttributeDefinition.Create(Guid.Parse("bbbbbbbb-2000-0000-0000-000000000001"), "brand", "Brand", AttributeType.Text, false, null, []),
+                AttributeDefinition.Create(Guid.Parse("bbbbbbbb-2000-0000-0000-000000000002"), "color", "Color", AttributeType.Select, false, null, ["black", "white", "red"])
+            ]),
         CatalogTemplate.Create(DevSeed.LegacyCatalogTemplateId, "Legacy Product", "Deprecated product template kept for compatibility", Status.Inactive),
     ];
 

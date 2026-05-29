@@ -31,7 +31,7 @@ public sealed class GetCatalogItemsHandler : IGetCatalogItemsUseCase
     var page = await _repository.ListAsync(criteria, ct);
 
     return new PagedResultDto<CatalogItemDto>(
-      page.Items.Select(ToDto).ToList().AsReadOnly(),
+      page.Items.Select(CatalogItemMapping.ToDto).ToList().AsReadOnly(),
       page.Page,
       page.PageSize,
       page.Total);
@@ -47,24 +47,4 @@ public sealed class GetCatalogItemsHandler : IGetCatalogItemsUseCase
 
     return parser(value);
   }
-
-  private static CatalogItemDto ToDto(CatalogItem item) =>
-    new(
-      item.Id,
-      item.Name,
-      item.Description,
-      item.Type.Value,
-      item.Visibility.Value,
-      item.Status.Value,
-      item.TenantId,
-      item.CategoryId,
-      item.Variants.Select(v => new CatalogVariantDto(
-        v.Id,
-        v.Name,
-        v.Description,
-        v.Status.Value,
-        v.TenantId,
-        v.CategoryId,
-        v.Price is null ? null : new PriceDto(v.Price.Amount, v.Price.Currency)
-      )).ToList().AsReadOnly());
 }

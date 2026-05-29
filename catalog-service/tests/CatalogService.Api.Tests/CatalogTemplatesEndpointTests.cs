@@ -55,7 +55,12 @@ public sealed class CatalogTemplatesEndpointTests
         Assert.Equal("Restaurant Item", json.RootElement.GetProperty("name").GetString());
         Assert.Equal("active", json.RootElement.GetProperty("status").GetString());
         Assert.False(json.RootElement.TryGetProperty("tenantId", out _));
-        Assert.False(json.RootElement.TryGetProperty("attributes", out _));
+        var attributes = json.RootElement.GetProperty("attributes");
+        Assert.True(attributes.GetArrayLength() >= 1);
+        Assert.Contains(attributes.EnumerateArray(), attribute =>
+            attribute.GetProperty("key").GetString() == "serving-size"
+            && attribute.GetProperty("type").GetString() == "select"
+            && attribute.GetProperty("required").GetBoolean());
 
         client.Dispose();
     }

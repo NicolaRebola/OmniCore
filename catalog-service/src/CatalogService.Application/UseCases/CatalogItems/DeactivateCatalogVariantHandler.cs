@@ -27,7 +27,7 @@ public sealed class DeactivateCatalogVariantHandler : IDeactivateCatalogVariantU
     {
       var variant = item.DeactivateVariant(variantId);
       await _repository.UpdateAsync(tenantId, item, ct);
-      return ToDto(variant);
+      return CatalogItemMapping.ToDto(variant);
     }
     catch (CatalogDomainException ex) when (ex.ErrorCode == DomainErrors.CatalogVariantNotFound.Code)
     {
@@ -37,18 +37,5 @@ public sealed class DeactivateCatalogVariantHandler : IDeactivateCatalogVariantU
     {
       throw new CatalogApplicationException(ApplicationErrors.CatalogItemConflict);
     }
-  }
-
-  private static CatalogVariantDto ToDto(CatalogVariant variant)
-  {
-    return new CatalogVariantDto(
-      variant.Id,
-      variant.Name,
-      variant.Description,
-      variant.Status.Value,
-      variant.TenantId,
-      variant.CategoryId,
-      variant.Price is null ? null : new PriceDto(variant.Price.Amount, variant.Price.Currency)
-    );
   }
 }

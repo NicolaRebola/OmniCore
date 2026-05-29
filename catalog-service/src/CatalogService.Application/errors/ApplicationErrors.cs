@@ -78,4 +78,11 @@ public static class ApplicationErrors
     Title: "Catalog template not found",
     Detail: "The requested catalog template could not be found."
   );
+
+  public static readonly ApplicationError CatalogTemplateNotAssignable = new(
+    Code: "CAT-APP-011",
+    Layer: "Application",
+    Title: "Catalog template cannot be assigned",
+    Detail: "The catalog template must exist and be active before it can be assigned to a catalog item."
+  );
 }

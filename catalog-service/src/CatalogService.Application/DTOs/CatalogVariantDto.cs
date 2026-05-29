@@ -6,5 +6,6 @@ public sealed record CatalogVariantDto(
   string Status,
   Guid TenantId,
   Guid? CategoryId,
-  PriceDto? Price
+  PriceDto? Price,
+  IReadOnlyList<AttributeValueDto> Attributes
 );

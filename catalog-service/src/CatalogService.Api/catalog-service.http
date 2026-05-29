@@ -20,3 +20,22 @@ GET {{catalog_service_HostAddress}}/api/v1/catalog-templates/99999999-9999-9999-
 Accept: application/problem+json
 
 ###
+
+POST {{catalog_service_HostAddress}}/api/v1/catalog-items
+Accept: application/json
+Content-Type: application/json
+X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001
+
+{
+  "name": "Burger",
+  "description": "Classic burger",
+  "type": "simple",
+  "visibility": "commercial",
+  "status": "active",
+  "templateId": "{{catalog_template_id}}",
+  "attributes": [
+    { "key": "spicy", "value": "false" }
+  ]
+}
+
+###

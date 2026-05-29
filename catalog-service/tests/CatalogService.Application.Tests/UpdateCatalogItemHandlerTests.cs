@@ -4,6 +4,7 @@ using CatalogService.Application.Errors;
 using CatalogService.Application.Ports.Outbound;
 using CatalogService.Application.UseCases;
 using CatalogService.Domain.CatalogItem;
+using CatalogService.Domain.CatalogTemplates;
 using CatalogService.Domain.Categories;
 using CatalogService.Domain.Common.Enums;
 using CatalogService.Domain.Common.Exceptions;
@@ -14,6 +15,9 @@ namespace CatalogService.Application.Tests;
 
 public sealed class UpdateCatalogItemHandlerTests
 {
+    private static readonly Guid TemplateId = Guid.Parse("bbbbbbbb-0000-0000-0000-000000000001");
+    private static readonly CatalogTemplate ActiveTemplate = CatalogTemplate.Create(TemplateId, "Restaurant Item", "Template for menu-style products", Status.Active);
+
     [Fact]
     public async Task ExecuteAsync_WithEditableFields_ShouldUpdateAndPersistItem()
     {
@@ -21,7 +25,7 @@ public sealed class UpdateCatalogItemHandlerTests
         var tenantId = Guid.NewGuid();
         var item = CreateItem(tenantId, null);
         var catalogItemRepository = new FakeCatalogItemRepository([item]);
-        var handler = new UpdateCatalogItemHandler(catalogItemRepository, new FakeCategoryRepository([]));
+        var handler = new UpdateCatalogItemHandler(catalogItemRepository, new FakeCategoryRepository([]), new FakeCatalogTemplateRepository([ActiveTemplate]));
         var command = new UpdateCatalogItemCommand(
             "Updated Burger",
             "Updated description",
@@ -52,7 +56,7 @@ public sealed class UpdateCatalogItemHandlerTests
 
         var catalogItemRepository = new FakeCatalogItemRepository([item]);
         var categoryRepository = new FakeCategoryRepository([category]);
-        var handler = new UpdateCatalogItemHandler(catalogItemRepository, categoryRepository);
+        var handler = new UpdateCatalogItemHandler(catalogItemRepository, categoryRepository, new FakeCatalogTemplateRepository([ActiveTemplate]));
         var command = new UpdateCatalogItemCommand(null, null, null, null, category.Id);
 
         // Act
@@ -72,7 +76,7 @@ public sealed class UpdateCatalogItemHandlerTests
         // Arrange
         var tenantId = Guid.NewGuid();
         var catalogItemRepository = new FakeCatalogItemRepository([]);
-        var handler = new UpdateCatalogItemHandler(catalogItemRepository, new FakeCategoryRepository([]));
+        var handler = new UpdateCatalogItemHandler(catalogItemRepository, new FakeCategoryRepository([]), new FakeCatalogTemplateRepository([ActiveTemplate]));
         var command = new UpdateCatalogItemCommand("Updated", null, null, null, null);
 
         // Act
@@ -97,7 +101,8 @@ public sealed class UpdateCatalogItemHandlerTests
         var catalogItemRepository = new FakeCatalogItemRepository([item]);
         var handler = new UpdateCatalogItemHandler(
             catalogItemRepository,
-            new FakeCategoryRepository([category]));
+            new FakeCategoryRepository([category]),
+            new FakeCatalogTemplateRepository([ActiveTemplate]));
         var command = new UpdateCatalogItemCommand("Updated Burger", null, null, null, category.Id);
 
         // Act
@@ -122,7 +127,8 @@ public sealed class UpdateCatalogItemHandlerTests
         var catalogItemRepository = new FakeCatalogItemRepository([item]);
         var handler = new UpdateCatalogItemHandler(
             catalogItemRepository,
-            new FakeCategoryRepository([category]));
+            new FakeCategoryRepository([category]),
+            new FakeCatalogTemplateRepository([ActiveTemplate]));
         var command = new UpdateCatalogItemCommand("Updated Burger", null, null, null, category.Id);
 
         // Act
@@ -143,7 +149,7 @@ public sealed class UpdateCatalogItemHandlerTests
         var item = CreateItem(tenantId, null);
         var originalName = item.Name;
         var catalogItemRepository = new FakeCatalogItemRepository([item]);
-        var handler = new UpdateCatalogItemHandler(catalogItemRepository, new FakeCategoryRepository([]));
+        var handler = new UpdateCatalogItemHandler(catalogItemRepository, new FakeCategoryRepository([]), new FakeCatalogTemplateRepository([ActiveTemplate]));
         var command = new UpdateCatalogItemCommand("Updated Burger", null, null, "archived", null);
 
         // Act
@@ -164,7 +170,7 @@ public sealed class UpdateCatalogItemHandlerTests
         var item = CreateItem(tenantId, null);
         var originalName = item.Name;
         var catalogItemRepository = new FakeCatalogItemRepository([item]);
-        var handler = new UpdateCatalogItemHandler(catalogItemRepository, new FakeCategoryRepository([]));
+        var handler = new UpdateCatalogItemHandler(catalogItemRepository, new FakeCategoryRepository([]), new FakeCatalogTemplateRepository([ActiveTemplate]));
         var command = new UpdateCatalogItemCommand("Updated Burger", null, "public", null, null);
 
         // Act
@@ -219,6 +225,7 @@ public sealed class UpdateCatalogItemHandlerTests
     {
         return CatalogItem.Create(
             Guid.NewGuid(),
+            TemplateId,
             "Burger",
             "Classic burger",
             CatalogItemType.Simple,
@@ -316,6 +323,26 @@ public sealed class UpdateCatalogItemHandlerTests
             CancellationToken ct = default)
         {
             return Task.FromResult(category);
+        }
+    }
+
+    private sealed class FakeCatalogTemplateRepository : ICatalogTemplateRepository
+    {
+        private readonly IReadOnlyList<CatalogTemplate> _templates;
+
+        public FakeCatalogTemplateRepository(IReadOnlyList<CatalogTemplate> templates)
+        {
+            _templates = templates;
+        }
+
+        public Task<IReadOnlyList<CatalogTemplate>> ListAsync(CancellationToken ct = default)
+        {
+            return Task.FromResult(_templates);
+        }
+
+        public Task<CatalogTemplate?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        {
+            return Task.FromResult(_templates.FirstOrDefault(x => x.Id == id));
         }
     }
 }

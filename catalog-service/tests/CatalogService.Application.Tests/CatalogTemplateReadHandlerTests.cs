@@ -40,7 +40,8 @@ public sealed class CatalogTemplateReadHandlerTests
     [Fact]
     public async Task GetByIdAsync_WithExistingTemplate_ShouldReturnTemplate()
     {
-        var template = CatalogTemplate.Create(Guid.NewGuid(), "Restaurant Item", "Menu-style products", Status.Active);
+        var attribute = AttributeDefinition.Create(Guid.NewGuid(), "spicy", "Spicy", AttributeType.Boolean, false, "false", []);
+        var template = CatalogTemplate.Create(Guid.NewGuid(), "Restaurant Item", "Menu-style products", Status.Active, [attribute]);
         var handler = new GetCatalogTemplateDetailHandler(new FakeCatalogTemplateRepository([template]));
 
         var result = await handler.ExecuteAsync(template.Id, CancellationToken.None);
@@ -48,6 +49,9 @@ public sealed class CatalogTemplateReadHandlerTests
         Assert.Equal(template.Id, result.Id);
         Assert.Equal("Restaurant Item", result.Name);
         Assert.Equal("active", result.Status);
+        var resultAttribute = Assert.Single(result.Attributes);
+        Assert.Equal("spicy", resultAttribute.Key);
+        Assert.Equal("boolean", resultAttribute.Type);
     }
 
     [Fact]

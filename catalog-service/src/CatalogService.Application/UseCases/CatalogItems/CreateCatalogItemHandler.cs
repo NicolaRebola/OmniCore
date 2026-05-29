@@ -4,7 +4,10 @@ using CatalogService.Application.Errors;
 using CatalogService.Application.Ports.Inbound;
 using CatalogService.Application.Ports.Outbound;
 using CatalogService.Domain.CatalogItem;
+using CatalogService.Domain.CatalogTemplates;
 using CatalogService.Domain.Common.Enums;
+using CatalogService.Domain.Common.Exceptions;
+using CatalogService.Domain.Errors;
 
 namespace CatalogService.Application.UseCases;
 
@@ -12,16 +15,24 @@ public sealed class CreateCatalogItemHandler : ICreateCatalogItemUseCase
 {
     private readonly ICatalogItemRepository _catalogItemRepository;
     private readonly ICategoryRepository _categoryRepository;
+    private readonly ICatalogTemplateRepository _catalogTemplateRepository;
     public CreateCatalogItemHandler(
         ICatalogItemRepository catalogItemRepository,
-        ICategoryRepository categoryRepository)
+        ICategoryRepository categoryRepository,
+        ICatalogTemplateRepository catalogTemplateRepository)
     {
         _catalogItemRepository = catalogItemRepository;
         _categoryRepository = categoryRepository;
+        _catalogTemplateRepository = catalogTemplateRepository;
     }
 
     public async Task<CatalogItemDto> ExecuteAsync(Guid tenantId, CreateCatalogItemCommand catalogItemCommand, CancellationToken ct)
     {
+        if (catalogItemCommand.TemplateId == Guid.Empty)
+        {
+            throw new CatalogDomainException(DomainErrors.CatalogItemTemplateRequired);
+        }
+
         if (catalogItemCommand.CategoryId.HasValue)
         {
             var category = await _categoryRepository.GetByIdAsync(tenantId, catalogItemCommand.CategoryId.Value, ct);
@@ -29,39 +40,31 @@ public sealed class CreateCatalogItemHandler : ICreateCatalogItemUseCase
             if (category.Status.Value != Status.Active.Value) throw new CatalogApplicationException(ApplicationErrors.CategoryNotAssignable);
         }
 
+        var template = await _catalogTemplateRepository.GetByIdAsync(catalogItemCommand.TemplateId, ct);
+        if (template is null) throw new CatalogApplicationException(ApplicationErrors.CatalogTemplateNotFound);
+        if (template.Status.Value != Status.Active.Value) throw new CatalogApplicationException(ApplicationErrors.CatalogTemplateNotAssignable);
+
+        var attributes = CatalogItemMapping.ToAttributeValues(catalogItemCommand.Attributes);
+        template.ValidateValues(attributes);
+        template.EnsureRequiredVariantAttributesAreSatisfied(attributes, []);
+
         var type = CatalogItemType.From(catalogItemCommand.Type);
         var visibility = Visibility.From(catalogItemCommand.Visibility);
         var status = Status.From(catalogItemCommand.Status);
         var item = CatalogItem.Create(
             Guid.NewGuid(),
+            catalogItemCommand.TemplateId,
             catalogItemCommand.Name,
             catalogItemCommand.Description,
             type,
             visibility,
             status,
             tenantId,
-            catalogItemCommand.CategoryId
+            catalogItemCommand.CategoryId,
+            attributes
         );
 
         var catalogItem = await _catalogItemRepository.CreateAsync(item, ct);
-        return new CatalogItemDto(
-            catalogItem.Id,
-            catalogItem.Name,
-            catalogItem.Description,
-            catalogItem.Type.Value,
-            catalogItem.Visibility.Value,
-            catalogItem.Status.Value,
-            catalogItem.TenantId,
-            catalogItem.CategoryId,
-            catalogItem.Variants.Select(v => new CatalogVariantDto(
-                v.Id,
-                v.Name,
-                v.Description,
-                v.Status.Value,
-                v.TenantId,
-                v.CategoryId,
-                v.Price is null ? null : new PriceDto(v.Price.Amount, v.Price.Currency)
-            )).ToList().AsReadOnly()
-        );
+        return CatalogItemMapping.ToDto(catalogItem);
     }
 }
