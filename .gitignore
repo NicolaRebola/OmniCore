@@ -8,3 +8,6 @@ secrets.json
 .idea/
 
 **/.env
+.liteclient/history.json
+.vscode/
+.cursor/
