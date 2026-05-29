@@ -108,11 +108,11 @@ public sealed class CreateCatalogItemHandlerTests
     {
         public CatalogItem? CreatedItem { get; private set; }
 
-        public Task<IReadOnlyList<CatalogItem>> GetByTenantAsync(
-            Guid tenantId,
+        public Task<PagedResult<CatalogItem>> ListAsync(
+            CatalogItemListCriteria criteria,
             CancellationToken ct = default)
         {
-            return Task.FromResult<IReadOnlyList<CatalogItem>>([]);
+            return Task.FromResult(new PagedResult<CatalogItem>([], criteria.Page, criteria.PageSize, 0));
         }
 
         public Task<CatalogItem?> GetByIdAsync(

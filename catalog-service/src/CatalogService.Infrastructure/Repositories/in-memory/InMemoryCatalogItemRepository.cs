@@ -14,13 +14,44 @@ public sealed class InMemoryCatalogItemRepository : ICatalogItemRepository
         CatalogItem.Create(Guid.NewGuid(), "Café Especial",       "Blend de origen único",  CatalogItemType.Simple, Visibility.Internal, Status.Active, DevSeed.TenantId, null),
     ];
 
-    public Task<IReadOnlyList<CatalogItem>> GetByTenantAsync(Guid tenantId, CancellationToken ct = default)
+    public Task<PagedResult<CatalogItem>> ListAsync(CatalogItemListCriteria criteria, CancellationToken ct = default)
     {
-        var result = _store
-            .Where(x => x.TenantId.Equals(tenantId))
-            .ToList();
+        var query = _store
+            .Where(x => x.TenantId.Equals(criteria.TenantId))
+            .AsEnumerable();
 
-        return Task.FromResult<IReadOnlyList<CatalogItem>>(result);
+        if (criteria.Type is not null)
+        {
+            query = query.Where(x => x.Type.Value == criteria.Type.Value);
+        }
+
+        if (criteria.Visibility is not null)
+        {
+            query = query.Where(x => x.Visibility.Value == criteria.Visibility.Value);
+        }
+
+        if (criteria.Status is not null)
+        {
+            query = query.Where(x => x.Status.Value == criteria.Status.Value);
+        }
+
+        if (criteria.CategoryId is not null)
+        {
+            query = query.Where(x => x.CategoryId == criteria.CategoryId);
+        }
+
+        var ordered = query.OrderBy(x => x.Id).ToList();
+        var total = ordered.Count;
+        var skip = (criteria.Page - 1) * criteria.PageSize;
+        var pageItems = ordered.Skip(skip).Take(criteria.PageSize).ToList();
+
+        var result = new PagedResult<CatalogItem>(
+            pageItems.AsReadOnly(),
+            criteria.Page,
+            criteria.PageSize,
+            total);
+
+        return Task.FromResult(result);
     }
 
     public Task<CatalogItem?> GetByIdAsync(Guid tenantId, Guid id, CancellationToken ct = default)
