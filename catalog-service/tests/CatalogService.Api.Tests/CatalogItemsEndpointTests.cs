@@ -429,6 +429,7 @@ public sealed class CatalogItemsEndpointTests
               "type":"simple",
               "visibility":"commercial",
               "status":"active",
+              "templateId":"bbbbbbbb-0000-0000-0000-000000000001",
               "categoryId":"{{categoryId}}"
             }
             """);
@@ -444,6 +445,7 @@ public sealed class CatalogItemsEndpointTests
         using var json = JsonDocument.Parse(body);
 
         Assert.Equal(_seedTenantId, json.RootElement.GetProperty("tenantId").GetString());
+        Assert.Equal("bbbbbbbb-0000-0000-0000-000000000001", json.RootElement.GetProperty("templateId").GetString());
         Assert.Equal(categoryId, json.RootElement.GetProperty("categoryId").GetString());
 
         var variant = json.RootElement.GetProperty("variants")[0];
@@ -466,6 +468,7 @@ public sealed class CatalogItemsEndpointTests
               "type":"simple",
               "visibility":"commercial",
               "status":"active",
+              "templateId":"bbbbbbbb-0000-0000-0000-000000000001",
               "categoryId":"aaaaaaaa-0000-0000-0000-000000000001"
             }
             """);
@@ -504,6 +507,7 @@ public sealed class CatalogItemsEndpointTests
               "type":"simple",
               "visibility":"commercial",
               "status":"active",
+              "templateId":"bbbbbbbb-0000-0000-0000-000000000001",
               "categoryId":"{{categoryId}}"
             }
             """);
@@ -520,6 +524,131 @@ public sealed class CatalogItemsEndpointTests
 
         Assert.Equal("CAT-APP-007", json.RootElement.GetProperty("errorCode").GetString());
         Assert.Equal("Application", json.RootElement.GetProperty("layer").GetString());
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task CreateCatalogItem_WithoutTemplateId_ShouldReturnTemplateRequiredProblem()
+    {
+        var client = CreateClient();
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/catalog-items");
+        request.Headers.Add("X-Tenant-Id", _seedTenantId);
+        request.Content = JsonContent("""
+            {
+              "name":"Burger",
+              "description":"Classic burger",
+              "type":"simple",
+              "visibility":"commercial",
+              "status":"active"
+            }
+            """);
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal("CAT-DOM-016", json.RootElement.GetProperty("errorCode").GetString());
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task CreateCatalogItem_WithInactiveTemplate_ShouldReturnTemplateNotAssignableProblem()
+    {
+        var client = CreateClient();
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/catalog-items");
+        request.Headers.Add("X-Tenant-Id", _seedTenantId);
+        request.Content = JsonContent("""
+            {
+              "name":"Burger",
+              "description":"Classic burger",
+              "type":"simple",
+              "visibility":"commercial",
+              "status":"active",
+              "templateId":"bbbbbbbb-0000-0000-0000-000000000003"
+            }
+            """);
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal("CAT-APP-011", json.RootElement.GetProperty("errorCode").GetString());
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task CreateCatalogItem_WithUnknownAttributeKey_ShouldReturnAttributeDefinitionNotFoundProblem()
+    {
+        var client = CreateClient();
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/catalog-items");
+        request.Headers.Add("X-Tenant-Id", _seedTenantId);
+        request.Content = JsonContent("""
+            {
+              "name":"Burger",
+              "description":"Classic burger",
+              "type":"simple",
+              "visibility":"commercial",
+              "status":"active",
+              "templateId":"bbbbbbbb-0000-0000-0000-000000000001",
+              "attributes": [
+                { "key": "unknown", "value": "value" }
+              ]
+            }
+            """);
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal("CAT-DOM-026", json.RootElement.GetProperty("errorCode").GetString());
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task CreateCatalogItem_WithInvalidAttributeValue_ShouldReturnInvalidAttributeValueProblem()
+    {
+        var client = CreateClient();
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/catalog-items");
+        request.Headers.Add("X-Tenant-Id", _seedTenantId);
+        request.Content = JsonContent("""
+            {
+              "name":"Burger",
+              "description":"Classic burger",
+              "type":"simple",
+              "visibility":"commercial",
+              "status":"active",
+              "templateId":"bbbbbbbb-0000-0000-0000-000000000001",
+              "attributes": [
+                { "key": "serving-size", "value": "medium" }
+              ]
+            }
+            """);
+
+        var response = await client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal("CAT-DOM-025", json.RootElement.GetProperty("errorCode").GetString());
 
         client.Dispose();
     }
@@ -944,7 +1073,8 @@ public sealed class CatalogItemsEndpointTests
               "description":"Classic burger",
               "type":"simple",
               "visibility":"commercial",
-              "status":"active"
+              "status":"active",
+              "templateId":"bbbbbbbb-0000-0000-0000-000000000001"
             }
             """);
 
@@ -968,6 +1098,7 @@ public sealed class CatalogItemsEndpointTests
               "type":"simple",
               "visibility":"commercial",
               "status":"active",
+              "templateId":"bbbbbbbb-0000-0000-0000-000000000001",
               "categoryId":"{{categoryId}}"
             }
             """);

@@ -4,6 +4,7 @@ using CatalogService.Application.Errors;
 using CatalogService.Application.Ports.Outbound;
 using CatalogService.Application.UseCases;
 using CatalogService.Domain.CatalogItem;
+using CatalogService.Domain.CatalogTemplates;
 using CatalogService.Domain.Common.Enums;
 using Xunit;
 
@@ -11,13 +12,16 @@ namespace CatalogService.Application.Tests;
 
 public sealed class CatalogVariantHandlerTests
 {
+    private static readonly Guid TemplateId = Guid.Parse("bbbbbbbb-0000-0000-0000-000000000001");
+    private static readonly CatalogTemplate ActiveTemplate = CatalogTemplate.Create(TemplateId, "Restaurant Item", "Template for menu-style products", Status.Active);
+
     [Fact]
     public async Task AddVariant_WithValidCommand_ShouldPersistAndReturnVariant()
     {
         var tenantId = Guid.NewGuid();
         var item = CreateItem(tenantId);
         var repository = new FakeCatalogItemRepository([item]);
-        var handler = new AddCatalogVariantHandler(repository);
+        var handler = new AddCatalogVariantHandler(repository, new FakeCatalogTemplateRepository([ActiveTemplate]));
         var command = new CreateCatalogVariantCommand("XL", "Extra large", "active", new PriceDto(12.5m, "ars"));
 
         var result = await handler.ExecuteAsync(tenantId, item.Id, command, CancellationToken.None);
@@ -34,7 +38,7 @@ public sealed class CatalogVariantHandlerTests
     public async Task AddVariant_WithUnknownItem_ShouldThrowCatalogItemNotFound()
     {
         var repository = new FakeCatalogItemRepository([]);
-        var handler = new AddCatalogVariantHandler(repository);
+        var handler = new AddCatalogVariantHandler(repository, new FakeCatalogTemplateRepository([ActiveTemplate]));
         var command = new CreateCatalogVariantCommand("XL", null, "active", null);
 
         var ex = await Assert.ThrowsAsync<CatalogApplicationException>(() =>
@@ -51,7 +55,7 @@ public sealed class CatalogVariantHandlerTests
         var variantId = item.Variants[0].Id;
         item.AddVariant(Guid.NewGuid(), "XL", "Extra large", Status.Active, null);
         var repository = new FakeCatalogItemRepository([item]);
-        var handler = new UpdateCatalogVariantHandler(repository);
+        var handler = new UpdateCatalogVariantHandler(repository, new FakeCatalogTemplateRepository([ActiveTemplate]));
         var command = new UpdateCatalogVariantCommand("Small", "Small size", "inactive", new PriceDto(9.99m, "usd"));
 
         var result = await handler.ExecuteAsync(tenantId, item.Id, variantId, command, CancellationToken.None);
@@ -70,7 +74,7 @@ public sealed class CatalogVariantHandlerTests
         var tenantId = Guid.NewGuid();
         var item = CreateItem(tenantId);
         var repository = new FakeCatalogItemRepository([item]);
-        var handler = new UpdateCatalogVariantHandler(repository);
+        var handler = new UpdateCatalogVariantHandler(repository, new FakeCatalogTemplateRepository([ActiveTemplate]));
         var command = new UpdateCatalogVariantCommand("Small", null, null, null);
 
         var ex = await Assert.ThrowsAsync<CatalogApplicationException>(() =>
@@ -85,7 +89,7 @@ public sealed class CatalogVariantHandlerTests
         var tenantId = Guid.NewGuid();
         var item = CreateItem(tenantId);
         var repository = new FakeCatalogItemRepository([item]);
-        var handler = new UpdateCatalogVariantHandler(repository);
+        var handler = new UpdateCatalogVariantHandler(repository, new FakeCatalogTemplateRepository([ActiveTemplate]));
         var command = new UpdateCatalogVariantCommand(null, null, "inactive", null);
 
         var ex = await Assert.ThrowsAsync<CatalogApplicationException>(() =>
@@ -127,6 +131,7 @@ public sealed class CatalogVariantHandlerTests
     {
         return CatalogItem.Create(
             Guid.NewGuid(),
+            TemplateId,
             "Burger",
             "Classic burger",
             CatalogItemType.Simple,
@@ -168,6 +173,26 @@ public sealed class CatalogVariantHandlerTests
         {
             UpdatedItem = item;
             return Task.FromResult(item);
+        }
+    }
+
+    private sealed class FakeCatalogTemplateRepository : ICatalogTemplateRepository
+    {
+        private readonly IReadOnlyList<CatalogTemplate> _templates;
+
+        public FakeCatalogTemplateRepository(IReadOnlyList<CatalogTemplate> templates)
+        {
+            _templates = templates;
+        }
+
+        public Task<IReadOnlyList<CatalogTemplate>> ListAsync(CancellationToken ct = default)
+        {
+            return Task.FromResult(_templates);
+        }
+
+        public Task<CatalogTemplate?> GetByIdAsync(Guid id, CancellationToken ct = default)
+        {
+            return Task.FromResult(_templates.FirstOrDefault(x => x.Id == id));
         }
     }
 }
