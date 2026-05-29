@@ -6,5 +6,7 @@ public sealed record CreateCatalogItemCommand(
   string Type,
   string Visibility,
   string Status,
-  Guid? CategoryId
+  Guid? CategoryId,
+  Guid TemplateId,
+  IReadOnlyList<AttributeValueDto>? Attributes = null
 );

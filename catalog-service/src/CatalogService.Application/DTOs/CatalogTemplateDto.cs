@@ -4,5 +4,6 @@ public sealed record CatalogTemplateDto(
     Guid Id,
     string Name,
     string Description,
-    string Status
+    string Status,
+    IReadOnlyList<AttributeDefinitionDto> Attributes
 );

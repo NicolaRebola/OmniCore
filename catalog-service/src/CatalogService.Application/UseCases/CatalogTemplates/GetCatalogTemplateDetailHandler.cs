@@ -20,6 +20,6 @@ public sealed class GetCatalogTemplateDetailHandler : IGetCatalogTemplateDetailU
         var template = await _repository.GetByIdAsync(id, ct);
         if (template is null) throw new CatalogApplicationException(ApplicationErrors.CatalogTemplateNotFound);
 
-        return new CatalogTemplateDto(template.Id, template.Name, template.Description, template.Status.Value);
+        return CatalogTemplateMapping.ToDto(template);
     }
 }

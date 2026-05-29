@@ -24,29 +24,6 @@ public sealed class RemoveCatalogItemCategoryHandler : IRemoveCatalogItemCategor
     item.RemoveCategory();
     await _repository.UpdateAsync(tenantId, item, ct);
 
-    return ToDto(item);
-  }
-
-  private static CatalogItemDto ToDto(CatalogItem item)
-  {
-    return new CatalogItemDto(
-      item.Id,
-      item.Name,
-      item.Description,
-      item.Type.Value,
-      item.Visibility.Value,
-      item.Status.Value,
-      item.TenantId,
-      item.CategoryId,
-      item.Variants.Select(v => new CatalogVariantDto(
-        v.Id,
-        v.Name,
-        v.Description,
-        v.Status.Value,
-        v.TenantId,
-        v.CategoryId,
-        v.Price is null ? null : new PriceDto(v.Price.Amount, v.Price.Currency)
-      )).ToList().AsReadOnly()
-    );
+    return CatalogItemMapping.ToDto(item);
   }
 }

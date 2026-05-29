@@ -4,5 +4,6 @@ public sealed record UpdateCatalogItemCommand(
   string? Description,
   string? Visibility,
   string? Status,
-  Guid? CategoryId
+  Guid? CategoryId,
+  IReadOnlyList<AttributeValueDto>? Attributes = null
 );

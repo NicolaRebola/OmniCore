@@ -12,10 +12,12 @@ namespace CatalogService.Application.UseCases;
 public sealed class AddCatalogVariantHandler : IAddCatalogVariantUseCase
 {
   private readonly ICatalogItemRepository _repository;
+  private readonly ICatalogTemplateRepository _catalogTemplateRepository;
 
-  public AddCatalogVariantHandler(ICatalogItemRepository repository)
+  public AddCatalogVariantHandler(ICatalogItemRepository repository, ICatalogTemplateRepository catalogTemplateRepository)
   {
     _repository = repository;
+    _catalogTemplateRepository = catalogTemplateRepository;
   }
 
   public async Task<CatalogVariantDto> ExecuteAsync(Guid tenantId, Guid itemId, CreateCatalogVariantCommand command, CancellationToken ct)
@@ -24,33 +26,27 @@ public sealed class AddCatalogVariantHandler : IAddCatalogVariantUseCase
     if (item is null) throw new CatalogApplicationException(ApplicationErrors.CatalogItemNotFound);
     if (!Status.IsValid(command.Status)) throw new CatalogApplicationException(ApplicationErrors.InvalidCatalogVariantStatus);
 
+    var template = await _catalogTemplateRepository.GetByIdAsync(item.TemplateId, ct);
+    if (template is null) throw new CatalogApplicationException(ApplicationErrors.CatalogTemplateNotFound);
+    var attributes = CatalogItemMapping.ToAttributeValues(command.Attributes);
+    template.ValidateValues(attributes);
+    template.EnsureRequiredVariantAttributesAreSatisfied(item.Attributes, attributes);
+
     var variant = item.AddVariant(
       Guid.NewGuid(),
       command.Name,
       command.Description ?? string.Empty,
       Status.From(command.Status),
-      ToPrice(command.Price)
+      ToPrice(command.Price),
+      attributes
     );
 
     await _repository.UpdateAsync(tenantId, item, ct);
-    return ToDto(variant);
+    return CatalogItemMapping.ToDto(variant);
   }
 
   private static Price? ToPrice(PriceDto? price)
   {
     return price is null ? null : Price.Create(price.Amount, price.Currency);
-  }
-
-  private static CatalogVariantDto ToDto(CatalogVariant variant)
-  {
-    return new CatalogVariantDto(
-      variant.Id,
-      variant.Name,
-      variant.Description,
-      variant.Status.Value,
-      variant.TenantId,
-      variant.CategoryId,
-      variant.Price is null ? null : new PriceDto(variant.Price.Amount, variant.Price.Currency)
-    );
   }
 }

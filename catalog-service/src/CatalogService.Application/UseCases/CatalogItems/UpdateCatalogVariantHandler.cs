@@ -14,16 +14,20 @@ namespace CatalogService.Application.UseCases;
 public sealed class UpdateCatalogVariantHandler : IUpdateCatalogVariantUseCase
 {
   private readonly ICatalogItemRepository _repository;
+  private readonly ICatalogTemplateRepository _catalogTemplateRepository;
 
-  public UpdateCatalogVariantHandler(ICatalogItemRepository repository)
+  public UpdateCatalogVariantHandler(ICatalogItemRepository repository, ICatalogTemplateRepository catalogTemplateRepository)
   {
     _repository = repository;
+    _catalogTemplateRepository = catalogTemplateRepository;
   }
 
   public async Task<CatalogVariantDto> ExecuteAsync(Guid tenantId, Guid itemId, Guid variantId, UpdateCatalogVariantCommand command, CancellationToken ct)
   {
     var item = await _repository.GetByIdAsync(tenantId, itemId, ct);
     if (item is null) throw new CatalogApplicationException(ApplicationErrors.CatalogItemNotFound);
+    var template = await _catalogTemplateRepository.GetByIdAsync(item.TemplateId, ct);
+    if (template is null) throw new CatalogApplicationException(ApplicationErrors.CatalogTemplateNotFound);
 
     Status? status = null;
     if (!string.IsNullOrWhiteSpace(command.Status))
@@ -34,16 +38,24 @@ public sealed class UpdateCatalogVariantHandler : IUpdateCatalogVariantUseCase
 
     try
     {
+      var attributes = command.Attributes is null ? null : CatalogItemMapping.ToAttributeValues(command.Attributes);
+      if (attributes is not null)
+      {
+        template.ValidateValues(attributes);
+        template.EnsureRequiredVariantAttributesAreSatisfied(item.Attributes, attributes);
+      }
+
       var variant = item.UpdateVariant(
         variantId,
         command.Name,
         command.Description,
         status,
-        ToPrice(command.Price)
+        ToPrice(command.Price),
+        attributes
       );
 
       await _repository.UpdateAsync(tenantId, item, ct);
-      return ToDto(variant);
+      return CatalogItemMapping.ToDto(variant);
     }
     catch (CatalogDomainException ex) when (ex.ErrorCode == DomainErrors.CatalogVariantNotFound.Code)
     {
@@ -58,18 +70,5 @@ public sealed class UpdateCatalogVariantHandler : IUpdateCatalogVariantUseCase
   private static Price? ToPrice(PriceDto? price)
   {
     return price is null ? null : Price.Create(price.Amount, price.Currency);
-  }
-
-  private static CatalogVariantDto ToDto(CatalogVariant variant)
-  {
-    return new CatalogVariantDto(
-      variant.Id,
-      variant.Name,
-      variant.Description,
-      variant.Status.Value,
-      variant.TenantId,
-      variant.CategoryId,
-      variant.Price is null ? null : new PriceDto(variant.Price.Amount, variant.Price.Currency)
-    );
   }
 }
