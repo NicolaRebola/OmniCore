@@ -22,6 +22,7 @@ Tenant errors:
 | `GET` | `/api/v1/catalog-items` | Lists catalog items for the current tenant (paginated, filterable). |
 | `GET` | `/api/v1/catalog-items/{id}` | Returns administrative detail for one item, including variants. |
 | `POST` | `/api/v1/catalog-items` | Creates a catalog item and its default variant. |
+| `PATCH` | `/api/v1/catalog-items/{itemId}` | Updates catalog item editable fields and category assignment. |
 | `POST` | `/api/v1/catalog-items/{itemId}/variants` | Adds a variant to an existing item. |
 | `PATCH` | `/api/v1/catalog-items/{itemId}/variants/{variantId}` | Updates variant descriptive fields, status and price. |
 | `DELETE` | `/api/v1/catalog-items/{itemId}/variants/{variantId}` | Deactivates a variant. |
@@ -120,6 +121,27 @@ Creation errors:
 | Scenario | Status | Error code |
 |---|---:|---|
 | Invalid item name | `400` | `CAT-DOM-001` |
+| Category does not exist for tenant | `404` | `CAT-APP-004` |
+| Category exists but is inactive | `400` | `CAT-APP-007` |
+
+### Update Catalog Item
+
+Request:
+
+```json
+{
+  "name": "Updated Burger",
+  "description": "Updated description",
+  "visibility": "commercial",
+  "status": "active",
+  "categoryId": "aaaaaaaa-0000-0000-0000-000000000001"
+}
+```
+
+All fields are optional at the command level. Omitted fields keep their current value. `type` is immutable and is not part of the update command.
+
+When `categoryId` is provided, the category must belong to the same tenant and be active. A valid category change is propagated to all variants in the item.
+
 | Category does not exist for tenant | `404` | `CAT-APP-004` |
 | Category exists but is inactive | `400` | `CAT-APP-007` |
 

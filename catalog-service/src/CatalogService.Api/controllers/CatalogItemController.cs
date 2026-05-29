@@ -15,12 +15,15 @@ public class CatalogItemsController : ControllerBase
   private readonly IAddCatalogVariantUseCase _addCatalogVariantUseCase;
   private readonly IUpdateCatalogVariantUseCase _updateCatalogVariantUseCase;
   private readonly IDeactivateCatalogVariantUseCase _deactivateCatalogVariantUseCase;
+  private readonly IUpdateCatalogItemUseCase _updateCatalogItemUseCase;
   public CatalogItemsController(
     IGetCatalogItemsUseCase getCatalogItemsUseCase,
     IGetCatalogItemDetailUseCase getCatalogItemDetailUseCase,
     ICreateCatalogItemUseCase createCatalogItemUseCase,
     IAddCatalogVariantUseCase addCatalogVariantUseCase,
     IUpdateCatalogVariantUseCase updateCatalogVariantUseCase,
+    IDeactivateCatalogVariantUseCase deactivateCatalogVariantUseCase,
+    IUpdateCatalogItemUseCase updateCatalogItemUseCase,
     IDeactivateCatalogVariantUseCase deactivateCatalogVariantUseCase)
   {
       _getCatalogItemsUseCase = getCatalogItemsUseCase;
@@ -29,6 +32,7 @@ public class CatalogItemsController : ControllerBase
       _addCatalogVariantUseCase = addCatalogVariantUseCase;
       _updateCatalogVariantUseCase = updateCatalogVariantUseCase;
       _deactivateCatalogVariantUseCase = deactivateCatalogVariantUseCase;
+      _updateCatalogItemUseCase = updateCatalogItemUseCase;
   }
 
   [HttpGet]
@@ -134,4 +138,19 @@ public class CatalogItemsController : ControllerBase
     await _deactivateCatalogVariantUseCase.ExecuteAsync(tenantId, itemId, variantId, ct);
     return NoContent();
   }
+
+  [HttpPatch("{id:guid}")]
+  [TenantRequired]
+  public async Task<IActionResult> Update(
+    [FromHeader(Name = TenantHeaders.TenantId)] Guid tenantId,
+    [FromRoute] Guid id,
+    [FromBody] UpdateCatalogItemCommand command,
+    CancellationToken ct)
+  {
+    if (id == Guid.Empty) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.InvalidId);
+    if (command == null) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.CreateCatalogItemInvalid);
+    var result = await _updateCatalogItemUseCase.ExecuteAsync(tenantId, id, command, ct);
+    return Ok(result);
+  }
+
 }

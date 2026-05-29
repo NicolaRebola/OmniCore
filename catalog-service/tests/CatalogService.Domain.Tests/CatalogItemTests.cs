@@ -200,6 +200,30 @@ public sealed class CatalogItemTests
     }
 
     [Fact]
+    public void RenameItem_WithValidName_ShouldUpdateAndTrimName()
+    {
+        var item = CreateItem();
+
+        item.RenameItem("  Updated Burger  ");
+
+        Assert.Equal("Updated Burger", item.Name);
+    }
+
+    [Fact]
+    public void ChangeCategory_WithCategoryId_ShouldAssignCategoryToItemAndVariants()
+    {
+        var item = CreateItem();
+        item.AddVariant(Guid.NewGuid(), "XL", "Extra large", Status.Active, null);
+        var categoryId = Guid.NewGuid();
+
+        item.ChangeCategory(categoryId);
+
+        Assert.Equal(categoryId, item.CategoryId);
+        Assert.All(item.Variants, variant => Assert.Equal(categoryId, variant.CategoryId));
+    }
+
+
+    [Fact]
     public void AddVariant_WithValidData_ShouldAppendVariant()
     {
         var item = CreateItem();

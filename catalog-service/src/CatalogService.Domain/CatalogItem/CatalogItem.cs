@@ -9,11 +9,11 @@ public sealed class CatalogItem
 {
   private readonly List<CatalogVariant> _variants = new();
   public Guid Id { get; }
-  public string Name { get; }
-  public string Description { get; }
+  public string Name { get; private set; }
+  public string Description { get; private set; }
   public CatalogItemType Type { get; }
-  public Visibility Visibility { get; }
-  public Status Status { get; }
+  public Visibility Visibility { get;  private set;}
+  public Status Status { get; private set; }
   public Guid TenantId { get; }
   public IReadOnlyList<CatalogVariant> Variants => _variants.AsReadOnly();
   public Guid? CategoryId { get; private set; }
@@ -47,6 +47,35 @@ public sealed class CatalogItem
       null
     ));
     return item;
+  }
+
+  public void RenameItem(string name) {
+    if (!IsValidName(name)) throw new CatalogDomainException(DomainErrors.CatalogItemNameRequired);
+    Name = name.Trim();
+  }
+
+  public void ChangeDescription(string description) {
+    if (description is not null) Description = description.Trim();
+  }
+
+  public void ChangeStatus(Status status) {
+    if (status is not null) Status = status;
+  }
+
+  public void ChangeVisibility(Visibility visibility) {
+    if (visibility is not null) Visibility = visibility;
+  }
+
+  public void ChangeCategory(Guid? categoryId) {
+    if (categoryId is null) return;
+
+    CategoryId = categoryId.Value;
+    _variants.ForEach(v => v.ChangeCategory(categoryId));
+  }
+
+  private static bool IsValidName(string name)
+  {
+    return !string.IsNullOrWhiteSpace(name) && name is not null;
   }
 
   public CatalogVariant AddVariant(Guid id, string name, string description, Status status, Price? price)
