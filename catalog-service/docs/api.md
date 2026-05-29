@@ -22,6 +22,9 @@ Tenant errors:
 | `GET` | `/api/v1/catalog-items` | Lists catalog items for the current tenant. |
 | `GET` | `/api/v1/catalog-items/{id}` | Returns administrative detail for one item, including variants. |
 | `POST` | `/api/v1/catalog-items` | Creates a catalog item and its default variant. |
+| `POST` | `/api/v1/catalog-items/{itemId}/variants` | Adds a variant to an existing item. |
+| `PATCH` | `/api/v1/catalog-items/{itemId}/variants/{variantId}` | Updates variant descriptive fields, status and price. |
+| `DELETE` | `/api/v1/catalog-items/{itemId}/variants/{variantId}` | Deactivates a variant. |
 
 ### Create Catalog Item
 
@@ -60,7 +63,8 @@ Response:
       "description": "Classic burger",
       "status": "active",
       "tenantId": "uuid",
-      "categoryId": "uuid"
+      "categoryId": "uuid",
+      "price": null
     }
   ]
 }
@@ -73,6 +77,67 @@ Creation errors:
 | Invalid item name | `400` | `CAT-DOM-001` |
 | Category does not exist for tenant | `404` | `CAT-APP-004` |
 | Category exists but is inactive | `400` | `CAT-APP-007` |
+
+### Add Catalog Variant
+
+Request:
+
+```json
+{
+  "name": "XL",
+  "description": "Extra large",
+  "status": "active",
+  "price": {
+    "amount": 12.5,
+    "currency": "ARS"
+  }
+}
+```
+
+Response:
+
+```json
+{
+  "id": "uuid",
+  "name": "XL",
+  "description": "Extra large",
+  "status": "active",
+  "tenantId": "uuid",
+  "categoryId": "uuid",
+  "price": {
+    "amount": 12.5,
+    "currency": "ARS"
+  }
+}
+```
+
+### Update Catalog Variant
+
+Request:
+
+```json
+{
+  "name": "Small",
+  "description": "Small size",
+  "status": "inactive",
+  "price": {
+    "amount": 9.99,
+    "currency": "USD"
+  }
+}
+```
+
+All fields are optional at the command level. Omitted fields keep their current value.
+
+Variant errors:
+
+| Scenario | Status | Error code |
+|---|---:|---|
+| Item does not exist for tenant | `404` | `CAT-APP-001` |
+| Variant does not exist in item | `404` | `CAT-APP-008` |
+| Invalid variant status | `400` | `CAT-APP-009` |
+| Deactivating the last active variant | `409` | `CAT-APP-002` |
+| Invalid price | `400` | `CAT-DOM-013` |
 
 ## Categories
 
