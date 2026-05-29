@@ -19,12 +19,57 @@ Tenant errors:
 
 | Method | Path | Description |
 |---|---|---|
-| `GET` | `/api/v1/catalog-items` | Lists catalog items for the current tenant. |
+| `GET` | `/api/v1/catalog-items` | Lists catalog items for the current tenant (paginated, filterable). |
 | `GET` | `/api/v1/catalog-items/{id}` | Returns administrative detail for one item, including variants. |
 | `POST` | `/api/v1/catalog-items` | Creates a catalog item and its default variant. |
 | `POST` | `/api/v1/catalog-items/{itemId}/variants` | Adds a variant to an existing item. |
 | `PATCH` | `/api/v1/catalog-items/{itemId}/variants/{variantId}` | Updates variant descriptive fields, status and price. |
 | `DELETE` | `/api/v1/catalog-items/{itemId}/variants/{variantId}` | Deactivates a variant. |
+
+### List Catalog Items
+
+Query parameters (all required unless noted):
+
+| Parameter | Required | Description |
+|---|---|---|
+| `page` | Yes | Page number, starting at `1`. |
+| `pageSize` | Yes | Items per page (`1`–`100`). |
+| `type` | No | Filter by item type (`simple`, `variable`). |
+| `visibility` | No | Filter by visibility (`commercial`, `internal`). |
+| `status` | No | Filter by status (`active`, `inactive`). |
+| `categoryId` | No | Filter by the item's assigned category UUID. |
+
+Response:
+
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "name": "Burger",
+      "description": "Classic burger",
+      "type": "simple",
+      "visibility": "commercial",
+      "status": "active",
+      "tenantId": "uuid",
+      "categoryId": "uuid",
+      "variants": []
+    }
+  ],
+  "page": 1,
+  "pageSize": 20,
+  "total": 42
+}
+```
+
+List errors:
+
+| Scenario | Status | Error code |
+|---|---:|---|
+| Missing `page` or `pageSize` | `400` | `CAT-API-007` |
+| Invalid `page` or `pageSize` (out of range) | `400` | `CAT-API-008` |
+| Invalid filter enum (`type`, `visibility`, `status`) | `400` | Domain validation via Problem Details |
+| Invalid `categoryId` UUID | `400` | `CAT-API-003` |
 
 ### Create Catalog Item
 
