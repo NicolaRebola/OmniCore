@@ -7,7 +7,7 @@ namespace CatalogService.Infrastructure.Repositories;
 
 public sealed class InMemoryCatalogItemRepository : ICatalogItemRepository
 {
-    private static readonly List<CatalogItem> _store =
+    private readonly List<CatalogItem> _store =
     [
         CatalogItem.Create(Guid.NewGuid(), "Hamburguesa con Fritas", "Pan, carne, lechuga", CatalogItemType.Simple, Visibility.Commercial, Status.Active, DevSeed.TenantId, null),
         CatalogItem.Create(Guid.Parse("aaaaaaaa-0000-0000-0000-000000000001"), "Combo Familiar",      "Burger + papas + bebida", CatalogItemType.Variable, Visibility.Commercial, Status.Active, DevSeed.TenantId, null),

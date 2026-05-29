@@ -10,7 +10,7 @@ namespace CatalogService.Infrastructure.Repositories;
 
 public sealed class InMemoryCategoryRepository : ICategoryRepository
 {
-    private static readonly List<Category> _store =
+    private readonly List<Category> _store =
     [
         Category.Create(Guid.NewGuid(), "Hamburguesa con Fritas", Status.Active, DevSeed.TenantId),
         Category.Create(Guid.Parse("aaaaaaaa-0000-0000-0000-000000000001"), "Combo Familiar", Status.Active, DevSeed.TenantId),
