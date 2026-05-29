@@ -232,6 +232,11 @@ public sealed class CreateCatalogItemHandlerTests
             return Task.FromResult(new PagedResult<CatalogItem>([], criteria.Page, criteria.PageSize, 0));
         }
 
+        public Task<IReadOnlyList<CatalogItem>> ListByTenantAsync(Guid tenantId, CancellationToken ct = default)
+        {
+            return Task.FromResult<IReadOnlyList<CatalogItem>>([]);
+        }
+
         public Task<CatalogItem?> GetByIdAsync(
             Guid tenantId,
             Guid id,

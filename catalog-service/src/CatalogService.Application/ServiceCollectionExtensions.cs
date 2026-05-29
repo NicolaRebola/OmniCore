@@ -18,6 +18,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRemoveCatalogItemCategoryUseCase, RemoveCatalogItemCategoryHandler>();
         services.AddScoped<IGetCatalogTemplatesUseCase, GetCatalogTemplatesHandler>();
         services.AddScoped<IGetCatalogTemplateDetailUseCase, GetCatalogTemplateDetailHandler>();
+        services.AddScoped<IGetCatalogProjectionUseCase, GetCatalogProjectionHandler>();
         services.AddScoped<IGetCategoriesUseCase, GetCategoriesHandler>();
         services.AddScoped<ICreateCategoryUseCase, CreateCategoryHandler>();
         services.AddScoped<IUpdateCategoryUseCase, UpdateCategoryHandler>();
