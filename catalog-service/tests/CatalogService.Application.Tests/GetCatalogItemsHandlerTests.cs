@@ -21,7 +21,8 @@ public sealed class GetCatalogItemsHandlerTests
         CatalogItemType.Simple,
         Visibility.Commercial,
         Status.Active,
-        tenantId);
+        tenantId,
+        null);
 
     var repository = new FakeCatalogItemRepository([item]);
     var handler = new GetCatalogItemsHandler(repository);
@@ -40,6 +41,7 @@ public sealed class GetCatalogItemsHandlerTests
     Assert.Equal("commercial", dto.Visibility);
     Assert.Equal("active", dto.Status);
     Assert.Equal(tenantId, dto.TenantId);
+    Assert.Null(dto.CategoryId);
   }
 
   [Fact]

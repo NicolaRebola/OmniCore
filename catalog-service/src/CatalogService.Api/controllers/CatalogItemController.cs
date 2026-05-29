@@ -39,7 +39,7 @@ public class CatalogItemsController : ControllerBase
     [FromRoute] Guid id,
     CancellationToken ct)
   {
-    if (id == Guid.Empty) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.CatalogItemIdInvalid);
+    if (id == Guid.Empty) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.InvalidId);
     var result = await _getCatalogItemDetailUseCase.ExecuteAsync(tenantId, id, ct);
     return Ok(result);
   }
@@ -53,6 +53,6 @@ public class CatalogItemsController : ControllerBase
   {
     if (command == null) return CatalogService.Api.Errors.ProblemDetailsFactory.Create(HttpContext, CatalogErrors.CreateCatalogItemInvalid);
     var result = await _createCatalogItemUseCase.ExecuteAsync(tenantId, command, ct);
-    return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+    return CreatedAtAction(nameof(Create), new { id = result.Id }, result);
   }
 }

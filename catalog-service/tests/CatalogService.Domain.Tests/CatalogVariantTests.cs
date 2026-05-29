@@ -12,7 +12,7 @@ public sealed class CatalogVariantTests
     public void Create_WithEmptyId_ShouldThrow()
     {
         var ex = Assert.Throws<CatalogDomainException>(() =>
-            CatalogVariant.Create(Guid.Empty, Guid.NewGuid(), Status.Active, "XL", "", Guid.NewGuid()));
+            CatalogVariant.Create(Guid.Empty, Guid.NewGuid(), Status.Active, "XL", "", Guid.NewGuid(), null));
 
         Assert.Equal(DomainErrors.CatalogVariantIdRequired.Code, ex.ErrorCode);
     }
@@ -21,7 +21,7 @@ public sealed class CatalogVariantTests
     public void Create_WithEmptyCatalogItemId_ShouldThrow()
     {
         var ex = Assert.Throws<CatalogDomainException>(() =>
-            CatalogVariant.Create(Guid.NewGuid(), Guid.Empty, Status.Active, "XL", "", Guid.NewGuid()));
+            CatalogVariant.Create(Guid.NewGuid(), Guid.Empty, Status.Active, "XL", "", Guid.NewGuid(), null));
 
         Assert.Equal(DomainErrors.CatalogItemIdRequired.Code, ex.ErrorCode);
     }
@@ -30,7 +30,7 @@ public sealed class CatalogVariantTests
     public void Create_WithEmptyName_ShouldThrow()
     {
         var ex = Assert.Throws<CatalogDomainException>(() =>
-            CatalogVariant.Create(Guid.NewGuid(), Guid.NewGuid(), Status.Active, "   ", "", Guid.NewGuid()));
+            CatalogVariant.Create(Guid.NewGuid(), Guid.NewGuid(), Status.Active, "   ", "", Guid.NewGuid(), null));
 
         Assert.Equal(DomainErrors.CatalogItemNameRequired.Code, ex.ErrorCode);
     }
@@ -47,7 +47,8 @@ public sealed class CatalogVariantTests
             Status.Active,
             "XL",
             "Extra large size",
-            Guid.NewGuid());
+            Guid.NewGuid(),
+            null);
 
         Assert.Equal(id, variant.Id);
         Assert.Equal(catalogItemId, variant.CatalogItemId);
@@ -64,9 +65,28 @@ public sealed class CatalogVariantTests
             Guid.NewGuid(),
             Status.Active,
             "  XL  ",
-            "  Extra large size  ", Guid.NewGuid());
+            "  Extra large size  ",
+            Guid.NewGuid(),
+            null);
 
         Assert.Equal("XL", variant.Name);
         Assert.Equal("Extra large size", variant.Description);
+    }
+
+    [Fact]
+    public void Create_WithCategoryId_ShouldAssignCategoryId()
+    {
+        var categoryId = Guid.NewGuid();
+
+        var variant = CatalogVariant.Create(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            Status.Active,
+            "XL",
+            "Extra large size",
+            Guid.NewGuid(),
+            categoryId);
+
+        Assert.Equal(categoryId, variant.CategoryId);
     }
 }

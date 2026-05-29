@@ -13,10 +13,17 @@ Planning and product/domain analysis for the Catalog Service live in Notion.
 ## Tracking Database
 
 - [Expected Outputs](https://www.notion.so/8cbbb8580c1847fea19391446b8212d3)
+- [SPEC-014 - Category Domain and API](https://www.notion.so/368bd6def30d815cbbe3eeb0ca07938c)
+- [RFC-014 - Category Domain and API Implementation](https://www.notion.so/36ebd6def30d81feb901c529f6b1235e)
+- [ADR-003 - Optional Category Association on CatalogItem](https://www.notion.so/36ebd6def30d8162b3ebf7528d970413)
 
 ## Local Documentation
 
 - [Testing Strategy](./testing.md)
+- [REST API Contract](./api.md)
+- [Commands and DTO Contracts](./contracts.md)
+- [RFC-014 - Category Domain and API](./rfcs/RFC-014-category-domain-and-api.md)
+- [ADR-003 - Optional Category Association on CatalogItem](./adrs/ADR-003-category-item-association.md)
 
 ## Notes
 
@@ -29,3 +36,5 @@ Planning and product/domain analysis for the Catalog Service live in Notion.
 - Future analysis: evaluate whether `CatalogTemplate` should be associated with `Category`.
 - Phase 3 uses C# / .NET 9, Hexagonal Architecture (Ports & Adapters), transport-agnostic design (REST, gRPC, Queue, IPC), and no ORM coupling in the domain layer.
 - Inbound ports represent use cases exposed by the application core. Outbound ports represent dependencies the core requires from infrastructure.
+- SPEC-014 introduced tenant-scoped `Category` management and optional `CatalogItem.CategoryId`.
+- Category deactivation is semantic: categories become `inactive`, are excluded from active listings, and existing item references are preserved.

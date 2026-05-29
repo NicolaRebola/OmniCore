@@ -12,7 +12,7 @@ public static class ServiceCollectionExtensions
         IConfiguration configuration)
     {
         services.AddSingleton<ICatalogItemRepository, InMemoryCatalogItemRepository>();
-        
+        services.AddSingleton<ICategoryRepository, InMemoryCategoryRepository>();
         return services;
     }
 }

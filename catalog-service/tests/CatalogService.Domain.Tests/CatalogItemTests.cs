@@ -23,7 +23,8 @@ public sealed class CatalogItemTests
             CatalogItemType.Simple,
             Visibility.Commercial,
             Status.Active,
-            tenantId);
+            tenantId,
+            null);
 
         // Assert
         Assert.Equal(id, item.Id);
@@ -50,7 +51,8 @@ public sealed class CatalogItemTests
                 CatalogItemType.Simple,
                 Visibility.Commercial,
                 Status.Active,
-                tenantId));
+                tenantId,
+                null));
 
         // Assert
         Assert.Equal(DomainErrors.CatalogItemNameRequired.Code, ex.ErrorCode);
@@ -71,7 +73,8 @@ public sealed class CatalogItemTests
                 CatalogItemType.Simple,
                 Visibility.Commercial,
                 Status.Active,
-                Guid.Empty));
+                Guid.Empty,
+                null));
 
         // Assert
         Assert.Equal(DomainErrors.CatalogItemTenantRequired.Code, ex.ErrorCode);
@@ -92,7 +95,8 @@ public sealed class CatalogItemTests
             CatalogItemType.Simple,
             Visibility.Commercial,
             Status.Active,
-            tenantId);
+            tenantId,
+            null);
 
         // Assert
         Assert.NotEmpty(item.Variants);
@@ -113,7 +117,8 @@ public sealed class CatalogItemTests
             CatalogItemType.Simple,
             Visibility.Commercial,
             Status.Active,
-            Guid.NewGuid());
+            Guid.NewGuid(),
+            null);
 
         Assert.Single(item.Variants);
         Assert.Equal("Burger", item.Variants[0].Name);
@@ -130,7 +135,8 @@ public sealed class CatalogItemTests
             CatalogItemType.Simple,
             Visibility.Internal,
             Status.Inactive,
-            Guid.NewGuid());
+            Guid.NewGuid(),
+            null);
 
         Assert.Equal(Status.Inactive.Value, item.Variants[0].Status.Value);
     }
@@ -145,7 +151,8 @@ public sealed class CatalogItemTests
             CatalogItemType.Variable,
             Visibility.Commercial,
             Status.Active,
-            Guid.NewGuid());
+            Guid.NewGuid(),
+            null);
 
         Assert.Single(item.Variants);
     }
@@ -160,12 +167,34 @@ public sealed class CatalogItemTests
             CatalogItemType.Simple,
             Visibility.Commercial,
             Status.Active,
-            Guid.NewGuid());
+            Guid.NewGuid(),
+            null);
 
         var variant = Assert.Single(item.Variants);
 
         Assert.NotEqual(Guid.Empty, variant.Id);
         Assert.NotEqual(item.Id, variant.Id);
         Assert.Equal(item.Id, variant.CatalogItemId);
+    }
+
+    [Fact]
+    public void Create_WithCategoryId_ShouldAssignCategoryToItemAndDefaultVariant()
+    {
+        var categoryId = Guid.NewGuid();
+
+        var item = CatalogItem.CatalogItem.Create(
+            Guid.NewGuid(),
+            "Burger",
+            "Classic burger",
+            CatalogItemType.Simple,
+            Visibility.Commercial,
+            Status.Active,
+            Guid.NewGuid(),
+            categoryId);
+
+        var variant = Assert.Single(item.Variants);
+
+        Assert.Equal(categoryId, item.CategoryId);
+        Assert.Equal(categoryId, variant.CategoryId);
     }
 }

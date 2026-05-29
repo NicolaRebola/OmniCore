@@ -5,5 +5,6 @@ public sealed record CreateCatalogItemCommand(
   string Description,
   string Type,
   string Visibility,
-  string Status
+  string Status,
+  Guid? CategoryId
 );
