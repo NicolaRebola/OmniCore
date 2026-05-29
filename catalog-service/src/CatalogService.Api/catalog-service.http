@@ -21,6 +21,12 @@ Accept: application/problem+json
 
 ###
 
+GET {{catalog_service_HostAddress}}/api/v1/projections/catalog
+Accept: application/json
+X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001
+
+###
+
 POST {{catalog_service_HostAddress}}/api/v1/catalog-items
 Accept: application/json
 Content-Type: application/json

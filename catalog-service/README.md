@@ -242,6 +242,7 @@ The service currently exposes a REST API via ASP.NET Core Controllers.
 |---|---|---|
 | `GET` | `/api/v1/catalog-templates` | None | Returns all global catalog templates |
 | `GET` | `/api/v1/catalog-templates/{id}` | None | Returns one global catalog template by id |
+| `GET` | `/api/v1/projections/catalog` | `X-Tenant-Id: {uuid}` | Returns the runtime catalog projection grouped by category |
 | `GET` | `/api/v1/catalog-items` | `X-Tenant-Id: {uuid}` | Returns all catalog items for a tenant |
 | `GET` | `/api/v1/catalog-items/{id}` | `X-Tenant-Id: {uuid}` | Returns the administrative detail for one catalog item, including its variants |
 | `POST` | `/api/v1/catalog-items` | `X-Tenant-Id: {uuid}` | Creates a catalog item for a tenant |
@@ -321,6 +322,20 @@ Template behavior:
 - `GET /api/v1/catalog-templates` returns all templates, including inactive templates, with explicit `status`.
 - `GET /api/v1/catalog-templates/{id}` returns `404` with `CAT-APP-010` when the template does not exist.
 - Template responses do not include `tenantId`, but they do include global Omnicore-managed attribute definitions.
+
+Runtime catalog projection:
+
+```bash
+curl -H "X-Tenant-Id: aaaaaaaa-0000-0000-0000-000000000001" \
+  http://localhost:5080/api/v1/projections/catalog
+```
+
+Projection behavior:
+- The projection is generated at read time and is not persisted.
+- It includes active commercial items, active variants, active categories, and a virtual `uncategorized` category.
+- Projected items are variant-first and enriched with item, category, price, template, and resolved attribute data.
+- Attribute values resolve with `variant > item > template default`.
+- The response is not paginated in MVP 1.
 
 Administrative item creation:
 
