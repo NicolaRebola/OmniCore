@@ -67,4 +67,9 @@ public sealed class CatalogVariant
     {
         Price = price;
     }
+
+    internal void ChangeCategory(Guid? categoryId)
+    {
+        CategoryId = categoryId;
+    }
 }

@@ -64,6 +64,44 @@
             "type": "request",
             "id": "mpqa-catalog-items-create",
             "name": "Create in Tenant"
+          },
+          {
+            "method": "PATCH",
+            "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-items/43dd9968-c95e-4e5e-869b-dc4fc77d0760",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"name\": \"Updated Burger\",\n  \"description\": \"Updated classic burger\",\n  \"visibility\": \"commercial\",\n  \"status\": \"active\",\n  \"categoryId\": \"0c15b03f-2859-4031-9562-3a7a63d3f489\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-catalog-items-patch",
+            "name": "Patch Item"
+          },
+          {
+            "method": "DELETE",
+            "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-items/{{catalogItemId}}/category",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-catalog-items-remove-category",
+            "name": "Remove Category"
           }
         ]
       },

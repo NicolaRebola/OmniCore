@@ -200,6 +200,50 @@ public sealed class CatalogItemTests
     }
 
     [Fact]
+    public void RenameItem_WithValidName_ShouldUpdateAndTrimName()
+    {
+        var item = CreateItem();
+
+        item.RenameItem("  Updated Burger  ");
+
+        Assert.Equal("Updated Burger", item.Name);
+    }
+
+    [Fact]
+    public void ChangeCategory_WithCategoryId_ShouldAssignCategoryToItemAndVariants()
+    {
+        var item = CreateItem();
+        item.AddVariant(Guid.NewGuid(), "XL", "Extra large", Status.Active, null);
+        var categoryId = Guid.NewGuid();
+
+        item.ChangeCategory(categoryId);
+
+        Assert.Equal(categoryId, item.CategoryId);
+        Assert.All(item.Variants, variant => Assert.Equal(categoryId, variant.CategoryId));
+    }
+
+    [Fact]
+    public void RemoveCategory_WithAssignedCategory_ShouldRemoveCategoryFromItemAndVariants()
+    {
+        var categoryId = Guid.NewGuid();
+        var item = CatalogItem.CatalogItem.Create(
+            Guid.NewGuid(),
+            "Burger",
+            "Classic burger",
+            CatalogItemType.Simple,
+            Visibility.Commercial,
+            Status.Active,
+            Guid.NewGuid(),
+            categoryId);
+        item.AddVariant(Guid.NewGuid(), "XL", "Extra large", Status.Active, null);
+
+        item.RemoveCategory();
+
+        Assert.Null(item.CategoryId);
+        Assert.All(item.Variants, variant => Assert.Null(variant.CategoryId));
+    }
+
+    [Fact]
     public void AddVariant_WithValidData_ShouldAppendVariant()
     {
         var item = CreateItem();

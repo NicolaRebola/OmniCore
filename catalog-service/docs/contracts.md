@@ -42,6 +42,25 @@ public sealed record CreateCategoryCommand(
 );
 ```
 
+### `UpdateCatalogItemCommand`
+
+```csharp
+public sealed record UpdateCatalogItemCommand(
+  string? Name,
+  string? Description,
+  string? Visibility,
+  string? Status,
+  Guid? CategoryId
+);
+```
+
+Notes:
+
+- `PATCH /api/v1/catalog-items/{itemId}` uses this command directly.
+- `Type` is immutable and is intentionally not part of the command.
+- When `CategoryId` is provided, the category must belong to the same tenant and be active.
+- A valid category change is propagated to all variants.
+
 ### `UpdateCategoryCommand`
 
 ```csharp

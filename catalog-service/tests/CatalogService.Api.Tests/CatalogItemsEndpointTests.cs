@@ -525,6 +525,108 @@ public sealed class CatalogItemsEndpointTests
     }
 
     [Fact]
+    public async Task PatchCatalogItem_WithEditableFields_ShouldReturnUpdatedItem()
+    {
+        // Arrange
+        var client = CreateClient();
+        var tenantId = Guid.NewGuid().ToString();
+        var categoryId = await CreateCategoryAsync(client, tenantId, "Burgers");
+        var itemId = await CreateCatalogItemAsync(client, tenantId);
+        var request = new HttpRequestMessage(HttpMethod.Patch, $"/api/v1/catalog-items/{itemId}");
+        request.Headers.Add("X-Tenant-Id", tenantId);
+        request.Content = JsonContent($$"""
+            {
+              "name":"Updated Burger",
+              "description":"Updated description",
+              "visibility":"internal",
+              "status":"inactive",
+              "categoryId":"{{categoryId}}"
+            }
+            """);
+
+        // Act
+        var response = await client.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        Assert.Equal(itemId, json.RootElement.GetProperty("id").GetString());
+        Assert.Equal("Updated Burger", json.RootElement.GetProperty("name").GetString());
+        Assert.Equal("Updated description", json.RootElement.GetProperty("description").GetString());
+        Assert.Equal("internal", json.RootElement.GetProperty("visibility").GetString());
+        Assert.Equal("inactive", json.RootElement.GetProperty("status").GetString());
+        Assert.Equal(categoryId, json.RootElement.GetProperty("categoryId").GetString());
+
+        var variant = json.RootElement.GetProperty("variants")[0];
+        Assert.Equal(categoryId, variant.GetProperty("categoryId").GetString());
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task DeleteCatalogItemCategory_WithAssignedCategory_ShouldReturnNoContentAndRemoveCategory()
+    {
+        // Arrange
+        var client = CreateClient();
+        var tenantId = Guid.NewGuid().ToString();
+        var categoryId = await CreateCategoryAsync(client, tenantId, "Burgers");
+        var itemId = await CreateCatalogItemWithCategoryAsync(client, tenantId, categoryId);
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/v1/catalog-items/{itemId}/category");
+        request.Headers.Add("X-Tenant-Id", tenantId);
+
+        // Act
+        var response = await client.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+
+        var item = await GetCatalogItemAsync(client, tenantId, itemId);
+        Assert.Equal(JsonValueKind.Null, item.GetProperty("categoryId").ValueKind);
+        Assert.All(
+            item.GetProperty("variants").EnumerateArray(),
+            variant => Assert.Equal(JsonValueKind.Null, variant.GetProperty("categoryId").ValueKind));
+
+        client.Dispose();
+    }
+
+    [Fact]
+    public async Task GetCatalogItems_WithActiveStatusFilter_ShouldExcludeInactiveItems()
+    {
+        // Arrange
+        var client = CreateClient();
+        var tenantId = Guid.NewGuid().ToString();
+        var itemId = await CreateCatalogItemAsync(client, tenantId);
+        var patch = new HttpRequestMessage(HttpMethod.Patch, $"/api/v1/catalog-items/{itemId}");
+        patch.Headers.Add("X-Tenant-Id", tenantId);
+        patch.Content = JsonContent("""{"status":"inactive"}""");
+        var patchResponse = await client.SendAsync(patch);
+        patchResponse.EnsureSuccessStatusCode();
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "/api/v1/catalog-items?page=1&pageSize=20&status=active");
+        request.Headers.Add("X-Tenant-Id", tenantId);
+
+        // Act
+        var response = await client.SendAsync(request);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        var items = json.RootElement.GetProperty("items");
+        Assert.DoesNotContain(items.EnumerateArray(), item => item.GetProperty("id").GetString() == itemId);
+
+        client.Dispose();
+    }
+
+    [Fact]
     public async Task AddVariant_WithValidRequest_ShouldReturnCreatedVariantWithPrice()
     {
         // Arrange
@@ -853,6 +955,44 @@ public sealed class CatalogItemsEndpointTests
         using var json = JsonDocument.Parse(body);
 
         return json.RootElement.GetProperty("id").GetString()!;
+    }
+
+    private static async Task<string> CreateCatalogItemWithCategoryAsync(HttpClient client, string tenantId, string categoryId)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/v1/catalog-items");
+        request.Headers.Add("X-Tenant-Id", tenantId);
+        request.Content = JsonContent($$"""
+            {
+              "name":"Burger",
+              "description":"Classic burger",
+              "type":"simple",
+              "visibility":"commercial",
+              "status":"active",
+              "categoryId":"{{categoryId}}"
+            }
+            """);
+
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        return json.RootElement.GetProperty("id").GetString()!;
+    }
+
+    private static async Task<JsonElement> GetCatalogItemAsync(HttpClient client, string tenantId, string itemId)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/v1/catalog-items/{itemId}");
+        request.Headers.Add("X-Tenant-Id", tenantId);
+
+        var response = await client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.Content.ReadAsStringAsync();
+        using var json = JsonDocument.Parse(body);
+
+        return json.RootElement.Clone();
     }
 
     private static async Task<string> AddVariantAsync(HttpClient client, string tenantId, string itemId, string name)
