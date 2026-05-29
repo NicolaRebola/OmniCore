@@ -84,4 +84,18 @@ public static class DomainErrors
       Title: "Category not found",
       Detail: "The requested category could not be found."
     );
+
+  public static readonly DomainError CatalogVariantNotFound = new(
+      Code: "CAT-DOM-012",
+      Layer: "Domain",
+      Title: "Catalog variant not found",
+      Detail: "The requested catalog variant could not be found in the catalog item."
+    );
+
+  public static readonly DomainError InvalidPrice = new(
+      Code: "CAT-DOM-013",
+      Layer: "Domain",
+      Title: "Invalid price",
+      Detail: "A price must have a non-negative amount and a non-empty currency."
+    );
 }

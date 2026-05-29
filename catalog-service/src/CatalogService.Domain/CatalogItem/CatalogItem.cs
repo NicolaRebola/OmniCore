@@ -1,3 +1,4 @@
+using CatalogService.Domain.Common;
 using CatalogService.Domain.Common.Exceptions;
 using CatalogService.Domain.Common.Enums;
 using CatalogService.Domain.Errors;
@@ -42,8 +43,64 @@ public sealed class CatalogItem
       item.Name,
       item.Description,
       tenantId,
-      categoryId
+      categoryId,
+      null
     ));
     return item;
+  }
+
+  public CatalogVariant AddVariant(Guid id, string name, string description, Status status, Price? price)
+  {
+    var variant = CatalogVariant.Create(
+      id,
+      Id,
+      status,
+      name,
+      description,
+      TenantId,
+      CategoryId,
+      price
+    );
+
+    _variants.Add(variant);
+    return variant;
+  }
+
+  public CatalogVariant UpdateVariant(Guid variantId, string? name, string? description, Status? status, Price? price)
+  {
+    var variant = GetVariantOrThrow(variantId);
+
+    if (name is not null) variant.Rename(name);
+    if (description is not null) variant.ChangeDescription(description);
+    if (status is not null) variant.ChangeStatus(status);
+    if (price is not null) variant.ChangePrice(price);
+
+    return variant;
+  }
+
+  public CatalogVariant DeactivateVariant(Guid variantId)
+  {
+    var variant = GetVariantOrThrow(variantId);
+
+    if (variant.Status.Value == Status.Active.Value && ActiveVariantCount() == 1)
+    {
+      throw new CatalogDomainException(DomainErrors.CatalogItemMustHaveVariant);
+    }
+
+    variant.ChangeStatus(Status.Inactive);
+    return variant;
+  }
+
+  private CatalogVariant GetVariantOrThrow(Guid variantId)
+  {
+    var variant = _variants.FirstOrDefault(v => v.Id == variantId);
+    if (variant is null) throw new CatalogDomainException(DomainErrors.CatalogVariantNotFound);
+
+    return variant;
+  }
+
+  private int ActiveVariantCount()
+  {
+    return _variants.Count(v => v.Status.Value == Status.Active.Value);
   }
 }
