@@ -1,0 +1,322 @@
+[
+  {
+    "id": "d5a5edd0-eed6-416b-97e2-9339ad85c24f",
+    "name": "Catalog Items",
+    "variables": [],
+    "items": [
+      {
+        "id": "b5dfd431-d656-4ff7-a21e-f3565b2f04d1",
+        "name": "Catalog Item",
+        "type": "folder",
+        "items": [
+          {
+            "method": "GET",
+            "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-items?page=1&pageSize=10",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-catalog-items-get-all",
+            "name": "List by Tenant Id (paged)"
+          },
+          {
+            "method": "GET",
+            "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-items/{{catalogItemId}}",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-catalog-items-get-by-id",
+            "name": "Get Detail by Id"
+          },
+          {
+            "method": "POST",
+            "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-items",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"name\": \"Burger\",\n  \"description\": \"Classic burger\",\n  \"type\": \"simple\",\n  \"visibility\": \"commercial\",\n  \"status\": \"active\",\n  \"templateId\": \"{{catalogTemplateId}}\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"attributes\": [\n    { \"key\": \"spicy\", \"value\": \"false\" }\n  ]\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-catalog-items-create",
+            "name": "Create in Tenant"
+          },
+          {
+            "method": "PATCH",
+            "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-items/43dd9968-c95e-4e5e-869b-dc4fc77d0760",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"name\": \"Updated Burger\",\n  \"description\": \"Updated classic burger\",\n  \"visibility\": \"commercial\",\n  \"status\": \"active\",\n  \"categoryId\": \"0c15b03f-2859-4031-9562-3a7a63d3f489\",\n  \"attributes\": [\n    { \"key\": \"spicy\", \"value\": \"true\" }\n  ]\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-catalog-items-patch",
+            "name": "Patch Item"
+          },
+          {
+            "method": "DELETE",
+            "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-items/{{catalogItemId}}/category",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-catalog-items-remove-category",
+            "name": "Remove Category"
+          }
+        ]
+      },
+      {
+        "id": "37e4b800-b426-4dcb-8667-17c267da1c18",
+        "name": "Catalog Variants",
+        "type": "folder",
+        "items": [
+          {
+            "method": "POST",
+            "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-items/aaaaaaaa-0000-0000-0000-000000000001/variants",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"name\": \"XL\",\n  \"description\": \"Extra large\",\n  \"status\": \"active\",\n  \"price\": {\n    \"amount\": 12.5,\n    \"currency\": \"ARS\"\n  },\n  \"attributes\": [\n    { \"key\": \"serving-size\", \"value\": \"large\" }\n  ]\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-catalog-variants-add",
+            "name": "Add Variant"
+          },
+          {
+            "method": "PATCH",
+            "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-items/{{catalogItemId}}/variants/{{catalogVariantId}}",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"name\": \"Small\",\n  \"description\": \"Small size\",\n  \"status\": \"active\",\n  \"price\": {\n    \"amount\": 9.99,\n    \"currency\": \"USD\"\n  },\n  \"attributes\": [\n    { \"key\": \"serving-size\", \"value\": \"regular\" }\n  ]\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-catalog-variants-patch",
+            "name": "Patch Variant"
+          },
+          {
+            "method": "DELETE",
+            "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-items/{{catalogItemId}}/variants/{{catalogVariantId}}",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-catalog-variants-delete",
+            "name": "Delete Variant"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mpqa-catalog-templates-collection",
+    "name": "Catalog Templates",
+    "variables": [],
+    "items": [
+      {
+        "method": "GET",
+        "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-templates",
+        "headers": {},
+        "body": {
+          "mode": "none"
+        },
+        "auth": {
+          "type": "none"
+        },
+        "preRequestScript": "",
+        "postResponseScript": "",
+        "type": "request",
+        "id": "mpqa-catalog-templates-get-all",
+        "name": "Get All"
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:{{catalogServicePort}}/api/v1/catalog-templates/{{catalogTemplateId}}",
+        "headers": {},
+        "body": {
+          "mode": "none"
+        },
+        "auth": {
+          "type": "none"
+        },
+        "preRequestScript": "",
+        "postResponseScript": "",
+        "type": "request",
+        "id": "mpqa-catalog-templates-get-by-id",
+        "name": "Get Detail by Id"
+      }
+    ]
+  },
+  {
+    "id": "mpqa-catalog-projections-collection",
+    "name": "Catalog Projections",
+    "variables": [],
+    "items": [
+      {
+        "method": "GET",
+        "url": "http://localhost:{{catalogServicePort}}/api/v1/projections/catalog",
+        "headers": {
+          "X-Tenant-Id": "{{tenantId}}"
+        },
+        "body": {
+          "mode": "none"
+        },
+        "auth": {
+          "type": "none"
+        },
+        "preRequestScript": "",
+        "postResponseScript": "",
+        "type": "request",
+        "id": "mpqa-catalog-projections-get-catalog",
+        "name": "Get Catalog Projection"
+      }
+    ]
+  },
+  {
+    "id": "b0c59b69-a3c8-4177-ae3b-60df6f3c7a66",
+    "name": "Categories",
+    "variables": [],
+    "items": [
+      {
+        "method": "POST",
+        "url": "http://localhost:{{catalogServicePort}}/api/v1/categories",
+        "headers": {
+          "X-Tenant-Id": "{{tenantId}}"
+        },
+        "body": {
+          "mode": "raw",
+          "rawType": "json",
+          "value": "{\n  \"name\": \"Nueva Categoría\"\n}"
+        },
+        "auth": {
+          "type": "none"
+        },
+        "preRequestScript": "",
+        "postResponseScript": "",
+        "type": "request",
+        "id": "mpqa22qw2v9da",
+        "name": "Create in Tenant"
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost:{{catalogServicePort}}/api/v1/categories",
+        "headers": {
+          "X-Tenant-Id": "{{tenantId}}"
+        },
+        "body": {
+          "mode": "none"
+        },
+        "auth": {
+          "type": "none"
+        },
+        "preRequestScript": "",
+        "postResponseScript": "",
+        "type": "request",
+        "id": "mpqa36pobc0fv",
+        "name": "Get All by Tenant Id"
+      },
+      {
+        "method": "PATCH",
+        "url": "http://localhost:{{catalogServicePort}}/api/v1/categories/{{categoryId}}",
+        "headers": {
+          "X-Tenant-Id": "{{tenantId}}"
+        },
+        "body": {
+          "mode": "raw",
+          "rawType": "json",
+          "value": "{\n  \"name\": \"Algun nombre valido\",\n  \"status\": \"inactive\"\n}"
+        },
+        "auth": {
+          "type": "none"
+        },
+        "preRequestScript": "",
+        "postResponseScript": "",
+        "type": "request",
+        "id": "mpqa5fayzy273",
+        "name": "Patch Category"
+      },
+      {
+        "method": "DELETE",
+        "url": "http://localhost:{{catalogServicePort}}/api/v1/categories/{{categoryId}}",
+        "headers": {
+          "X-Tenant-Id": "{{tenantId}}"
+        },
+        "body": {
+          "mode": "none"
+        },
+        "auth": {
+          "type": "none"
+        },
+        "preRequestScript": "",
+        "postResponseScript": "",
+        "type": "request",
+        "id": "mpqa-categories-delete",
+        "name": "Delete Category"
+      }
+    ]
+  }
+]

@@ -1,0 +1,162 @@
+classDiagram
+    direction LR
+
+    class CatalogItem {
+        <<AggregateRoot>>
+        UUID id
+        UUID tenantId
+        string name
+        string description
+        Type type
+        Visibility visibility
+        Status status
+        UUID categoryId?
+        Price basePrice?
+    }
+
+    class CatalogVariant {
+        <<Entity>>
+        UUID id
+        UUID categoryId?
+        Status status
+        Price price?
+    }
+
+    class CatalogTemplate {
+        <<AggregateRoot>>
+        UUID id
+        string name
+        string metadata
+    }
+
+    class Category {
+        <<Entity>>
+        UUID id
+        UUID tenantId
+        string name
+        Status status
+    }
+
+    class AttributeDefinition {
+        <<ValueObject>>
+        string key
+        string label
+        string dataType
+        string metadata
+    }
+
+    class AttributeValue {
+        <<ValueObject>>
+        string key
+        any value
+    }
+
+    class Identifier {
+        <<ValueObject>>
+        IdentifierType type
+        string value
+    }
+
+    class MediaReference {
+        <<ValueObject>>
+        MediaType type
+        string reference
+        string metadata
+    }
+
+    class Option {
+        <<ValueObject>>
+        UUID id
+        string name
+        string metadata
+        UUID referencedCatalogItemId?
+    }
+
+    class Price {
+        <<ValueObject>>
+        decimal amount
+        string currency
+    }
+
+    class Type {
+        <<ValueObject>>
+        string value
+    }
+
+    class Visibility {
+        <<Enumeration>>
+        internal
+        commercial
+    }
+
+    class Status {
+        <<Enumeration>>
+        active
+        inactive
+    }
+
+    class IdentifierType {
+        <<Enumeration>>
+        sku
+        barcode
+        qr
+        internal_code
+        external_id
+        plain_text
+    }
+
+    class MediaType {
+        <<Enumeration>>
+        image
+        video
+        document
+        external_url
+    }
+
+    class CatalogProjection {
+        <<RuntimeProjection>>
+        derived from Variant + Item + Template
+        not persisted
+    }
+
+    class MenuProjection {
+        <<RuntimeProjection>>
+        derived from Variant + Item + Template
+        not persisted
+    }
+
+    CatalogItem "1" *-- "1..*" CatalogVariant : contains generated variant
+    CatalogItem "1" o-- "0..*" Identifier : embeds
+    CatalogVariant "1" o-- "0..*" Identifier : embeds
+    CatalogItem "1" o-- "0..*" MediaReference : embeds
+    CatalogVariant "1" o-- "0..*" MediaReference : embeds
+    CatalogItem "1" o-- "0..*" Option : embeds
+    CatalogItem "1" o-- "0..*" AttributeValue : has
+    CatalogVariant "1" o-- "0..*" AttributeValue : has
+    CatalogItem "0..*" --> "1" CatalogTemplate : decorated by
+    CatalogTemplate "1" *-- "0..*" AttributeDefinition : defines
+    CatalogItem "0..*" --> "0..1" Category : grouped by optional categoryId
+    CatalogVariant "0..*" --> "0..1" Category : carries item categoryId for projection
+    CatalogItem "1" --> "1" Type : typed as
+    CatalogItem "1" --> "1" Visibility : visible as
+    CatalogItem "1" --> "1" Status : has
+    CatalogVariant "1" --> "1" Status : has
+    CatalogItem "0..1" o-- "1" Price : optional descriptive price
+    CatalogVariant "0..1" o-- "1" Price : optional descriptive price
+    Identifier --> IdentifierType : typed as
+    MediaReference --> MediaType : typed as
+
+    CatalogProjection ..> CatalogItem : reads
+    CatalogProjection ..> CatalogTemplate : applies structure
+    CatalogProjection ..> CatalogVariant : lists variants
+    MenuProjection ..> CatalogItem : reads
+    MenuProjection ..> CatalogTemplate : applies structure
+    MenuProjection ..> CatalogVariant : lists variants
+
+    %% Projection invariant:
+    %% The system generates at least one CatalogVariant for each CatalogItem.
+    %% This generated variant has no "Default" label; it only guarantees projection readiness.
+    %% Projections always list CatalogVariants, enriched by CatalogItem + CatalogTemplate.
+    %% Sprint 3 exposes one optional categoryId per CatalogItem.
+    %% The generated default CatalogVariant carries the same categoryId for projection readiness.
+    %% Future persistence may evolve to an item_category table without changing category invariants.
