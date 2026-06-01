@@ -1,66 +1,39 @@
-import { workspaceActivity } from '../data/activity'
-import { workspaceHeroStats } from '../data/hero'
+import { ActivityPanel } from '../components/ActivityPanel'
+import { ModuleCard } from '../components/ModuleCard'
+import { WorkspaceHeader } from '../components/WorkspaceHeader'
+import { WorkspaceHero } from '../components/WorkspaceHero'
+import { WorkspaceSidebar } from '../components/WorkspaceSidebar'
 import { workspaceModules } from '../data/modules'
-import { workspaceNavItems } from '../data/navigation'
-import { workspaceTenant } from '../data/tenant'
+import './LandingPage.css'
 
-/**
- * Placeholder de la landing workspace.
- * El layout visual se implementa en el commit 2.
- */
 export function LandingPage() {
   return (
-    <main className="landing-page" data-testid="landing-page">
-      <header>
-        <p>Inicio / Workspace</p>
-        <h1>Centro de operaciones</h1>
-        <p>{workspaceTenant.name}</p>
-      </header>
+    <div className="workspace-shell" data-testid="landing-page">
+      <WorkspaceSidebar />
 
-      <section aria-label="Módulos disponibles">
-        <h2>Módulos disponibles</h2>
-        <ul>
-          {workspaceModules.map((module) => (
-            <li key={module.id}>
-              {module.title} — {module.metric}
-              {module.enabled ? ' (habilitado)' : ''}
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="workspace-main">
+        <WorkspaceHeader />
+        <WorkspaceHero />
 
-      <section aria-label="Actividad reciente">
-        <h2>Actividad reciente</h2>
-        <ul>
-          {workspaceActivity.map((item) => (
-            <li key={item.id}>
-              {item.label}: {item.title} ({item.timeAgo})
-            </li>
-          ))}
-        </ul>
-      </section>
+        <div className="workspace-body">
+          <section className="workspace-modules" aria-labelledby="modules-heading">
+            <header className="workspace-modules__header">
+              <h2 id="modules-heading">Módulos disponibles</h2>
+              <p>
+                Por ahora se muestran todos los módulos como habilitados hasta conectar el core
+                multi-tenant.
+              </p>
+            </header>
+            <div className="workspace-modules__grid">
+              {workspaceModules.map((module) => (
+                <ModuleCard key={module.id} module={module} />
+              ))}
+            </div>
+          </section>
 
-      <section aria-label="Resumen operativo">
-        <h2>Resumen</h2>
-        <ul>
-          {workspaceHeroStats.map((stat) => (
-            <li key={stat.label}>
-              {stat.label}: {stat.value}
-            </li>
-          ))}
-        </ul>
-      </section>
-
-      <nav aria-label="Navegación workspace">
-        <ul>
-          {workspaceNavItems.map((item) => (
-            <li key={item.id}>
-              {item.label}
-              {item.active ? ' (activo)' : ''}
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </main>
+          <ActivityPanel />
+        </div>
+      </div>
+    </div>
   )
 }
