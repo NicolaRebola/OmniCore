@@ -725,7 +725,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 24px 20px 0;
+  padding: 24px 20px 18px;
   background: var(--background-surface);
   border-bottom: 1px solid var(--border-default);
 }
@@ -737,7 +737,7 @@
   letter-spacing: -0.04em;
 }
 
-.workspace-mobile-header span {
+.workspace-mobile-header div > span {
   display: block;
   margin-top: 4px;
   color: var(--text-muted);
