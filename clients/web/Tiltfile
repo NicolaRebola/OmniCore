@@ -1,0 +1,22 @@
+local_resource(
+  'web-deps',
+  cmd='npm install',
+  deps=[
+    './clients/web/package.json',
+    './clients/web/package-lock.json',
+  ],
+  labels=['web']
+)
+
+local_resource(
+  'web',
+  serve_cmd='npm run dev -- --host 0.0.0.0 --port 5173',
+  deps=[
+    './clients/web/index.html',
+    './clients/web/src',
+    './clients/web/vite.config.ts',
+  ],
+  resource_deps=['web-deps'],
+  links=['http://localhost:5173'],
+  labels=['web']
+)
