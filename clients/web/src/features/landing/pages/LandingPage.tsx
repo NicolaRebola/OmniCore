@@ -1,7 +1,11 @@
 import { ActivityPanel } from '../components/ActivityPanel'
 import { ModuleCard } from '../components/ModuleCard'
+import { ModuleCardMobile } from '../components/ModuleCardMobile'
+import { WorkspaceBottomNav } from '../components/WorkspaceBottomNav'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { WorkspaceHero } from '../components/WorkspaceHero'
+import { WorkspaceMobileHeader } from '../components/WorkspaceMobileHeader'
+import { WorkspaceMobileIntro } from '../components/WorkspaceMobileIntro'
 import { WorkspaceSidebar } from '../components/WorkspaceSidebar'
 import { workspaceModules } from '../data/modules'
 import './LandingPage.css'
@@ -11,7 +15,7 @@ export function LandingPage() {
     <div className="workspace-shell" data-testid="landing-page">
       <WorkspaceSidebar />
 
-      <div className="workspace-main">
+      <div className="workspace-main workspace-desktop-only">
         <WorkspaceHeader />
         <WorkspaceHero />
 
@@ -33,6 +37,17 @@ export function LandingPage() {
 
           <ActivityPanel />
         </div>
+      </div>
+
+      <div className="workspace-mobile workspace-mobile-only">
+        <WorkspaceMobileHeader />
+        <WorkspaceMobileIntro />
+        <section className="workspace-mobile-modules" aria-label="Módulos disponibles">
+          {workspaceModules.map((module) => (
+            <ModuleCardMobile key={module.id} module={module} />
+          ))}
+        </section>
+        <WorkspaceBottomNav />
       </div>
     </div>
   )
