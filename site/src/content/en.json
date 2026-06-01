@@ -1,0 +1,407 @@
+{
+  "recruiter": {
+    "meta": {
+      "snapshotStatus": "GitHub Pages live",
+      "snapshotBody": "Vite + React site for a system-shaped portfolio. Built as a public case study, not a product landing page.",
+      "decisionsTitle": "Context, decision, trade-off, and learning."
+    },
+    "nav": {
+      "motivation": "Motivation",
+      "what": "What",
+      "principles": "Principles",
+      "system": "System",
+      "decisions": "Decisions",
+      "evidence": "Evidence",
+      "roadmap": "Roadmap",
+      "contact": "Contact"
+    },
+    "profileHint": "Adjust how the story is told",
+    "profiles": {
+      "recruiter": "Recruiter",
+      "developer": "Dev / Senior",
+      "executive": "CTO / CEO"
+    },
+    "hero": {
+      "kicker": "NR/OmniCore",
+      "title": "A portfolio built as a system.",
+      "headline": "I built OmniCore to show how I approach hard projects with judgment, consistency, and visible learning.",
+      "subline": "It is not a quick demo or a stack landing page. It is a long-term project that shows how I think, decide, and evolve software.",
+      "primaryCta": "See the journey",
+      "secondaryCta": "GitHub"
+    },
+    "motivation": {
+      "title": "Why I chose a complex project",
+      "body": "Simple projects rarely show how I work under real pressure: prioritize, document, stay organized, and keep learning. OmniCore forces that.",
+      "reflection": "Learning: consistency and documentation matter as much as code when someone evaluates seniority."
+    },
+    "what": {
+      "title": "What OmniCore is",
+      "body": "A simulated business platform for practicing architecture, integration, local DX, documentation, and progressive evolution."
+    },
+    "principles": {
+      "title": "How I work",
+      "items": [
+        {
+          "title": "Clear boundaries",
+          "body": "Each part of the system has a defined role, which keeps responsibilities easy to explain."
+        },
+        {
+          "title": "Contracts, not shortcuts",
+          "body": "Modules integrate through APIs and events, not by sharing internal code."
+        },
+        {
+          "title": "Traceability",
+          "body": "Every meaningful delivery has a Notion spec and a GitHub PR."
+        },
+        {
+          "title": "Meaningful complexity",
+          "body": "I do not add modules for hype; each piece answers a real design question."
+        }
+      ]
+    },
+    "system": {
+      "title": "A simple map for a system that grows",
+      "body": "The site presents OmniCore as a case study: modules, decisions, and evidence without turning the public page into a dashboard.",
+      "modules": [
+        {
+          "name": "Catalog Service",
+          "description": "Services, contracts, and domain decisions.",
+          "status": "Active"
+        },
+        {
+          "name": "Clients / Web",
+          "description": "Backoffice and future operational experience.",
+          "status": "Scaffolded"
+        },
+        {
+          "name": "Site",
+          "description": "Editorial portfolio, specs, and public evidence.",
+          "status": "Deployed"
+        }
+      ]
+    },
+    "decisions": [
+      {
+        "label": "Context",
+        "title": "Separate site from web app",
+        "body": "The site represents OmniCore as a whole; clients/web stays focused on product workflows."
+      },
+      {
+        "label": "Trade-off",
+        "title": "Static first",
+        "body": "GitHub Pages lowers operational cost and keeps the public portal simple."
+      },
+      {
+        "label": "Learning",
+        "title": "Document before growing",
+        "body": "Specs give every section a reason to exist beyond decoration."
+      }
+    ],
+    "evidence": [
+      {
+        "title": "Repository",
+        "body": "Code, PRs, and evolution remain visible.",
+        "href": "https://github.com/nicolarebola/OmniCore"
+      },
+      {
+        "title": "Specs",
+        "body": "Each site increment starts from a documented decision.",
+        "href": "#decisions"
+      },
+      {
+        "title": "Deploy",
+        "body": "Static build published on GitHub Pages.",
+        "href": "https://nicolarebola.github.io/OmniCore/"
+      }
+    ],
+    "roadmap": [
+      {
+        "phase": "Now",
+        "body": "Editorial visual base, deploy, and one-page structure."
+      },
+      {
+        "phase": "Next",
+        "body": "Profile, language, and content resolver for adaptive narrative."
+      },
+      {
+        "phase": "Later",
+        "body": "More evidence, screenshots, decisions, and system evolution."
+      }
+    ],
+    "closing": {
+      "eyebrow": "NR/OmniCore",
+      "title": "A portfolio for reading decisions",
+      "body": "OmniCore exists to show how I think when software stops being a demo and starts requiring judgment."
+    }
+  },
+  "developer": {
+    "meta": {
+      "snapshotStatus": "GitHub Pages live",
+      "snapshotBody": "Vite + React site for a system-shaped portfolio. Built as a public case study, not a product landing page.",
+      "decisionsTitle": "Context, decision, trade-off, and learning."
+    },
+    "nav": {
+      "motivation": "Motivation",
+      "what": "What",
+      "principles": "Principles",
+      "system": "System",
+      "decisions": "Decisions",
+      "evidence": "Evidence",
+      "roadmap": "Roadmap",
+      "contact": "Contact"
+    },
+    "profileHint": "Adjust how the story is told",
+    "profiles": {
+      "recruiter": "Recruiter",
+      "developer": "Dev / Senior",
+      "executive": "CTO / CEO"
+    },
+    "hero": {
+      "kicker": "NR/OmniCore",
+      "title": "A system-shaped portfolio.",
+      "headline": "I built OmniCore to show how I think when software has to grow.",
+      "subline": "It is not a demo or a tutorial. It is a modular platform to practice boundaries, contracts, DX, traceability, and real trade-offs.",
+      "primaryCta": "Explore architecture",
+      "secondaryCta": "View decisions"
+    },
+    "motivation": {
+      "title": "Why I chose a complex project",
+      "body": "I wanted to practice decisions tutorials rarely cover: domain boundaries, service contracts, failure modes, consistency, and local DX.",
+      "reflection": "Learning: complexity must earn its place; every new module must justify its operational and cognitive cost."
+    },
+    "what": {
+      "title": "What OmniCore is",
+      "body": "A modular professional practice system: services, clients, specs, CI, and deploys designed to make design trade-offs visible."
+    },
+    "principles": {
+      "title": "Engineering principles",
+      "items": [
+        {
+          "title": "Boundaries before frameworks",
+          "body": "I define domain boundaries and contracts before picking stack."
+        },
+        {
+          "title": "Contracts over shared internals",
+          "body": "Integration by contract: REST, events, and clear APIs."
+        },
+        {
+          "title": "Specs in Notion, history in GitHub",
+          "body": "One spec equals one PR, with implementation notes visible in history."
+        },
+        {
+          "title": "Local DX matters",
+          "body": "If I cannot run and understand the system locally, architecture degrades in practice."
+        }
+      ]
+    },
+    "system": {
+      "title": "Readable architecture before noisy diagrams",
+      "body": "The site map summarizes modules and responsibilities. The goal is to show boundaries, not fake dashboards.",
+      "modules": [
+        {
+          "name": "Catalog Service",
+          "description": ".NET service with dedicated CI and domain contracts.",
+          "status": "Active"
+        },
+        {
+          "name": "Clients / Web",
+          "description": "React/Vite client for operational flows.",
+          "status": "Scaffolded"
+        },
+        {
+          "name": "Site",
+          "description": "Static Vite + React app deployed with GitHub Pages.",
+          "status": "Deployed"
+        }
+      ]
+    },
+    "decisions": [
+      {
+        "label": "Boundary",
+        "title": "site/ does not depend on clients/web",
+        "body": "The public portal can evolve as a case study without coupling itself to the operational app."
+      },
+      {
+        "label": "Deploy",
+        "title": "Vite static build",
+        "body": "The build produces dist/ and GitHub Pages serves assets under /OmniCore/."
+      },
+      {
+        "label": "DX",
+        "title": "Specs before abstractions",
+        "body": "Validate narrative, content, and structure before extracting reusable components."
+      }
+    ],
+    "evidence": [
+      {
+        "title": "GitHub",
+        "body": "History, workflows, and implementation decisions.",
+        "href": "https://github.com/nicolarebola/OmniCore"
+      },
+      {
+        "title": "Architecture docs",
+        "body": "Structure, runtime model, and spec plan.",
+        "href": "#decisions"
+      },
+      {
+        "title": "Pages",
+        "body": "Static build running in production.",
+        "href": "https://nicolarebola.github.io/OmniCore/"
+      }
+    ],
+    "roadmap": [
+      {
+        "phase": "Now",
+        "body": "Editorial design base and section composition."
+      },
+      {
+        "phase": "Next",
+        "body": "Content resolver, persisted preferences, and copy by profile/locale."
+      },
+      {
+        "phase": "Later",
+        "body": "Evidence cards, screenshots, and decisions linked to real PRs."
+      }
+    ],
+    "closing": {
+      "eyebrow": "NR/OmniCore",
+      "title": "Visible design, not just visible stack",
+      "body": "The site makes it possible to read technical decisions while the system grows."
+    }
+  },
+  "executive": {
+    "meta": {
+      "snapshotStatus": "GitHub Pages live",
+      "snapshotBody": "Vite + React site for a system-shaped portfolio. Built as a public case study, not a product landing page.",
+      "decisionsTitle": "Context, decision, trade-off, and learning."
+    },
+    "nav": {
+      "motivation": "Motivation",
+      "what": "What it shows",
+      "principles": "Principles",
+      "system": "System",
+      "decisions": "Decisions",
+      "evidence": "Evidence",
+      "roadmap": "Roadmap",
+      "contact": "Contact"
+    },
+    "profileHint": "Adjust how the story is told",
+    "profiles": {
+      "recruiter": "Recruiter",
+      "developer": "Dev / Senior",
+      "executive": "CTO / CEO"
+    },
+    "hero": {
+      "kicker": "NR/OmniCore",
+      "title": "A case study in technical judgment and product evolution.",
+      "headline": "I built OmniCore to demonstrate architecture judgment, ownership, and product evolution in a real system.",
+      "subline": "It is an operational portfolio for evaluating judgment: how I turn ambiguity into decisions, modules, traceability, and accumulated learning.",
+      "primaryCta": "View key decisions",
+      "secondaryCta": "GitHub"
+    },
+    "motivation": {
+      "title": "Why I invested in controlled complexity",
+      "body": "I chose a credible business domain to force real trade-offs: what to modularize, what to defer, and what to document before coding.",
+      "reflection": "Learning: an honest roadmap and traceable specs communicate more trust than a long list of upcoming features."
+    },
+    "what": {
+      "title": "What the project demonstrates",
+      "body": "OmniCore shows how a technical intention becomes an observable system: boundaries, delivery, documentation, and public evidence."
+    },
+    "principles": {
+      "title": "Principles that guide the system",
+      "items": [
+        {
+          "title": "Explicit boundaries",
+          "body": "Purposeful modularity: less coupling and more ability to evolve."
+        },
+        {
+          "title": "Stable contracts",
+          "body": "Lower risk as the team or number of services grows."
+        },
+        {
+          "title": "Product memory",
+          "body": "Documentation preserves decisions when original context is gone."
+        },
+        {
+          "title": "Visible debt",
+          "body": "I prefer deferring with judgment over accumulating invisible debt."
+        }
+      ]
+    },
+    "system": {
+      "title": "Evolution with low understanding cost",
+      "body": "The site translates architecture and roadmap into evidence readable by technical and non-technical profiles.",
+      "modules": [
+        {
+          "name": "Services",
+          "description": "Modules with clear responsibilities and explicit contracts.",
+          "status": "Evolving"
+        },
+        {
+          "name": "Experience",
+          "description": "Clients and public portal separated by goal.",
+          "status": "Separated"
+        },
+        {
+          "name": "Traceability",
+          "description": "Specs, PRs, and deploys connected by intention.",
+          "status": "Visible"
+        }
+      ]
+    },
+    "decisions": [
+      {
+        "label": "Risk",
+        "title": "Separate public communication from operation",
+        "body": "The site communicates judgment; the web app remains free to solve product workflows."
+      },
+      {
+        "label": "Cost",
+        "title": "Static deploy",
+        "body": "Pages avoids premature infrastructure and keeps the focus on content and evidence."
+      },
+      {
+        "label": "Trust",
+        "title": "Honest roadmap",
+        "body": "Showing what exists and what is missing avoids inflated claims."
+      }
+    ],
+    "evidence": [
+      {
+        "title": "Repository",
+        "body": "Work is auditable through commits, PRs, and workflows.",
+        "href": "https://github.com/nicolarebola/OmniCore"
+      },
+      {
+        "title": "Specs",
+        "body": "Decisions are documented and connected to deliveries.",
+        "href": "#decisions"
+      },
+      {
+        "title": "Public site",
+        "body": "The case study is available as a functional delivery.",
+        "href": "https://nicolarebola.github.io/OmniCore/"
+      }
+    ],
+    "roadmap": [
+      {
+        "phase": "Now",
+        "body": "Deployed foundation and initial narrative visible."
+      },
+      {
+        "phase": "Next",
+        "body": "Adapt reading by profile and language without changing structure."
+      },
+      {
+        "phase": "Later",
+        "body": "Add operational evidence and decisions linked to real deliveries."
+      }
+    ],
+    "closing": {
+      "eyebrow": "NR/OmniCore",
+      "title": "Technical judgment in a readable format",
+      "body": "The goal is for anyone to understand what I decided, what I learned, and how the system evolves."
+    }
+  }
+}
