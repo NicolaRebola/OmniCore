@@ -1,4 +1,5 @@
 using CatalogService.Application.Ports.Outbound;
+using CatalogService.Infrastructure.Events;
 using CatalogService.Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ICatalogItemRepository, InMemoryCatalogItemRepository>();
         services.AddSingleton<ICatalogTemplateRepository, InMemoryCatalogTemplateRepository>();
         services.AddSingleton<ICategoryRepository, InMemoryCategoryRepository>();
+        services.AddSingleton<IIntegrationEventPublisher, NoOpIntegrationEventPublisher>();
         return services;
     }
 }
