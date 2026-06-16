@@ -497,6 +497,6 @@ This service is planned and documented in **Notion**. The repository stays align
 | Phase 4 | REST API — Catalog MVP 1 | Done |
 | Phase 5 | Persistence — PostgreSQL provider | Backlog |
 | Phase 6 | gRPC transport | Pending |
-| Phase 7 | Domain events & messaging | Pending |
+| Phase 7 | Domain events & messaging | In Progress |
 
 MVP 1 closes as a REST API milestone backed by in-memory repositories. PostgreSQL, gRPC, events, OpenTelemetry, authentication, authorization, and production deployment are intentionally deferred.

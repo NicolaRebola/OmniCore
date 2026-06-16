@@ -289,3 +289,53 @@ public sealed record CatalogProjectionItemDto(
 
 `CAT-APP-004` intentionally maps to `404` to avoid leaking whether a category exists in another tenant.
 `CAT-APP-002` maps to `409` and protects aggregate consistency, including the last-active-variant rule.
+
+## Integration Events (SPEC-023)
+
+Catalog mutations publish integration events through `IIntegrationEventPublisher` after successful repository persistence. Downstream OmniCore services consume these events asynchronously.
+
+Full spec: [SPEC-023 - Event Contract Direction](./specs/SPEC-023-event-contract-direction.md)
+
+### Envelope (v1)
+
+```json
+{
+  "specVersion": "1.0",
+  "eventId": "uuid",
+  "eventType": "catalog.variant.price_changed",
+  "source": "catalog-service",
+  "occurredAt": "2026-06-16T12:00:00Z",
+  "tenantId": "uuid",
+  "correlationId": "uuid",
+  "causationId": "uuid",
+  "data": {}
+}
+```
+
+### Event types (v1)
+
+| eventType | Trigger |
+|---|---|
+| `catalog.item.created` | Item + default variant created |
+| `catalog.item.updated` | Item name, description, visibility, status, or attributes changed |
+| `catalog.item.category_assigned` | Item category set |
+| `catalog.item.category_removed` | Item category cleared |
+| `catalog.variant.created` | Variant added |
+| `catalog.variant.updated` | Variant name, description, or attributes changed |
+| `catalog.variant.price_changed` | Variant price changed |
+| `catalog.variant.status_changed` | Variant status changed / deactivated |
+| `catalog.category.created` | Category created |
+| `catalog.category.updated` | Category renamed |
+| `catalog.category.deactivated` | Category set to inactive |
+
+### Application port
+
+```csharp
+public interface IIntegrationEventPublisher
+{
+    Task PublishAsync(CatalogIntegrationEvent integrationEvent, CancellationToken cancellationToken = default);
+    Task PublishAsync(IReadOnlyList<CatalogIntegrationEvent> integrationEvents, CancellationToken cancellationToken = default);
+}
+```
+
+Development and test environments register `NoOpIntegrationEventPublisher` in Infrastructure.

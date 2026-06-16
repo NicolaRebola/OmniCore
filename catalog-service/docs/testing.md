@@ -185,6 +185,6 @@ See [MVP 1 Closure](./mvp-1-closure.md) for included and deferred scope.
 
 - Add PostgreSQL-backed integration tests when persistence is implemented.
 - Add gRPC contract tests when the gRPC transport exists.
-- Add event contract tests when domain events or messaging are introduced.
+- Integration event contract tests for envelope shape and handler publish behavior (SPEC-023).
 - Add CI test result artifacts if the suite grows.
 - Consider coverage reports only when they help reveal meaningful gaps, not as a vanity metric.
