@@ -1,6 +1,6 @@
 using CatalogService.Application.Ports.Outbound;
 using CatalogService.Infrastructure.Dev;
-using CatalogService.Infrastructure.Repositories;
+using CatalogService.Infrastructure.Persistence.Providers.InMemory.Repositories;
 using CatalogService.Domain.CatalogItem;
 using CatalogService.Domain.Common.Enums;
 using Xunit;
