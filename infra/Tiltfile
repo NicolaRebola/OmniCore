@@ -1,0 +1,9 @@
+# Shared local infrastructure for OmniCore
+
+docker_compose('./docker-compose.postgres.yml')  # pyright: ignore[reportUndefinedVariable]
+
+dc_resource(  # pyright: ignore[reportUndefinedVariable]
+  'postgres',
+  labels=['infra'],
+  links=['postgresql://omnicore:omnicore@localhost:5432/postgres'],
+)
