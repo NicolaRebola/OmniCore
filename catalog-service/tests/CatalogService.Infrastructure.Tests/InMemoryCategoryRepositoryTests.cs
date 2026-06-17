@@ -2,7 +2,7 @@ using CatalogService.Application.Ports.Outbound;
 using CatalogService.Domain.Categories;
 using CatalogService.Domain.Common.Enums;
 using CatalogService.Infrastructure.Dev;
-using CatalogService.Infrastructure.Repositories;
+using CatalogService.Infrastructure.Persistence.Providers.InMemory.Repositories;
 using Xunit;
 
 namespace CatalogService.Infrastructure.Tests;

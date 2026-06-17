@@ -3,7 +3,7 @@ using CatalogService.Domain.CatalogTemplates;
 using CatalogService.Domain.Common.Enums;
 using CatalogService.Infrastructure.Dev;
 
-namespace CatalogService.Infrastructure.Repositories;
+namespace CatalogService.Infrastructure.Persistence.Providers.InMemory.Repositories;
 
 public sealed class InMemoryCatalogTemplateRepository : ICatalogTemplateRepository
 {

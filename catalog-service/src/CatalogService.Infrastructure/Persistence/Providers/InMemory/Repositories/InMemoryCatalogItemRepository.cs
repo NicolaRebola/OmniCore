@@ -3,16 +3,59 @@ using CatalogService.Domain.CatalogItem;
 using CatalogService.Domain.Common.Enums;
 using CatalogService.Infrastructure.Dev;
 
-namespace CatalogService.Infrastructure.Repositories;
+namespace CatalogService.Infrastructure.Persistence.Providers.InMemory.Repositories;
 
 public sealed class InMemoryCatalogItemRepository : ICatalogItemRepository
 {
     private readonly List<CatalogItem> _store =
     [
-        CatalogItem.Create(Guid.NewGuid(), DevSeed.RestaurantCatalogTemplateId, "Hamburguesa con Fritas", "Pan, carne, lechuga", CatalogItemType.Simple, Visibility.Commercial, Status.Active, DevSeed.TenantId, null),
-        CatalogItem.Create(Guid.Parse("aaaaaaaa-0000-0000-0000-000000000001"), DevSeed.RestaurantCatalogTemplateId, "Combo Familiar",      "Burger + papas + bebida", CatalogItemType.Variable, Visibility.Commercial, Status.Active, DevSeed.TenantId, null),
-        CatalogItem.Create(Guid.NewGuid(), DevSeed.RestaurantCatalogTemplateId, "Café Especial",       "Blend de origen único",  CatalogItemType.Simple, Visibility.Internal, Status.Active, DevSeed.TenantId, null),
+        CreateSeedItem(DevSeed.HamburguesaItemId, DevSeed.HamburguesaVariantId, "Hamburguesa con Fritas", "Pan, carne, lechuga", CatalogItemType.Simple, Visibility.Commercial),
+        CreateSeedItem(DevSeed.ComboFamiliarItemId, DevSeed.ComboFamiliarVariantId, "Combo Familiar", "Burger + papas + bebida", CatalogItemType.Variable, Visibility.Commercial),
+        CreateSeedItem(DevSeed.CafeEspecialItemId, DevSeed.CafeEspecialVariantId, "Café Especial", "Blend de origen único", CatalogItemType.Simple, Visibility.Internal),
     ];
+
+    private static CatalogItem CreateSeedItem(
+        Guid itemId,
+        Guid variantId,
+        string name,
+        string description,
+        CatalogItemType type,
+        Visibility visibility)
+    {
+        var item = CatalogItem.Create(
+            itemId,
+            DevSeed.RestaurantCatalogTemplateId,
+            name,
+            description,
+            type,
+            visibility,
+            Status.Active,
+            DevSeed.TenantId,
+            null);
+
+        var defaultVariant = item.Variants[0];
+        return CatalogItem.Rehydrate(
+            item.Id,
+            item.TemplateId,
+            item.Name,
+            item.Description,
+            item.Type,
+            item.Visibility,
+            item.Status,
+            item.TenantId,
+            item.CategoryId,
+            item.Attributes,
+            [CatalogVariant.Rehydrate(
+                variantId,
+                item.Id,
+                defaultVariant.Status,
+                defaultVariant.Name,
+                defaultVariant.Description,
+                defaultVariant.TenantId,
+                defaultVariant.CategoryId,
+                defaultVariant.Price,
+                defaultVariant.Attributes)]);
+    }
 
     public Task<PagedResult<CatalogItem>> ListAsync(CatalogItemListCriteria criteria, CancellationToken ct = default)
     {

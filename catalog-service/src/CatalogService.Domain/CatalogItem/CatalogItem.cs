@@ -69,6 +69,31 @@ public sealed class CatalogItem
     return item;
   }
 
+  public static CatalogItem Rehydrate(
+    Guid id,
+    Guid templateId,
+    string name,
+    string description,
+    CatalogItemType type,
+    Visibility visibility,
+    Status status,
+    Guid tenantId,
+    Guid? categoryId,
+    IReadOnlyList<AttributeValue> attributes,
+    IReadOnlyList<CatalogVariant> variants)
+  {
+    if (variants.Count == 0) throw new CatalogDomainException(DomainErrors.CatalogItemMustHaveVariant);
+
+    var item = new CatalogItem(id, templateId, name, description, type, visibility, status, tenantId, categoryId);
+    item.ReplaceAttributes(attributes);
+    foreach (var variant in variants)
+    {
+      item._variants.Add(variant);
+    }
+
+    return item;
+  }
+
   public static CatalogItem Create(Guid id, string name, string description, CatalogItemType type, Visibility visibility, Status status, Guid tenantId, Guid? categoryId)
   {
     return Create(id, DefaultTemplateId, name, description, type, visibility, status, tenantId, categoryId, []);

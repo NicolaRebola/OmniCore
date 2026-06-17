@@ -13,6 +13,9 @@ services:
       DOTNET_USE_POLLING_FILE_WATCHER: "1"
       DOTNET_WATCH_SUPPRESS_BROWSER_REFRESH: "1"
       DOTNET_GCConserveMemory: "5"
+      ConnectionStrings__CatalogDb: Host=postgres;Port=5432;Database=catalog;Username=omnicore;Password=omnicore
+      Persistence__Provider: PostgreSql
+      Persistence__PostgreSql__RunMigrationsOnStartup: "true"
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/swagger/v1/swagger.json"]
       interval: 10s
@@ -23,6 +26,13 @@ services:
       dotnet watch run
         --project src/CatalogService.Api/CatalogService.Api.csproj
         --no-launch-profile
+    networks:
+      - omnicore-dev
+
+networks:
+  omnicore-dev:
+    external: true
+    name: omnicore-dev
 
 volumes:
   nuget-cache:

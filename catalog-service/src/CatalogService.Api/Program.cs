@@ -3,6 +3,7 @@ using CatalogService.Application;
 using CatalogService.Application.Common.Exceptions;
 using CatalogService.Domain.Common.Exceptions;
 using CatalogService.Infrastructure;
+using CatalogService.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +16,8 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 
 var app = builder.Build();
+
+app.RunCatalogMigrations();
 
 if (app.Environment.IsDevelopment())
 {

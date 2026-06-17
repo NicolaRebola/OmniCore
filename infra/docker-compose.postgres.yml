@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: omnicore
+      POSTGRES_PASSWORD: omnicore
+    volumes:
+      - omnicore-postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U omnicore -d postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - omnicore-dev
+
+networks:
+  omnicore-dev:
+    name: omnicore-dev
+    driver: bridge
+
+volumes:
+  omnicore-postgres-data:

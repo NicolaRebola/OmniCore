@@ -1,10 +1,12 @@
 # catalog-service/Tiltfile
 
-# Levanta el contenedor definido en docker-compose.dev.yml
+# PostgreSQL compartido (red omnicore-dev). Debe levantarse antes que catalog-api.
+include('../infra/Tiltfile')
+
 docker_compose('./docker-compose.dev.yml')  # pyright: ignore[reportUndefinedVariable]
 
-# Expone el recurso a Tilt para control individual
 dc_resource(  # pyright: ignore[reportUndefinedVariable]
   'catalog-api',
+  resource_deps=['postgres'],
   labels=['catalog-service']
 )
