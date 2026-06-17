@@ -338,4 +338,4 @@ public interface IIntegrationEventPublisher
 }
 ```
 
-Development and test environments register `NoOpIntegrationEventPublisher` in Infrastructure.
+Development registers `LoggingIntegrationEventPublisher` (JSON envelope at `Information`). Other environments use silent `NoOpIntegrationEventPublisher`.
