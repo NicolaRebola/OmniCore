@@ -1,6 +1,7 @@
 using CatalogService.Application.Common.Exceptions;
 using CatalogService.Application.DTOs;
 using CatalogService.Application.Errors;
+using CatalogService.Application.Events;
 using CatalogService.Application.Ports.Inbound;
 using CatalogService.Application.Ports.Outbound;
 using CatalogService.Domain.CatalogItem;
@@ -13,15 +14,18 @@ public sealed class UpdateCatalogItemHandler : IUpdateCatalogItemUseCase
   private readonly ICatalogItemRepository _repository;
   private readonly ICategoryRepository _categoryRepository;
   private readonly ICatalogTemplateRepository _catalogTemplateRepository;
+  private readonly IIntegrationEventPublisher _eventPublisher;
 
   public UpdateCatalogItemHandler(
     ICatalogItemRepository repository,
     ICategoryRepository categoryRepository,
-    ICatalogTemplateRepository catalogTemplateRepository)
+    ICatalogTemplateRepository catalogTemplateRepository,
+    IIntegrationEventPublisher eventPublisher)
   {
     _repository = repository;
     _categoryRepository = categoryRepository;
     _catalogTemplateRepository = catalogTemplateRepository;
+    _eventPublisher = eventPublisher;
   }
 
   public async Task<CatalogItemDto> ExecuteAsync(Guid tenantId, Guid id, UpdateCatalogItemCommand command, CancellationToken ct)
@@ -29,9 +33,11 @@ public sealed class UpdateCatalogItemHandler : IUpdateCatalogItemUseCase
     var item = await _repository.GetByIdAsync(tenantId, id, ct);
     if (item is null) throw new CatalogApplicationException(ApplicationErrors.CatalogItemNotFound);
 
+    var previousCategoryId = item.CategoryId;
     var visibility = ParseVisibility(command.Visibility);
     var status = ParseStatus(command.Status);
     await ValidateCategoryAsync(tenantId, command.CategoryId, ct);
+
     var attributes = await ValidateAttributesAsync(item, command.Attributes, ct);
 
     if (!string.IsNullOrWhiteSpace(command.Name)) item.RenameItem(command.Name);
@@ -42,7 +48,39 @@ public sealed class UpdateCatalogItemHandler : IUpdateCatalogItemUseCase
     if (attributes is not null) item.ReplaceAttributes(attributes);
 
     await _repository.UpdateAsync(tenantId, item, ct);
+    await PublishEventsAsync(item, command, previousCategoryId, ct);
     return CatalogItemMapping.ToDto(item);
+  }
+
+  private async Task PublishEventsAsync(
+    CatalogItem item,
+    UpdateCatalogItemCommand command,
+    Guid? previousCategoryId,
+    CancellationToken ct)
+  {
+    var events = new List<CatalogIntegrationEvent>();
+
+    if (command.CategoryId is not null && command.CategoryId != previousCategoryId)
+    {
+      events.Add(CatalogIntegrationEventFactory.ItemCategoryAssigned(item, command.CategoryId.Value));
+    }
+
+    var changedFields = new List<string>();
+    if (!string.IsNullOrWhiteSpace(command.Name)) changedFields.Add("name");
+    if (command.Description is not null) changedFields.Add("description");
+    if (command.Visibility is not null) changedFields.Add("visibility");
+    if (command.Status is not null) changedFields.Add("status");
+    if (command.Attributes is not null) changedFields.Add("attributes");
+
+    if (changedFields.Count > 0)
+    {
+      events.Add(CatalogIntegrationEventFactory.ItemUpdated(item, changedFields));
+    }
+
+    if (events.Count > 0)
+    {
+      await _eventPublisher.PublishAsync(events, ct);
+    }
   }
 
   private async Task ValidateCategoryAsync(Guid tenantId, Guid? categoryId, CancellationToken ct)
@@ -76,6 +114,7 @@ public sealed class UpdateCatalogItemHandler : IUpdateCatalogItemUseCase
 
     var values = CatalogItemMapping.ToAttributeValues(attributes);
     template.ValidateValues(values);
+
     foreach (var variant in item.Variants)
     {
       template.EnsureRequiredVariantAttributesAreSatisfied(values, variant.Attributes);

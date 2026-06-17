@@ -1,6 +1,7 @@
 using CatalogService.Application.Common.Exceptions;
 using CatalogService.Application.DTOs;
 using CatalogService.Application.Errors;
+using CatalogService.Application.Events;
 using CatalogService.Application.Ports.Inbound;
 using CatalogService.Application.Ports.Outbound;
 using CatalogService.Domain.CatalogItem;
@@ -13,11 +14,16 @@ public sealed class AddCatalogVariantHandler : IAddCatalogVariantUseCase
 {
   private readonly ICatalogItemRepository _repository;
   private readonly ICatalogTemplateRepository _catalogTemplateRepository;
+  private readonly IIntegrationEventPublisher _eventPublisher;
 
-  public AddCatalogVariantHandler(ICatalogItemRepository repository, ICatalogTemplateRepository catalogTemplateRepository)
+  public AddCatalogVariantHandler(
+    ICatalogItemRepository repository,
+    ICatalogTemplateRepository catalogTemplateRepository,
+    IIntegrationEventPublisher eventPublisher)
   {
     _repository = repository;
     _catalogTemplateRepository = catalogTemplateRepository;
+    _eventPublisher = eventPublisher;
   }
 
   public async Task<CatalogVariantDto> ExecuteAsync(Guid tenantId, Guid itemId, CreateCatalogVariantCommand command, CancellationToken ct)
@@ -42,6 +48,7 @@ public sealed class AddCatalogVariantHandler : IAddCatalogVariantUseCase
     );
 
     await _repository.UpdateAsync(tenantId, item, ct);
+    await _eventPublisher.PublishAsync(CatalogIntegrationEventFactory.VariantCreated(item, variant), ct);
     return CatalogItemMapping.ToDto(variant);
   }
 
