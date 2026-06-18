@@ -37,7 +37,7 @@ The platform is composed of independent services, each responsible for a well-de
 | Service | Language / Stack | Status | Description |
 |---|---|---|---|
 | `catalog-service` | C# / .NET 9 | In Progress | Multi-tenant product catalog with variant and template support |
-| `orders-service` | Go 1.22+ | In Progress (Sprint 1) | Multi-tenant order lifecycle; scaffold done (ORD-SPEC-001) |
+| `orders-service` | Go 1.22+ | In Progress (Sprint 1) | Multi-tenant order lifecycle; scaffold + domain done (ORD-SPEC-001/002) |
 
 > More services will be added as the project evolves.
 
@@ -241,7 +241,7 @@ Each service maintains its own `README.md` and a `docs/` directory. Strategic do
 | Service | README | Docs | Notion |
 |---|---|---|---|
 | `catalog-service` | [catalog-service/README.md](./catalog-service/README.md) | [Testing Strategy](./catalog-service/docs/testing.md) | [Catalog Notion Workspace](./catalog-service/docs/notion.md) |
-| `orders-service` | [orders-service/README.md](./orders-service/README.md) | [ORD-SPEC-001](./orders-service/docs/specs/ORD-SPEC-001-project-scaffold.md) | [Orders Notion Workspace](./orders-service/docs/notion.md) |
+| `orders-service` | [orders-service/README.md](./orders-service/README.md) | [ORD-SPEC-001](./orders-service/docs/specs/ORD-SPEC-001-project-scaffold.md), [ORD-SPEC-002](./orders-service/docs/specs/ORD-SPEC-002-domain-model.md) | [Orders Notion Workspace](./orders-service/docs/notion.md) |
 
 ## Continuous Integration
 

@@ -6,7 +6,7 @@ Part of the [OmniCore](../README.md) portfolio. Stack: **Go 1.22+**, hexagonal a
 
 ## Status
 
-**Scaffold — ORD-SPEC-001 done.** HTTP server with health checks and local DevEx (Docker/Tilt). Domain and business API land in [ORD-SPEC-002](https://app.notion.com/p/383bd6def30d817c8422dc0d3065dd88) onward.
+**Sprint 1 — ORD-SPEC-001 and ORD-SPEC-002 done.** HTTP scaffold with health checks and local DevEx; pure domain aggregate with MVP state machine and unit tests. Next: [ORD-SPEC-003](https://app.notion.com/p/383bd6def30d8145af33f3e2098f8f05) (PostgreSQL migrations).
 
 ## Documentation
 
@@ -14,6 +14,8 @@ Part of the [OmniCore](../README.md) portfolio. Stack: **Go 1.22+**, hexagonal a
 - [Phase 4 — Technical Design](https://app.notion.com/p/383bd6def30d81fd9898d141b7d4bed9)
 - [ORD-SPEC-001 — Project Scaffold](https://app.notion.com/p/383bd6def30d81eb8afed1ba1f41d7b2)
 - [ORD-SPEC-001 — Implementation notes](./docs/specs/ORD-SPEC-001-project-scaffold.md)
+- [ORD-SPEC-002 — Domain Model](https://app.notion.com/p/383bd6def30d817c8422dc0d3065dd88)
+- [ORD-SPEC-002 — Implementation notes](./docs/specs/ORD-SPEC-002-domain-model.md)
 
 ## Project Structure
 
@@ -21,7 +23,7 @@ Part of the [OmniCore](../README.md) portfolio. Stack: **Go 1.22+**, hexagonal a
 orders-service/
 ├── cmd/api/                    # Composition root (config, wiring, main)
 ├── internal/
-│   ├── domain/                 # Order aggregate (ORD-SPEC-002)
+│   ├── domain/                 # Order aggregate + unit tests (ORD-SPEC-002)
 │   └── application/
 │       ├── ports/              # Inbound/outbound interfaces
 │       └── usecases/           # Use case handlers
@@ -57,10 +59,11 @@ curl http://localhost:8081/health
 curl http://localhost:8081/ready
 ```
 
-Build all packages:
+Build and test:
 
 ```bash
 go build ./...
+go test ./internal/domain/... -v
 ```
 
 > Do not run `go run` and the Docker container at the same time — both bind port **8081** on the host.

@@ -57,7 +57,7 @@ tilt up orders-api
 
 | Item | Spec |
 |------|------|
-| Domain model | ORD-SPEC-002 |
+| Domain model | ORD-SPEC-002 (done) |
 | SQL migrations | ORD-SPEC-003 |
 | PostgreSQL repositories + `/ready` DB ping | ORD-SPEC-004 |
 | Strict `X-Tenant-Id` validation | ORD-SPEC-006 |
