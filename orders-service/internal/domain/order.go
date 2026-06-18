@@ -37,7 +37,7 @@ func NewOrder(
 	now time.Time,
 ) (*Order, error) {
 	if tenantID == uuid.Nil {
-		return nil, nil
+		return nil, fmt.Errorf("tenant id is required")
 	}
 
 	return &Order{
@@ -70,7 +70,7 @@ func (o *Order) AddLine(lineID, variantID uuid.UUID, quantity int, now time.Time
 		return ErrInvalidQuantity
 	}
 	if variantID == uuid.Nil {
-		return ErrInvalidVariant // o error más específico
+		return ErrInvalidVariant
 	}
 
 	o.lines = append(o.lines, NewDraftOrderLine(lineID, variantID, quantity))
@@ -88,7 +88,7 @@ func (o *Order) UpdateLineQuantity(lineID uuid.UUID, quantity int, now time.Time
 
 	idx := o.findLineIndex(lineID)
 	if idx < 0 {
-		return nil /* line not found — puedes usar fmt.Errorf o nuevo ORD-DOM */
+		return fmt.Errorf("order line not found")
 	}
 
 	o.lines[idx].Quantity = quantity
@@ -145,7 +145,7 @@ func (o *Order) RemoveLine(lineID uuid.UUID, now time.Time) error {
 	}
 	idx := o.findLineIndex(lineID)
 	if idx < 0 {
-		return fmt.Errorf("order line not found") // o DomainError
+		return fmt.Errorf("order line not found")
 	}
 	o.removeLineAt(idx)
 	o.touch(now)

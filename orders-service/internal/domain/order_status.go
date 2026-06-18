@@ -63,8 +63,6 @@ func (o *Order) Place(in PlaceInput) error {
 	if o.Customer == nil || !o.Customer.HasName() {
 		return ErrPlaceWithoutCustomer
 	}
-	// Mejora: HasName() debería usar strings.TrimSpace(name) != ""
-
 	// 4. Delivery + address
 	if o.FulfillmentType == FulfillmentDelivery {
 		if o.Address == nil || !o.Address.IsCompleteForDelivery() {
