@@ -16,7 +16,7 @@ Planning and technical design for the Order Service live in Notion.
 
 | Spec | Sprint | Status |
 |------|--------|--------|
-| [ORD-SPEC-001 - Project Scaffold](https://app.notion.com/p/383bd6def30d81eb8afed1ba1f41d7b2) | 1 | Backlog |
+| [ORD-SPEC-001 - Project Scaffold](https://app.notion.com/p/383bd6def30d81eb8afed1ba1f41d7b2) | 1 | Done |
 | [ORD-SPEC-002 - Domain Model](https://app.notion.com/p/383bd6def30d817c8422dc0d3065dd88) | 1 | Backlog |
 | [ORD-SPEC-003 - Persistence Migrations](https://app.notion.com/p/383bd6def30d8145af33f3e2098f8f05) | 2 | Backlog |
 | [ORD-SPEC-004 - PostgreSQL Repositories](https://app.notion.com/p/383bd6def30d81cea233d4acca849068) | 2 | Backlog |
@@ -27,6 +27,12 @@ Planning and technical design for the Order Service live in Notion.
 | [ORD-SPEC-009 - Order Queries API](https://app.notion.com/p/383bd6def30d8160ae3ac6e58694ce18) | 5 | Backlog |
 | [ORD-SPEC-010 - REST Contract / OpenAPI](https://app.notion.com/p/383bd6def30d8131a421fb139a2d06b2) | 5 | Backlog |
 | [ORD-SPEC-011 - Integration Events MVP](https://app.notion.com/p/383bd6def30d81a985cccaaaf4ecd69b) | 5 | Backlog |
+
+## Implemented Specs (repo)
+
+| Spec | Doc |
+|------|-----|
+| ORD-SPEC-001 | [Project Scaffold](./specs/ORD-SPEC-001-project-scaffold.md) |
 
 ## Cross-Service Dependencies
 

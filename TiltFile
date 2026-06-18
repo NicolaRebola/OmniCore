@@ -2,5 +2,5 @@
 # Comentar/descomentar para habilitar servicios a demanda
 
 include('./catalog-service/Tiltfile') # Port: 5080 (incluye infra/postgres)
-include('./orders-service/Tiltfile') # Port: 8001 (incluye infra/postgres)
+include('./orders-service/Tiltfile') # Port: 8081
 # include('./clients/web/Tiltfile') # Port: 5173

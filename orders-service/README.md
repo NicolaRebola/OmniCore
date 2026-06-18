@@ -13,6 +13,7 @@ Part of the [OmniCore](../README.md) portfolio. Stack: **Go 1.22+**, hexagonal a
 - [Notion workspace](./docs/notion.md)
 - [Phase 4 — Technical Design](https://app.notion.com/p/383bd6def30d81fd9898d141b7d4bed9)
 - [ORD-SPEC-001 — Project Scaffold](https://app.notion.com/p/383bd6def30d81eb8afed1ba1f41d7b2)
+- [ORD-SPEC-001 — Implementation notes](./docs/specs/ORD-SPEC-001-project-scaffold.md)
 
 ## Project Structure
 
