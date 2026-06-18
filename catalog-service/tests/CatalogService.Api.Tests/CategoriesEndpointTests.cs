@@ -13,7 +13,7 @@ public sealed class CategoriesEndpointTests
 
     private static HttpClient CreateClient()
     {
-        return new WebApplicationFactory<Program>().CreateClient(new WebApplicationFactoryClientOptions
+        return new CatalogWebApplicationFactory().CreateClient(new WebApplicationFactoryClientOptions
         {
             BaseAddress = new Uri("https://localhost")
         });

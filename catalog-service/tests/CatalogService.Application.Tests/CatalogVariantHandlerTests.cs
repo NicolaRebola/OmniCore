@@ -3,6 +3,7 @@ using CatalogService.Application.DTOs;
 using CatalogService.Application.Errors;
 using CatalogService.Application.Ports.Outbound;
 using CatalogService.Application.UseCases;
+using CatalogService.Application.Tests.TestDoubles;
 using CatalogService.Domain.CatalogItem;
 using CatalogService.Domain.CatalogTemplates;
 using CatalogService.Domain.Common.Enums;
@@ -21,7 +22,7 @@ public sealed class CatalogVariantHandlerTests
         var tenantId = Guid.NewGuid();
         var item = CreateItem(tenantId);
         var repository = new FakeCatalogItemRepository([item]);
-        var handler = new AddCatalogVariantHandler(repository, new FakeCatalogTemplateRepository([ActiveTemplate]));
+        var handler = new AddCatalogVariantHandler(repository, new FakeCatalogTemplateRepository([ActiveTemplate]), NullIntegrationEventPublisher.Instance);
         var command = new CreateCatalogVariantCommand("XL", "Extra large", "active", new PriceDto(12.5m, "ars"));
 
         var result = await handler.ExecuteAsync(tenantId, item.Id, command, CancellationToken.None);
@@ -38,7 +39,7 @@ public sealed class CatalogVariantHandlerTests
     public async Task AddVariant_WithUnknownItem_ShouldThrowCatalogItemNotFound()
     {
         var repository = new FakeCatalogItemRepository([]);
-        var handler = new AddCatalogVariantHandler(repository, new FakeCatalogTemplateRepository([ActiveTemplate]));
+        var handler = new AddCatalogVariantHandler(repository, new FakeCatalogTemplateRepository([ActiveTemplate]), NullIntegrationEventPublisher.Instance);
         var command = new CreateCatalogVariantCommand("XL", null, "active", null);
 
         var ex = await Assert.ThrowsAsync<CatalogApplicationException>(() =>
@@ -55,7 +56,7 @@ public sealed class CatalogVariantHandlerTests
         var variantId = item.Variants[0].Id;
         item.AddVariant(Guid.NewGuid(), "XL", "Extra large", Status.Active, null);
         var repository = new FakeCatalogItemRepository([item]);
-        var handler = new UpdateCatalogVariantHandler(repository, new FakeCatalogTemplateRepository([ActiveTemplate]));
+        var handler = new UpdateCatalogVariantHandler(repository, new FakeCatalogTemplateRepository([ActiveTemplate]), NullIntegrationEventPublisher.Instance);
         var command = new UpdateCatalogVariantCommand("Small", "Small size", "inactive", new PriceDto(9.99m, "usd"));
 
         var result = await handler.ExecuteAsync(tenantId, item.Id, variantId, command, CancellationToken.None);
@@ -74,7 +75,7 @@ public sealed class CatalogVariantHandlerTests
         var tenantId = Guid.NewGuid();
         var item = CreateItem(tenantId);
         var repository = new FakeCatalogItemRepository([item]);
-        var handler = new UpdateCatalogVariantHandler(repository, new FakeCatalogTemplateRepository([ActiveTemplate]));
+        var handler = new UpdateCatalogVariantHandler(repository, new FakeCatalogTemplateRepository([ActiveTemplate]), NullIntegrationEventPublisher.Instance);
         var command = new UpdateCatalogVariantCommand("Small", null, null, null);
 
         var ex = await Assert.ThrowsAsync<CatalogApplicationException>(() =>
@@ -89,7 +90,7 @@ public sealed class CatalogVariantHandlerTests
         var tenantId = Guid.NewGuid();
         var item = CreateItem(tenantId);
         var repository = new FakeCatalogItemRepository([item]);
-        var handler = new UpdateCatalogVariantHandler(repository, new FakeCatalogTemplateRepository([ActiveTemplate]));
+        var handler = new UpdateCatalogVariantHandler(repository, new FakeCatalogTemplateRepository([ActiveTemplate]), NullIntegrationEventPublisher.Instance);
         var command = new UpdateCatalogVariantCommand(null, null, "inactive", null);
 
         var ex = await Assert.ThrowsAsync<CatalogApplicationException>(() =>
@@ -104,7 +105,7 @@ public sealed class CatalogVariantHandlerTests
         var tenantId = Guid.NewGuid();
         var item = CreateItem(tenantId);
         var repository = new FakeCatalogItemRepository([item]);
-        var handler = new DeactivateCatalogVariantHandler(repository);
+        var handler = new DeactivateCatalogVariantHandler(repository, NullIntegrationEventPublisher.Instance);
 
         var ex = await Assert.ThrowsAsync<CatalogApplicationException>(() =>
             handler.ExecuteAsync(tenantId, item.Id, item.Variants[0].Id, CancellationToken.None));
@@ -119,7 +120,7 @@ public sealed class CatalogVariantHandlerTests
         var item = CreateItem(tenantId);
         var variant = item.AddVariant(Guid.NewGuid(), "XL", "Extra large", Status.Active, null);
         var repository = new FakeCatalogItemRepository([item]);
-        var handler = new DeactivateCatalogVariantHandler(repository);
+        var handler = new DeactivateCatalogVariantHandler(repository, NullIntegrationEventPublisher.Instance);
 
         var result = await handler.ExecuteAsync(tenantId, item.Id, variant.Id, CancellationToken.None);
 

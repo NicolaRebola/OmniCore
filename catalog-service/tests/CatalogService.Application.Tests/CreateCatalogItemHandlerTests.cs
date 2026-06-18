@@ -2,6 +2,7 @@ using CatalogService.Application.Common.Exceptions;
 using CatalogService.Application.DTOs;
 using CatalogService.Application.Errors;
 using CatalogService.Application.Ports.Outbound;
+using CatalogService.Application.Tests.TestDoubles;
 using CatalogService.Application.UseCases;
 using CatalogService.Domain.CatalogItem;
 using CatalogService.Domain.CatalogTemplates;
@@ -26,7 +27,7 @@ public sealed class CreateCatalogItemHandlerTests
         var category = Category.Create(Guid.NewGuid(), "Burgers", Status.Active, tenantId);
         var catalogItemRepository = new FakeCatalogItemRepository();
         var categoryRepository = new FakeCategoryRepository([category]);
-        var handler = new CreateCatalogItemHandler(catalogItemRepository, categoryRepository, new FakeCatalogTemplateRepository([ActiveTemplate]));
+        var handler = new CreateCatalogItemHandler(catalogItemRepository, categoryRepository, new FakeCatalogTemplateRepository([ActiveTemplate]), NullIntegrationEventPublisher.Instance);
         var command = CreateCommand(category.Id);
 
         // Act
@@ -49,7 +50,7 @@ public sealed class CreateCatalogItemHandlerTests
         var tenantId = Guid.NewGuid();
         var catalogItemRepository = new FakeCatalogItemRepository();
         var categoryRepository = new FakeCategoryRepository([]);
-        var handler = new CreateCatalogItemHandler(catalogItemRepository, categoryRepository, new FakeCatalogTemplateRepository([ActiveTemplate]));
+        var handler = new CreateCatalogItemHandler(catalogItemRepository, categoryRepository, new FakeCatalogTemplateRepository([ActiveTemplate]), NullIntegrationEventPublisher.Instance);
         var command = CreateCommand(null);
 
         // Act
@@ -71,7 +72,7 @@ public sealed class CreateCatalogItemHandlerTests
         var handler = new CreateCatalogItemHandler(
             new FakeCatalogItemRepository(),
             new FakeCategoryRepository([category]),
-            new FakeCatalogTemplateRepository([ActiveTemplate]));
+            new FakeCatalogTemplateRepository([ActiveTemplate]), NullIntegrationEventPublisher.Instance);
         var command = CreateCommand(category.Id);
 
         // Act
@@ -91,7 +92,7 @@ public sealed class CreateCatalogItemHandlerTests
         var handler = new CreateCatalogItemHandler(
             new FakeCatalogItemRepository(),
             new FakeCategoryRepository([category]),
-            new FakeCatalogTemplateRepository([ActiveTemplate]));
+            new FakeCatalogTemplateRepository([ActiveTemplate]), NullIntegrationEventPublisher.Instance);
         var command = CreateCommand(category.Id);
 
         // Act
@@ -109,7 +110,7 @@ public sealed class CreateCatalogItemHandlerTests
         var handler = new CreateCatalogItemHandler(
             new FakeCatalogItemRepository(),
             new FakeCategoryRepository([]),
-            new FakeCatalogTemplateRepository([]));
+            new FakeCatalogTemplateRepository([]), NullIntegrationEventPublisher.Instance);
         var command = CreateCommand(null);
 
         var ex = await Assert.ThrowsAsync<CatalogApplicationException>(() =>
@@ -126,7 +127,7 @@ public sealed class CreateCatalogItemHandlerTests
         var handler = new CreateCatalogItemHandler(
             new FakeCatalogItemRepository(),
             new FakeCategoryRepository([]),
-            new FakeCatalogTemplateRepository([inactiveTemplate]));
+            new FakeCatalogTemplateRepository([inactiveTemplate]), NullIntegrationEventPublisher.Instance);
         var command = CreateCommand(null);
 
         var ex = await Assert.ThrowsAsync<CatalogApplicationException>(() =>
@@ -142,7 +143,7 @@ public sealed class CreateCatalogItemHandlerTests
         var handler = new CreateCatalogItemHandler(
             new FakeCatalogItemRepository(),
             new FakeCategoryRepository([]),
-            new FakeCatalogTemplateRepository([ActiveTemplate]));
+            new FakeCatalogTemplateRepository([ActiveTemplate]), NullIntegrationEventPublisher.Instance);
         var command = CreateCommand(null, Guid.Empty);
 
         var ex = await Assert.ThrowsAsync<CatalogDomainException>(() =>
@@ -158,7 +159,7 @@ public sealed class CreateCatalogItemHandlerTests
         var handler = new CreateCatalogItemHandler(
             new FakeCatalogItemRepository(),
             new FakeCategoryRepository([]),
-            new FakeCatalogTemplateRepository([ActiveTemplate]));
+            new FakeCatalogTemplateRepository([ActiveTemplate]), NullIntegrationEventPublisher.Instance);
         var command = CreateCommand(null, TemplateId, [new AttributeValueDto("unknown", "value")]);
 
         var ex = await Assert.ThrowsAsync<CatalogDomainException>(() =>
@@ -176,7 +177,7 @@ public sealed class CreateCatalogItemHandlerTests
         var handler = new CreateCatalogItemHandler(
             new FakeCatalogItemRepository(),
             new FakeCategoryRepository([]),
-            new FakeCatalogTemplateRepository([template]));
+            new FakeCatalogTemplateRepository([template]), NullIntegrationEventPublisher.Instance);
         var command = CreateCommand(null, TemplateId, [new AttributeValueDto("color", "red")]);
 
         var ex = await Assert.ThrowsAsync<CatalogDomainException>(() =>
@@ -194,7 +195,7 @@ public sealed class CreateCatalogItemHandlerTests
         var handler = new CreateCatalogItemHandler(
             new FakeCatalogItemRepository(),
             new FakeCategoryRepository([]),
-            new FakeCatalogTemplateRepository([template]));
+            new FakeCatalogTemplateRepository([template]), NullIntegrationEventPublisher.Instance);
         var command = CreateCommand(null, TemplateId);
 
         var ex = await Assert.ThrowsAsync<CatalogDomainException>(() =>

@@ -53,6 +53,22 @@ public sealed class CatalogVariant
         return variant;
     }
 
+    public static CatalogVariant Rehydrate(
+        Guid id,
+        Guid catalogItemId,
+        Status status,
+        string name,
+        string description,
+        Guid tenantId,
+        Guid? categoryId,
+        Price? price,
+        IReadOnlyList<AttributeValue>? attributes = null)
+    {
+        var variant = new CatalogVariant(id, catalogItemId, status, name, description, tenantId, categoryId, price);
+        variant.ReplaceAttributes(attributes ?? []);
+        return variant;
+    }
+
     internal void ReplaceAttributes(IReadOnlyList<AttributeValue> attributes)
     {
         _attributes.Clear();

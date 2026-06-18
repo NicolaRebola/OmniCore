@@ -2,6 +2,7 @@ using CatalogService.Application.Common.Exceptions;
 using CatalogService.Application.DTOs;
 using CatalogService.Application.Errors;
 using CatalogService.Application.Ports.Outbound;
+using CatalogService.Application.Tests.TestDoubles;
 using CatalogService.Application.UseCases;
 using CatalogService.Domain.Categories;
 using CatalogService.Domain.Common.Enums;
@@ -18,7 +19,7 @@ public sealed class UpdateCategoryHandlerTests
         var tenantId = Guid.NewGuid();
         var category = Category.Create(Guid.NewGuid(), "Burgers", Status.Active, tenantId);
         var repository = new FakeCategoryRepository([category]);
-        var handler = new UpdateCategoryHandler(repository);
+        var handler = new UpdateCategoryHandler(repository, NullIntegrationEventPublisher.Instance);
         var command = new UpdateCategoryCommand("Pizza", null);
 
         // Act
@@ -40,7 +41,7 @@ public sealed class UpdateCategoryHandlerTests
         var tenantId = Guid.NewGuid();
         var category = Category.Create(Guid.NewGuid(), "Burgers", Status.Active, tenantId);
         var repository = new FakeCategoryRepository([category]);
-        var handler = new UpdateCategoryHandler(repository);
+        var handler = new UpdateCategoryHandler(repository, NullIntegrationEventPublisher.Instance);
         var command = new UpdateCategoryCommand(null, "inactive");
 
         // Act
@@ -59,7 +60,7 @@ public sealed class UpdateCategoryHandlerTests
         var otherTenantId = Guid.NewGuid();
         var category = Category.Create(Guid.NewGuid(), "Burgers", Status.Active, otherTenantId);
         var repository = new FakeCategoryRepository([category]);
-        var handler = new UpdateCategoryHandler(repository);
+        var handler = new UpdateCategoryHandler(repository, NullIntegrationEventPublisher.Instance);
         var command = new UpdateCategoryCommand("Pizza", null);
 
         // Act
@@ -78,7 +79,7 @@ public sealed class UpdateCategoryHandlerTests
         var tenantId = Guid.NewGuid();
         var category = Category.Create(Guid.NewGuid(), "Burgers", Status.Active, tenantId);
         var repository = new FakeCategoryRepository([category]);
-        var handler = new UpdateCategoryHandler(repository);
+        var handler = new UpdateCategoryHandler(repository, NullIntegrationEventPublisher.Instance);
         var command = new UpdateCategoryCommand(null, "archived");
 
         // Act
@@ -96,7 +97,7 @@ public sealed class UpdateCategoryHandlerTests
         // Arrange
         var tenantId = Guid.NewGuid();
         var repository = new FakeCategoryRepository([]);
-        var handler = new UpdateCategoryHandler(repository);
+        var handler = new UpdateCategoryHandler(repository, NullIntegrationEventPublisher.Instance);
         var command = new UpdateCategoryCommand("Pizza", null);
 
         // Act

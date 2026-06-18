@@ -1,20 +1,19 @@
 using CatalogService.Application.Ports.Outbound;
-using CatalogService.Domain.CatalogItem;
 using CatalogService.Domain.Categories;
 using CatalogService.Domain.Common.Enums;
 using CatalogService.Domain.Common.Exceptions;
 using CatalogService.Domain.Errors;
 using CatalogService.Infrastructure.Dev;
 
-namespace CatalogService.Infrastructure.Repositories;
+namespace CatalogService.Infrastructure.Persistence.Providers.InMemory.Repositories;
 
 public sealed class InMemoryCategoryRepository : ICategoryRepository
 {
     private readonly List<Category> _store =
     [
-        Category.Create(Guid.NewGuid(), "Hamburguesa con Fritas", Status.Active, DevSeed.TenantId),
-        Category.Create(Guid.Parse("aaaaaaaa-0000-0000-0000-000000000001"), "Combo Familiar", Status.Active, DevSeed.TenantId),
-        Category.Create(Guid.NewGuid(), "Café Especial", Status.Active, DevSeed.TenantId),
+        Category.Create(DevSeed.HamburguesaCategoryId, "Hamburguesa con Fritas", Status.Active, DevSeed.TenantId),
+        Category.Create(DevSeed.ComboFamiliarCategoryId, "Combo Familiar", Status.Active, DevSeed.TenantId),
+        Category.Create(DevSeed.CafeEspecialCategoryId, "Café Especial", Status.Active, DevSeed.TenantId),
     ];
 
     Task<IReadOnlyList<Category>> ICategoryRepository.GetByTenantAsync(Guid tenantId, CancellationToken ct)

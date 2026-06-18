@@ -1,6 +1,7 @@
 using CatalogService.Application.DTOs;
 using CatalogService.Application.Common.Exceptions;
 using CatalogService.Application.Errors;
+using CatalogService.Application.Events;
 using CatalogService.Application.Ports.Inbound;
 using CatalogService.Application.Ports.Outbound;
 using CatalogService.Domain.CatalogItem;
@@ -16,14 +17,17 @@ public sealed class CreateCatalogItemHandler : ICreateCatalogItemUseCase
     private readonly ICatalogItemRepository _catalogItemRepository;
     private readonly ICategoryRepository _categoryRepository;
     private readonly ICatalogTemplateRepository _catalogTemplateRepository;
+    private readonly IIntegrationEventPublisher _eventPublisher;
     public CreateCatalogItemHandler(
         ICatalogItemRepository catalogItemRepository,
         ICategoryRepository categoryRepository,
-        ICatalogTemplateRepository catalogTemplateRepository)
+        ICatalogTemplateRepository catalogTemplateRepository,
+        IIntegrationEventPublisher eventPublisher)
     {
         _catalogItemRepository = catalogItemRepository;
         _categoryRepository = categoryRepository;
         _catalogTemplateRepository = catalogTemplateRepository;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<CatalogItemDto> ExecuteAsync(Guid tenantId, CreateCatalogItemCommand catalogItemCommand, CancellationToken ct)
@@ -65,6 +69,7 @@ public sealed class CreateCatalogItemHandler : ICreateCatalogItemUseCase
         );
 
         var catalogItem = await _catalogItemRepository.CreateAsync(item, ct);
+        await _eventPublisher.PublishAsync(CatalogIntegrationEventFactory.ItemCreated(catalogItem), ct);
         return CatalogItemMapping.ToDto(catalogItem);
     }
 }

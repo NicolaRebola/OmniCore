@@ -1,5 +1,6 @@
 using CatalogService.Application.DTOs;
 using CatalogService.Application.Ports.Outbound;
+using CatalogService.Application.Tests.TestDoubles;
 using CatalogService.Application.UseCases;
 using CatalogService.Domain.Categories;
 using Xunit;
@@ -14,7 +15,7 @@ public sealed class CreateCategoryHandlerTests
         // Arrange
         var tenantId = Guid.NewGuid();
         var repository = new FakeCategoryRepository();
-        var handler = new CreateCategoryHandler(repository);
+        var handler = new CreateCategoryHandler(repository, NullIntegrationEventPublisher.Instance);
         var command = new CreateCategoryCommand("Burgers");
 
         // Act
@@ -33,7 +34,7 @@ public sealed class CreateCategoryHandlerTests
         // Arrange
         var tenantId = Guid.NewGuid();
         var repository = new FakeCategoryRepository();
-        var handler = new CreateCategoryHandler(repository);
+        var handler = new CreateCategoryHandler(repository, NullIntegrationEventPublisher.Instance);
         var command = new CreateCategoryCommand("Burgers");
 
         // Act
@@ -52,7 +53,7 @@ public sealed class CreateCategoryHandlerTests
         // Arrange
         var tenantId = Guid.NewGuid();
         var repository = new FakeCategoryRepository();
-        var handler = new CreateCategoryHandler(repository);
+        var handler = new CreateCategoryHandler(repository, NullIntegrationEventPublisher.Instance);
         var command = new CreateCategoryCommand("  Burgers  ");
 
         // Act
