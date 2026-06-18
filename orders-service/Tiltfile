@@ -1,0 +1,11 @@
+# orders-service/Tiltfile
+
+include('../infra/Tiltfile')
+
+docker_compose('./docker-compose.dev.yml')  # pyright: ignore[reportUndefinedVariable]
+
+dc_resource(  # pyright: ignore[reportUndefinedVariable]
+    'orders-api',
+    resource_deps=['postgres'],
+    labels=['orders-service'],
+)
