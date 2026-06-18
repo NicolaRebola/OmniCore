@@ -1,5 +1,7 @@
 package domain
 
+import "strings"
+
 type CustomerSnapshot struct {
 	Name  string
 	Email string
@@ -7,5 +9,5 @@ type CustomerSnapshot struct {
 }
 
 func (c CustomerSnapshot) HasName() bool {
-	return c.Name != ""
+	return strings.TrimSpace(c.Name) != ""
 }
