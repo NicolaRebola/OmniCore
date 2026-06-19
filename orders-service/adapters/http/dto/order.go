@@ -105,6 +105,12 @@ type SetCommentsRequest struct {
 	Comments string `json:"comments"`
 }
 
+type ActorRequest struct {
+	ActorType string `json:"actorType"`
+	ActorID   string `json:"actorId,omitempty"`
+	Reason    string `json:"reason,omitempty"`
+}
+
 func OrderFromDomain(order *domain.Order) OrderResponse {
 	resp := OrderResponse{
 		ID:              order.ID,
@@ -204,4 +210,26 @@ func ParseFulfillmentType(value string) (domain.FulfillmentType, error) {
 	default:
 		return "", httperrors.ErrInvalidFulfillmentType
 	}
+}
+
+func ParseActorType(value string) (domain.ActorType, error) {
+	switch domain.ActorType(value) {
+	case domain.ActorBuyer, domain.ActorStaff, domain.ActorAdmin:
+		return domain.ActorType(value), nil
+	default:
+		return "", httperrors.ErrInvalidActorType
+	}
+}
+
+func ActorFromRequest(req ActorRequest) (domain.Actor, error) {
+	actorType, err := ParseActorType(req.ActorType)
+	if err != nil {
+		return domain.Actor{}, err
+	}
+
+	return domain.Actor{
+		Type:   actorType,
+		ID:     req.ActorID,
+		Reason: req.Reason,
+	}, nil
 }

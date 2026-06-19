@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -26,6 +27,10 @@ type OrderHandlers struct {
 	setAddress        inboundports.SetAddress
 	setFulfillment    inboundports.SetFulfillmentType
 	setComments       inboundports.SetComments
+	accept            inboundports.AcceptOrder
+	start             inboundports.StartOrder
+	complete          inboundports.CompleteOrder
+	cancel            inboundports.CancelOrder
 	idempotency       idempotency.ReplayStore
 }
 
@@ -38,6 +43,10 @@ func NewOrderHandlers(
 	setAddress inboundports.SetAddress,
 	setFulfillment inboundports.SetFulfillmentType,
 	setComments inboundports.SetComments,
+	accept inboundports.AcceptOrder,
+	start inboundports.StartOrder,
+	complete inboundports.CompleteOrder,
+	cancel inboundports.CancelOrder,
 	idempotencyStore idempotency.ReplayStore,
 ) *OrderHandlers {
 	return &OrderHandlers{
@@ -49,6 +58,10 @@ func NewOrderHandlers(
 		setAddress:     setAddress,
 		setFulfillment: setFulfillment,
 		setComments:    setComments,
+		accept:         accept,
+		start:          start,
+		complete:       complete,
+		cancel:         cancel,
 		idempotency:    idempotencyStore,
 	}
 }
@@ -304,6 +317,58 @@ func (h *OrderHandlers) SetComments(w http.ResponseWriter, r *http.Request) {
 		TenantID: tenantID,
 		OrderID:  orderID,
 		Comments: req.Comments,
+	})
+	if err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	writeOrder(w, http.StatusOK, result.Order)
+}
+
+func (h *OrderHandlers) Accept(w http.ResponseWriter, r *http.Request) {
+	h.handleLifecycleTransition(w, r, h.accept.Execute)
+}
+
+func (h *OrderHandlers) Start(w http.ResponseWriter, r *http.Request) {
+	h.handleLifecycleTransition(w, r, h.start.Execute)
+}
+
+func (h *OrderHandlers) Complete(w http.ResponseWriter, r *http.Request) {
+	h.handleLifecycleTransition(w, r, h.complete.Execute)
+}
+
+func (h *OrderHandlers) Cancel(w http.ResponseWriter, r *http.Request) {
+	h.handleLifecycleTransition(w, r, h.cancel.Execute)
+}
+
+type lifecycleExecutor func(context.Context, inboundports.LifecycleTransitionCommand) (inboundports.OrderMutationResult, error)
+
+func (h *OrderHandlers) handleLifecycleTransition(
+	w http.ResponseWriter,
+	r *http.Request,
+	execute lifecycleExecutor,
+) {
+	tenantID, orderID, ok := h.tenantAndOrderID(w, r)
+	if !ok {
+		return
+	}
+
+	var req dto.ActorRequest
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+
+	actor, err := dto.ActorFromRequest(req)
+	if err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	result, err := execute(r.Context(), inboundports.LifecycleTransitionCommand{
+		TenantID: tenantID,
+		OrderID:  orderID,
+		Actor:    actor,
 	})
 	if err != nil {
 		errors.WriteError(w, r, err)
