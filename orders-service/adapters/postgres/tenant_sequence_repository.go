@@ -30,7 +30,7 @@ func (r *TenantSequenceRepository) NextOrderNumber(ctx context.Context, tenantID
 	`
 
 	var next int64
-	if err := r.pool.QueryRow(ctx, sql, tenantID).Scan(&next); err != nil {
+	if err := connFromContext(ctx, r.pool).QueryRow(ctx, sql, tenantID).Scan(&next); err != nil {
 		return 0, fmt.Errorf("next order number: %w", err)
 	}
 	return next, nil

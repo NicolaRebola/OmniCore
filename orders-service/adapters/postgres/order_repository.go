@@ -48,9 +48,8 @@ func (r *OrderRepository) GetByID(ctx context.Context, tenantID, orderID uuid.UU
 }
 
 func (r *OrderRepository) Save(ctx context.Context, order *domain.Order) error {
-	params, err := orderToPersistParams(order)
-	if err != nil {
-		return err
+	if _, inTx := TxFromContext(ctx); inTx {
+		return r.save(ctx, connFromContext(ctx, r.pool), order)
 	}
 
 	tx, err := r.pool.Begin(ctx)
@@ -58,6 +57,18 @@ func (r *OrderRepository) Save(ctx context.Context, order *domain.Order) error {
 		return fmt.Errorf("begin tx: %w", err)
 	}
 	defer tx.Rollback(ctx)
+
+	if err := r.save(ctx, tx, order); err != nil {
+		return err
+	}
+	return tx.Commit(ctx)
+}
+
+func (r *OrderRepository) save(ctx context.Context, conn dbConn, order *domain.Order) error {
+	params, err := orderToPersistParams(order)
+	if err != nil {
+		return err
+	}
 
 	const upsertOrderSQL = `
 		INSERT INTO orders (
@@ -81,7 +92,7 @@ func (r *OrderRepository) Save(ctx context.Context, order *domain.Order) error {
 			updated_at = EXCLUDED.updated_at
 	`
 
-	_, err = tx.Exec(ctx, upsertOrderSQL,
+	_, err = conn.Exec(ctx, upsertOrderSQL,
 		params.ID,
 		params.TenantID,
 		params.OrderNumber,
@@ -99,7 +110,7 @@ func (r *OrderRepository) Save(ctx context.Context, order *domain.Order) error {
 		return fmt.Errorf("upsert order: %w", err)
 	}
 
-	if _, err := tx.Exec(ctx,
+	if _, err := conn.Exec(ctx,
 		`DELETE FROM order_lines WHERE order_id = $1 AND tenant_id = $2`,
 		order.ID, order.TenantID,
 	); err != nil {
@@ -123,7 +134,7 @@ func (r *OrderRepository) Save(ctx context.Context, order *domain.Order) error {
 			return fmt.Errorf("line %s line total: %w", line.ID, err)
 		}
 
-		_, err = tx.Exec(ctx, insertLineSQL,
+		_, err = conn.Exec(ctx, insertLineSQL,
 			line.ID,
 			order.ID,
 			order.TenantID,
@@ -140,7 +151,7 @@ func (r *OrderRepository) Save(ctx context.Context, order *domain.Order) error {
 	}
 
 	// MVP: reemplazo completo del timeline (el dominio no tiene ID de transition).
-	if _, err := tx.Exec(ctx,
+	if _, err := conn.Exec(ctx,
 		`DELETE FROM order_transitions WHERE order_id = $1 AND tenant_id = $2`,
 		order.ID, order.TenantID,
 	); err != nil {
@@ -155,7 +166,7 @@ func (r *OrderRepository) Save(ctx context.Context, order *domain.Order) error {
 	`
 
 	for _, tr := range order.Transitions() {
-		_, err := tx.Exec(ctx, insertTransitionSQL,
+		_, err := conn.Exec(ctx, insertTransitionSQL,
 			order.ID,
 			order.TenantID,
 			string(tr.FromStatus),
@@ -170,9 +181,6 @@ func (r *OrderRepository) Save(ctx context.Context, order *domain.Order) error {
 		}
 	}
 
-	if err := tx.Commit(ctx); err != nil {
-		return fmt.Errorf("commit tx: %w", err)
-	}
 	return nil
 }
 
