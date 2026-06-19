@@ -7,21 +7,27 @@ import (
 )
 
 type Config struct {
-    Port            string
-    DatabaseURL     string
-    CatalogBaseURL  string
-    LogLevel        string
-    ShutdownTimeout int // segundos, ej. 10
+	Port            string
+	DatabaseURL     string
+	CatalogBaseURL  string
+	LogLevel        string
+	ShutdownTimeout int // segundos, ej. 10
+	GoEnv           string
 }
 
 func LoadConfig() Config {
-    return Config{
-        Port:            envOr("PORT", "8081"),
-        DatabaseURL:     os.Getenv("DATABASE_URL"),
-        CatalogBaseURL:  envOr("CATALOG_BASE_URL", "http://localhost:5080"),
-        LogLevel:        envOr("LOG_LEVEL", "info"),
-        ShutdownTimeout: envIntOr("SHUTDOWN_TIMEOUT_SEC", 10),
-    }
+	return Config{
+		Port:            envOr("PORT", "8081"),
+		DatabaseURL:     os.Getenv("DATABASE_URL"),
+		CatalogBaseURL:  envOr("CATALOG_BASE_URL", "http://localhost:5080"),
+		LogLevel:        envOr("LOG_LEVEL", "info"),
+		ShutdownTimeout: envIntOr("SHUTDOWN_TIMEOUT_SEC", 10),
+		GoEnv:           envOr("GO_ENV", "production"),
+	}
+}
+
+func (c Config) IsDevelopment() bool {
+	return c.GoEnv == "development"
 }
 
 func envOr(key, fallback string) string {

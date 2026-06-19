@@ -18,6 +18,7 @@ var AppModule = fx.Options(
 		ProvidePostgresConfig,
 		ProvideCatalogConfig,
 		ProvideSystemClock,
+		ProvideSwaggerConfig,
 	),
 	postgresadapter.Module,
 	catalogadapter.Module,
@@ -36,4 +37,8 @@ func ProvideCatalogConfig(cfg Config) catalogadapter.Config {
 
 func ProvideSystemClock() outboundports.Clock {
 	return outboundports.SystemClock{}
+}
+
+func ProvideSwaggerConfig(cfg Config) httpadapter.SwaggerConfig {
+	return httpadapter.SwaggerConfig{Enabled: cfg.IsDevelopment()}
 }

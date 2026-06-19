@@ -10,6 +10,7 @@ services:
     environment:
       PORT: "8081"
       LOG_LEVEL: debug
+      GO_ENV: development
       DATABASE_URL: postgres://omnicore:omnicore@postgres:5432/orders?sslmode=disable
       CATALOG_BASE_URL: http://catalog-api:8080
     healthcheck:
