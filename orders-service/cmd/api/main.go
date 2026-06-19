@@ -25,7 +25,7 @@ func main() {
 	pool := connectDB(cfg, logger)
 	defer pool.Close()
 
-	srv := newServer(cfg, logger)
+	srv := newServer(cfg, logger, pool)
 
 	go startServer(srv, logger)
 
@@ -57,10 +57,10 @@ func connectDB(cfg Config, logger *slog.Logger) *pgxpool.Pool {
 	return pool
 }
 
-func newServer(cfg Config, logger *slog.Logger) *http.Server {
+func newServer(cfg Config, logger *slog.Logger, pool *pgxpool.Pool) *http.Server {
 	return &http.Server{
 		Addr:         ":" + cfg.Port,
-		Handler:      httpadapter.NewRouter(logger),
+		Handler:      httpadapter.NewRouter(logger, pool),
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
