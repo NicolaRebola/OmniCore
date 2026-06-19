@@ -144,9 +144,16 @@ Base path: `/api/v1/orders` · Required header: `X-Tenant-Id` · `Idempotency-Ke
 
 Manual smoke tests: LiteClient collection **Orders** (`.liteclient/collections.json`) or [docs/testing.md](./docs/testing.md).
 
+### Order queries (ORD-SPEC-009)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/orders/{id}` | Get order by ID (full aggregate) |
+| `GET` | `/orders` | List orders (paginated; optional `status` filter) |
+
 ### Planned (MVP 1)
 
-Place, lifecycle transitions (Accept/Start/Complete/Cancel), CreateAndPlace, GetById, ListOrders — see [Phase 2 API surface](https://app.notion.com/p/383bd6def30d81a7a6b2cb820b06d3c5) and specs ORD-SPEC-007–010.
+OpenAPI + full problem+json catalog — see [Phase 2 API surface](https://app.notion.com/p/383bd6def30d81a7a6b2cb820b06d3c5) and ORD-SPEC-010.
 
 ## Persistence
 
