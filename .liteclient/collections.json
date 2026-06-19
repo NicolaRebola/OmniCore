@@ -528,6 +528,93 @@
             "name": "Set Comments"
           }
         ]
+      },
+      {
+        "id": "mpqa-orders-lifecycle-folder",
+        "name": "Lifecycle Transitions",
+        "type": "folder",
+        "items": [
+          {
+            "method": "POST",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/accept",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"actorType\": \"staff\",\n  \"actorId\": \"staff-001\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-accept",
+            "name": "Accept Order"
+          },
+          {
+            "method": "POST",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/start",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"actorType\": \"staff\",\n  \"actorId\": \"staff-001\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-start",
+            "name": "Start Order"
+          },
+          {
+            "method": "POST",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/complete",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"actorType\": \"staff\",\n  \"actorId\": \"staff-001\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-complete",
+            "name": "Complete Order"
+          },
+          {
+            "method": "POST",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/cancel",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"actorType\": \"staff\",\n  \"actorId\": \"staff-001\",\n  \"reason\": \"customer request\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-cancel",
+            "name": "Cancel Order"
+          }
+        ]
       }
     ]
   }
