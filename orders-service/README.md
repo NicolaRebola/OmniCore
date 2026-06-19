@@ -6,7 +6,7 @@ Part of the [OmniCore](../README.md) portfolio. Stack: **Go 1.22+**, hexagonal a
 
 ## Status
 
-**Sprint 2 done — ORD-SPEC-001 through ORD-SPEC-004.** HTTP scaffold, domain aggregate, PostgreSQL schema, repository adapters, `/ready` DB ping, and integration tests. Next: [ORD-SPEC-005](https://app.notion.com/p/383bd6def30d81f69f3bd5aa858a7438) (Place + Catalog client).
+**Sprint 3 — ORD-SPEC-001 through ORD-SPEC-005 done.** Domain aggregate, PostgreSQL repositories, Place use case, Catalog HTTP client, transactional `orderNumber`, fx DI, and integration tests. Next: [ORD-SPEC-006](https://app.notion.com/p/383bd6def30d813b8098fe1a62a78bf8) (Draft mutations REST API).
 
 ## Documentation
 
@@ -21,20 +21,24 @@ Part of the [OmniCore](../README.md) portfolio. Stack: **Go 1.22+**, hexagonal a
 - [ORD-SPEC-003 — Implementation notes](./docs/specs/ORD-SPEC-003-persistence-migrations.md)
 - [ORD-SPEC-004 — PostgreSQL Repositories](https://app.notion.com/p/383bd6def30d81cea233d4acca849068)
 - [ORD-SPEC-004 — Implementation notes](./docs/specs/ORD-SPEC-004-postgres-repositories.md)
+- [ORD-SPEC-005 — Place + Catalog Client](https://app.notion.com/p/383bd6def30d81f69f3bd5aa858a7438)
+- [ORD-SPEC-005 — Implementation notes](./docs/specs/ORD-SPEC-005-place-catalog-client.md)
 
 ## Project Structure
 
 ```
 orders-service/
-├── cmd/api/                    # Composition root (config, wiring, main)
+├── cmd/api/                    # Composition root (fx AppModule, config, lifecycle)
 ├── internal/
 │   ├── domain/                 # Order aggregate + unit tests (ORD-SPEC-002)
 │   └── application/
 │       ├── ports/              # Inbound/outbound interfaces
-│       └── usecases/           # Use case handlers
+│       └── usecases/           # PlaceOrder + future handlers (ORD-SPEC-005+)
 ├── adapters/
 │   ├── http/                   # chi router, handlers, middleware
-│   └── postgres/               # pgx repositories + mappers (ORD-SPEC-004)
+│   ├── postgres/               # pgx repositories + tx (ORD-SPEC-004, 005)
+│   ├── catalog/                # Catalog projection client (ORD-SPEC-005)
+│   └── events/                 # Logging event publisher (ORD-SPEC-005)
 ├── migrations/                 # goose SQL (ORD-SPEC-003)
 ├── Dockerfile
 ├── docker-compose.dev.yml
@@ -69,7 +73,7 @@ Build and test:
 
 ```bash
 go build ./...
-go test ./internal/domain/... -v
+go test ./... -count=1
 go test -tags=integration ./adapters/postgres/... -v   # requires DATABASE_URL + Postgres
 ```
 
