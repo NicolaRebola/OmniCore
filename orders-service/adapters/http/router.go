@@ -11,12 +11,14 @@ import (
 	httpmw "orders-service/adapters/http/middleware"
 )
 
-func NewRouter(logger *slog.Logger, pool *pgxpool.Pool, orderHandlers *handlers.OrderHandlers) chi.Router {
+func NewRouter(logger *slog.Logger, pool *pgxpool.Pool, orderHandlers *handlers.OrderHandlers, swagger SwaggerConfig) chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(chimw.RequestID)
 	r.Use(chimw.Recoverer)
 	r.Use(httpmw.RequestLogger(logger))
+
+	MountSwaggerIfEnabled(r, swagger)
 
 	r.Get("/health", HealthHandler)
 	r.Get("/ready", ReadyHandler(pool))

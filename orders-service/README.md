@@ -6,7 +6,7 @@ Part of the [OmniCore](../README.md) portfolio. Stack: **Go 1.22+**, hexagonal a
 
 ## Status
 
-**Sprint 3 — ORD-SPEC-001 through ORD-SPEC-006 done.** Domain aggregate, PostgreSQL repositories, Place use case, Catalog HTTP client, draft mutations REST API, and integration tests. Next: [ORD-SPEC-007](https://app.notion.com/p/383bd6def30d8122b259f01e7a41410a) (Lifecycle transitions REST API).
+**Sprint 5 — ORD-SPEC-001 through ORD-SPEC-010 done.** Full MVP REST surface: draft mutations, Place/CreateAndPlace with idempotency, lifecycle transitions, order queries, and OpenAPI contract.
 
 ## Documentation
 
@@ -25,6 +25,10 @@ Part of the [OmniCore](../README.md) portfolio. Stack: **Go 1.22+**, hexagonal a
 - [ORD-SPEC-005 — Implementation notes](./docs/specs/ORD-SPEC-005-place-catalog-client.md)
 - [ORD-SPEC-006 — Draft Mutations REST API](https://app.notion.com/p/383bd6def30d813b8098fe1a62a78bf8)
 - [ORD-SPEC-006 — Implementation notes](./docs/specs/ORD-SPEC-006-draft-mutations-rest-api.md)
+- [ORD-SPEC-009 — Order Queries REST API](./docs/specs/ORD-SPEC-009-order-queries-rest-api.md)
+- [ORD-SPEC-010 — REST API Contract / OpenAPI](https://app.notion.com/p/383bd6def30d8131a421fb139a2d06b2)
+- [ORD-SPEC-010 — Implementation notes](./docs/specs/ORD-SPEC-010-rest-api-contract-openapi.md)
+- [OpenAPI contract](./docs/openapi.yaml)
 - [Testing guide](./docs/testing.md)
 
 ## Project Structure
@@ -60,7 +64,7 @@ orders-service/
 
 ```bash
 cd orders-service
-go run ./cmd/api
+GO_ENV=development go run ./cmd/api
 ```
 
 The API listens on `http://localhost:8081` by default.
@@ -109,6 +113,7 @@ docker compose -f docker-compose.dev.yml up
 | `LOG_LEVEL` | `info` | slog level (`debug`, `info`, `warn`, `error`) |
 | `DATABASE_URL` | — | PostgreSQL connection string (`orders` DB; see [persistence.md](./docs/persistence.md)) |
 | `CATALOG_BASE_URL` | `http://localhost:5080` | Catalog service base URL (Place, ORD-SPEC-005) |
+| `GO_ENV` | `production` | App environment; `development` enables Swagger UI |
 | `SHUTDOWN_TIMEOUT_SEC` | `10` | Graceful shutdown timeout in seconds |
 
 **Host vs container:**
@@ -151,9 +156,23 @@ Manual smoke tests: LiteClient collection **Orders** (`.liteclient/collections.j
 | `GET` | `/orders/{id}` | Get order by ID (full aggregate) |
 | `GET` | `/orders` | List orders (paginated; optional `status` filter) |
 
+### Contract (ORD-SPEC-010)
+
+Full OpenAPI 3 spec: [`docs/openapi.yaml`](./docs/openapi.yaml). Errors use `application/problem+json` with `errorCode` (`ORD-API-*`, `ORD-APP-*`, `ORD-DOM-*`), `layer`, and `traceId`.
+
+**Swagger / OpenAPI** (Development only — set `GO_ENV=development`):
+
+```
+GET http://localhost:8081/swagger
+GET http://localhost:8081/swagger/v1/swagger.json
+GET http://localhost:8081/swagger/v1/openapi.yaml
+```
+
+Tilt / Docker Compose dev already set `GO_ENV=development`.
+
 ### Planned (MVP 1)
 
-OpenAPI + full problem+json catalog — see [Phase 2 API surface](https://app.notion.com/p/383bd6def30d81a7a6b2cb820b06d3c5) and ORD-SPEC-010.
+Integration events publisher — see [ORD-SPEC-011](https://app.notion.com/p/383bd6def30d81a985cccaaaf4ecd69b).
 
 ## Persistence
 

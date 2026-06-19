@@ -22,10 +22,10 @@ Planning and technical design for the Order Service live in Notion.
 | [ORD-SPEC-004 - PostgreSQL Repositories](https://app.notion.com/p/383bd6def30d81cea233d4acca849068) | 2 | Done |
 | [ORD-SPEC-005 - Place + Catalog Client](https://app.notion.com/p/383bd6def30d81f69f3bd5aa858a7438) | 3 | Done |
 | [ORD-SPEC-006 - Draft Mutations API](https://app.notion.com/p/383bd6def30d813b8098fe1a62a78bf8) | 3 | Done |
-| [ORD-SPEC-007 - Lifecycle Transitions API](https://app.notion.com/p/383bd6def30d8122b259f01e7a41410a) | 4 | Backlog |
+| [ORD-SPEC-007 - Lifecycle Transitions API](https://app.notion.com/p/383bd6def30d8122b259f01e7a41410a) | 4 | Done |
 | [ORD-SPEC-008 - CreateAndPlace + Idempotency](https://app.notion.com/p/383bd6def30d81979498ff0c3b30f741) | 4 | Done |
 | [ORD-SPEC-009 - Order Queries API](https://app.notion.com/p/383bd6def30d8160ae3ac6e58694ce18) | 5 | Done |
-| [ORD-SPEC-010 - REST Contract / OpenAPI](https://app.notion.com/p/383bd6def30d8131a421fb139a2d06b2) | 5 | Backlog |
+| [ORD-SPEC-010 - REST Contract / OpenAPI](https://app.notion.com/p/383bd6def30d8131a421fb139a2d06b2) | 5 | Done |
 | [ORD-SPEC-011 - Integration Events MVP](https://app.notion.com/p/383bd6def30d81a985cccaaaf4ecd69b) | 5 | Backlog |
 
 ## Implemented Specs (repo)
@@ -38,6 +38,10 @@ Planning and technical design for the Order Service live in Notion.
 | ORD-SPEC-004 | [PostgreSQL Repositories](./specs/ORD-SPEC-004-postgres-repositories.md) · [persistence.md](./persistence.md) |
 | ORD-SPEC-005 | [Place + Catalog Client](./specs/ORD-SPEC-005-place-catalog-client.md) |
 | ORD-SPEC-006 | [Draft Mutations REST API](./specs/ORD-SPEC-006-draft-mutations-rest-api.md) · [testing.md](./testing.md) |
+| ORD-SPEC-007 | [Lifecycle Transitions REST API](./specs/ORD-SPEC-007-lifecycle-transitions-rest-api.md) |
+| ORD-SPEC-008 | [Place, CreateAndPlace and Idempotency](./specs/ORD-SPEC-008-place-create-and-place-idempotency.md) |
+| ORD-SPEC-009 | [Order Queries REST API](./specs/ORD-SPEC-009-order-queries-rest-api.md) |
+| ORD-SPEC-010 | [REST API Contract / OpenAPI](./specs/ORD-SPEC-010-rest-api-contract-openapi.md) · [openapi.yaml](./openapi.yaml) |
 
 ## Cross-Service Dependencies
 

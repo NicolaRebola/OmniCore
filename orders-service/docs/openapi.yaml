@@ -1,0 +1,1057 @@
+openapi: 3.0.3
+info:
+  title: OmniCore Order Service API
+  description: |
+    REST API for sales order lifecycle: draft composition, transactional Place,
+    operational transitions, and queries.
+
+    All routes under `/api/v1` require the `X-Tenant-Id` header (UUID).
+
+    Idempotency (`Idempotency-Key` header) is required on Create, Place, and CreateAndPlace.
+
+    Errors use [RFC 7807](https://datatracker.ietf.org/doc/html/rfc7807) Problem Details
+    (`application/problem+json`) with OmniCore extensions `errorCode`, `layer`, and `traceId`.
+  version: 1.0.0
+  contact:
+    name: OmniCore
+  license:
+    name: Proprietary
+
+servers:
+  - url: http://localhost:8081
+    description: Local development (host)
+  - url: http://orders-api:8081
+    description: Docker / Tilt
+
+tags:
+  - name: Health
+    description: Liveness and readiness probes (no tenant header)
+  - name: Orders
+    description: Order aggregate operations
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Liveness probe
+      operationId: getHealth
+      responses:
+        "200":
+          description: Service is alive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+              example:
+                status: ok
+
+  /ready:
+    get:
+      tags: [Health]
+      summary: Readiness probe
+      operationId: getReady
+      responses:
+        "200":
+          description: Service is ready (PostgreSQL reachable)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadyResponse"
+              example:
+                status: ready
+        "503":
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadyResponse"
+              example:
+                status: not_ready
+
+  /api/v1/orders:
+    get:
+      tags: [Orders]
+      summary: List orders
+      description: Paginated list ordered by `createdAt` descending. Optional status filter.
+      operationId: listOrders
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/OrderStatus"
+      responses:
+        "200":
+          description: Paginated order list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ListOrdersResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+    post:
+      tags: [Orders]
+      summary: Create draft order
+      operationId: createOrder
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateOrderRequest"
+      responses:
+        "201":
+          description: Draft order created (or idempotent replay)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/orders/create-and-place:
+    post:
+      tags: [Orders]
+      summary: Create and place order (POS flow)
+      description: Atomic Create + lines + customer + Place in a single transaction.
+      operationId: createAndPlace
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAndPlaceRequest"
+      responses:
+        "201":
+          description: Placed order created (or idempotent replay)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/orders/{id}:
+    get:
+      tags: [Orders]
+      summary: Get order by ID
+      operationId: getOrderById
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/OrderId"
+      responses:
+        "200":
+          description: Full order aggregate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/orders/{id}/place:
+    post:
+      tags: [Orders]
+      summary: Place order
+      description: Transitions Draft → Placed with catalog validation and transactional snapshot.
+      operationId: placeOrder
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/OrderId"
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActorRequest"
+      responses:
+        "200":
+          description: Order placed (or idempotent replay)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/orders/{id}/lines:
+    post:
+      tags: [Orders]
+      summary: Add line
+      description: Draft only.
+      operationId: addLine
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddLineRequest"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/orders/{id}/lines/{lineId}:
+    patch:
+      tags: [Orders]
+      summary: Update line quantity
+      description: Draft only.
+      operationId: updateLineQuantity
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/OrderId"
+        - $ref: "#/components/parameters/LineId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateLineQuantityRequest"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+    delete:
+      tags: [Orders]
+      summary: Remove line
+      description: Draft only.
+      operationId: removeLine
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/OrderId"
+        - $ref: "#/components/parameters/LineId"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/orders/{id}/customer:
+    put:
+      tags: [Orders]
+      summary: Set customer snapshot
+      description: Draft only.
+      operationId: setCustomer
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerRequest"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/orders/{id}/address:
+    put:
+      tags: [Orders]
+      summary: Set delivery address
+      description: Draft only.
+      operationId: setAddress
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddressRequest"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/orders/{id}/fulfillment:
+    put:
+      tags: [Orders]
+      summary: Set fulfillment type
+      description: Draft only.
+      operationId: setFulfillment
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetFulfillmentRequest"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/orders/{id}/comments:
+    put:
+      tags: [Orders]
+      summary: Set order comments
+      description: Draft only. Max 500 characters.
+      operationId: setComments
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetCommentsRequest"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/orders/{id}/accept:
+    post:
+      tags: [Orders]
+      summary: Accept order
+      description: Placed → Accepted
+      operationId: acceptOrder
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActorRequest"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/orders/{id}/start:
+    post:
+      tags: [Orders]
+      summary: Start order
+      description: Accepted → InProgress
+      operationId: startOrder
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActorRequest"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/orders/{id}/complete:
+    post:
+      tags: [Orders]
+      summary: Complete order
+      description: InProgress → Completed
+      operationId: completeOrder
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActorRequest"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /api/v1/orders/{id}/cancel:
+    post:
+      tags: [Orders]
+      summary: Cancel order
+      description: |
+        Cancel from any non-terminal status. `reason` is required when status is not Draft.
+      operationId: cancelOrder
+      parameters:
+        - $ref: "#/components/parameters/XTenantId"
+        - $ref: "#/components/parameters/OrderId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ActorRequest"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/UnprocessableEntity"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+components:
+  parameters:
+    XTenantId:
+      name: X-Tenant-Id
+      in: header
+      required: true
+      description: Tenant UUID. Required on all `/api/v1/*` routes.
+      schema:
+        type: string
+        format: uuid
+      example: aaaaaaaa-0000-0000-0000-000000000001
+
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Client-generated idempotency key. Same key + same payload replays the stored response.
+      schema:
+        type: string
+        minLength: 1
+
+    OrderId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+    LineId:
+      name: lineId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    BadRequest:
+      description: Invalid request (API or application validation)
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          examples:
+            missingTenant:
+              summary: Missing tenant header
+              value:
+                type: https://docs.omnicore.local/problems/orders/application/ord-app-002
+                title: tenant id is required
+                status: 400
+                detail: tenant id is required
+                instance: /api/v1/orders
+                errorCode: ORD-APP-002
+                layer: Application
+            invalidJson:
+              summary: Invalid JSON body
+              value:
+                type: https://docs.omnicore.local/problems/orders/application/ord-api-002
+                title: request body is invalid json
+                status: 400
+                detail: request body is invalid json
+                errorCode: ORD-API-002
+                layer: Application
+
+    NotFound:
+      description: Resource not found (includes cross-tenant access)
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: https://docs.omnicore.local/problems/orders/application/ord-app-001
+            title: order not found
+            status: 404
+            detail: order not found
+            errorCode: ORD-APP-001
+            layer: Application
+
+    Conflict:
+      description: Idempotency key reused with a different payload
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: https://docs.omnicore.local/problems/orders/application/ord-app-006
+            title: idempotency key reused with different payload
+            status: 409
+            detail: idempotency key reused with different payload
+            errorCode: ORD-APP-006
+            layer: Application
+
+    UnprocessableEntity:
+      description: Domain rule violation
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          examples:
+            notInDraft:
+              summary: Mutation outside Draft
+              value:
+                type: https://docs.omnicore.local/problems/orders/domain/ord-dom-002
+                title: order content can only be modified in Draft status
+                status: 422
+                detail: order content can only be modified in Draft status
+                errorCode: ORD-DOM-002
+                layer: Domain
+            invalidTransition:
+              summary: Invalid lifecycle transition
+              value:
+                type: https://docs.omnicore.local/problems/orders/domain/ord-dom-001
+                title: invalid order status transition
+                status: 422
+                detail: invalid order status transition
+                errorCode: ORD-DOM-001
+                layer: Domain
+
+    ServiceUnavailable:
+      description: Upstream dependency unavailable
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: https://docs.omnicore.local/problems/orders/application/ord-app-004
+            title: catalog service unavailable
+            status: 503
+            detail: catalog service unavailable
+            errorCode: ORD-APP-004
+            layer: Application
+
+    InternalError:
+      description: Unexpected server error
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: https://docs.omnicore.local/problems/orders/api/unexpected
+            title: Unexpected error
+            status: 500
+            detail: internal failure
+            errorCode: ORD-API-001
+            layer: Api
+
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+
+    ReadyResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ready, not_ready]
+
+    ProblemDetails:
+      type: object
+      description: |
+        RFC 7807 Problem Details with OmniCore extensions.
+
+        Error code catalog:
+        - **ORD-API-001** — unexpected error (500)
+        - **ORD-API-002** — invalid JSON (400)
+        - **ORD-API-003** — invalid order id (400)
+        - **ORD-API-004** — invalid line id (400)
+        - **ORD-API-005** — invalid variant id (400)
+        - **ORD-API-006** — invalid source (400)
+        - **ORD-API-007** — invalid fulfillment type (400)
+        - **ORD-API-008** — invalid actor type (400)
+        - **ORD-API-009** — invalid pagination (400)
+        - **ORD-API-010** — invalid status filter (400)
+        - **ORD-APP-001** — order not found (404)
+        - **ORD-APP-002** — tenant id required (400)
+        - **ORD-APP-003** — line not found (404)
+        - **ORD-APP-004** — catalog unavailable (503)
+        - **ORD-APP-005** — idempotency key required (400)
+        - **ORD-APP-006** — idempotency conflict (409)
+        - **ORD-DOM-001** — invalid transition (422)
+        - **ORD-DOM-002** — mutation not in Draft (422)
+        - **ORD-DOM-003** — invalid quantity (400)
+        - **ORD-DOM-004** — place without lines (422)
+        - **ORD-DOM-005** — place without customer (422)
+        - **ORD-DOM-006** — delivery without address (422)
+        - **ORD-DOM-007** — cancel reason required (422)
+        - **ORD-DOM-008** — invalid variant at place (422)
+      required: [type, title, status, detail, errorCode, layer]
+      properties:
+        type:
+          type: string
+          format: uri
+          example: https://docs.omnicore.local/problems/orders/domain/ord-dom-002
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          description: Request path
+        errorCode:
+          type: string
+          pattern: ^ORD-(API|APP|DOM)-[0-9]{3}$
+          example: ORD-DOM-002
+        layer:
+          type: string
+          enum: [Api, Application, Domain]
+        traceId:
+          type: string
+          description: Request correlation id (chi RequestID middleware)
+
+    OrderStatus:
+      type: string
+      enum: [Draft, Placed, Accepted, InProgress, Completed, Cancelled]
+
+    OrderSource:
+      type: string
+      enum: [POS, QR_MENU, WEB, BACKOFFICE]
+
+    FulfillmentType:
+      type: string
+      enum: [DINE_IN, TAKEAWAY, DELIVERY]
+
+    ActorType:
+      type: string
+      enum: [buyer, staff, admin]
+
+    Money:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount:
+          type: integer
+          format: int64
+          description: Amount in minor units (e.g. cents)
+        currency:
+          type: string
+          example: ARS
+
+    Customer:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+
+    Address:
+      type: object
+      required: [street, number, city]
+      properties:
+        street:
+          type: string
+        number:
+          type: string
+        apartment:
+          type: string
+        city:
+          type: string
+        references:
+          type: string
+
+    OrderLine:
+      type: object
+      required: [id, variantId, quantity]
+      properties:
+        id:
+          type: string
+          format: uuid
+        variantId:
+          type: string
+          format: uuid
+        catalogItemId:
+          type: string
+          format: uuid
+          description: Set after Place
+        name:
+          type: string
+          description: Frozen at Place
+        unitPrice:
+          $ref: "#/components/schemas/Money"
+        quantity:
+          type: integer
+          minimum: 1
+        lineTotal:
+          $ref: "#/components/schemas/Money"
+
+    Transition:
+      type: object
+      required: [fromStatus, toStatus, occurredAt, actorType]
+      properties:
+        fromStatus:
+          $ref: "#/components/schemas/OrderStatus"
+        toStatus:
+          $ref: "#/components/schemas/OrderStatus"
+        occurredAt:
+          type: string
+          format: date-time
+        actorType:
+          $ref: "#/components/schemas/ActorType"
+        actorId:
+          type: string
+        reason:
+          type: string
+
+    Totals:
+      type: object
+      required: [subtotal, total]
+      properties:
+        subtotal:
+          $ref: "#/components/schemas/Money"
+        total:
+          $ref: "#/components/schemas/Money"
+
+    OrderResponse:
+      type: object
+      required:
+        - id
+        - tenantId
+        - status
+        - source
+        - fulfillmentType
+        - comments
+        - lines
+        - transitions
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        orderNumber:
+          type: integer
+          format: int64
+          description: Assigned at Place
+        status:
+          $ref: "#/components/schemas/OrderStatus"
+        source:
+          $ref: "#/components/schemas/OrderSource"
+        fulfillmentType:
+          $ref: "#/components/schemas/FulfillmentType"
+        customer:
+          $ref: "#/components/schemas/Customer"
+        address:
+          $ref: "#/components/schemas/Address"
+        comments:
+          type: string
+          maxLength: 500
+        totals:
+          $ref: "#/components/schemas/Totals"
+        lines:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderLine"
+        transitions:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transition"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ListOrdersResponse:
+      type: object
+      required: [items, page, pageSize, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderResponse"
+        page:
+          type: integer
+          minimum: 1
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 100
+        total:
+          type: integer
+          minimum: 0
+
+    CreateOrderRequest:
+      type: object
+      required: [source, fulfillmentType]
+      properties:
+        source:
+          $ref: "#/components/schemas/OrderSource"
+        fulfillmentType:
+          $ref: "#/components/schemas/FulfillmentType"
+
+    CreateAndPlaceLineRequest:
+      type: object
+      required: [variantId, quantity]
+      properties:
+        variantId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+
+    CreateAndPlaceRequest:
+      type: object
+      required: [source, fulfillmentType, customer, lines, actorType]
+      properties:
+        source:
+          $ref: "#/components/schemas/OrderSource"
+        fulfillmentType:
+          $ref: "#/components/schemas/FulfillmentType"
+        customer:
+          $ref: "#/components/schemas/Customer"
+        address:
+          $ref: "#/components/schemas/Address"
+        comments:
+          type: string
+          maxLength: 500
+        lines:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/CreateAndPlaceLineRequest"
+        actorType:
+          $ref: "#/components/schemas/ActorType"
+        actorId:
+          type: string
+
+    AddLineRequest:
+      type: object
+      required: [variantId, quantity]
+      properties:
+        variantId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+
+    UpdateLineQuantityRequest:
+      type: object
+      required: [quantity]
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
+
+    CustomerRequest:
+      $ref: "#/components/schemas/Customer"
+
+    AddressRequest:
+      $ref: "#/components/schemas/Address"
+
+    SetFulfillmentRequest:
+      type: object
+      required: [fulfillmentType]
+      properties:
+        fulfillmentType:
+          $ref: "#/components/schemas/FulfillmentType"
+
+    SetCommentsRequest:
+      type: object
+      required: [comments]
+      properties:
+        comments:
+          type: string
+          maxLength: 500
+
+    ActorRequest:
+      type: object
+      required: [actorType]
+      properties:
+        actorType:
+          $ref: "#/components/schemas/ActorType"
+        actorId:
+          type: string
+        reason:
+          type: string
+          description: Required for Cancel when status is not Draft
