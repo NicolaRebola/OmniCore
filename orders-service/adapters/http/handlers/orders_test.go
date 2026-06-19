@@ -15,6 +15,7 @@ import (
 	"orders-service/adapters/http/dto"
 	"orders-service/adapters/http/handlers"
 	httpmw "orders-service/adapters/http/middleware"
+	"orders-service/internal/application"
 	inboundports "orders-service/internal/application/ports/inbound"
 	"orders-service/internal/domain"
 )
@@ -105,6 +106,24 @@ func (s stubLifecycle) Execute(_ context.Context, _ inboundports.LifecycleTransi
 	return s.result, s.err
 }
 
+type stubGetOrder struct {
+	result inboundports.GetOrderResult
+	err    error
+}
+
+func (s stubGetOrder) Execute(_ context.Context, _ inboundports.GetOrderQuery) (inboundports.GetOrderResult, error) {
+	return s.result, s.err
+}
+
+type stubListOrders struct {
+	result inboundports.ListOrdersResult
+	err    error
+}
+
+func (s stubListOrders) Execute(_ context.Context, _ inboundports.ListOrdersQuery) (inboundports.ListOrdersResult, error) {
+	return s.result, s.err
+}
+
 type recordingIdempotencyStore struct {
 	getCalls  int
 	saveCalls int
@@ -158,6 +177,7 @@ func TestPlace_Replay_ReturnsStoredResponse(t *testing.T) {
 		stubCreateOrder{}, stubCreateAndPlace{}, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{},
 		stubSetCustomer{}, stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
 		stubPlaceOrder{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		stubGetOrder{}, stubListOrders{},
 		store,
 	)
 
@@ -274,6 +294,130 @@ func TestCancel_FromPlaced_WithoutReason_ReturnsORDDOM007(t *testing.T) {
 	assertProblemCode(t, rec, "ORD-DOM-007")
 }
 
+func TestGetByID_NotFound_ReturnsORDAPP001(t *testing.T) {
+	h := handlers.NewOrderHandlers(
+		stubCreateOrder{}, stubCreateAndPlace{}, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{},
+		stubSetCustomer{}, stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
+		stubPlaceOrder{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		stubGetOrder{err: application.ErrOrderNotFound}, stubListOrders{},
+		noopIdempotencyStore{},
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/orders/"+testOrderID.String(), nil)
+	req = withTenant(req)
+	req = chiRoute(req, "id", testOrderID.String())
+	rec := httptest.NewRecorder()
+
+	h.GetByID(rec, req)
+
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	assertProblemCode(t, rec, "ORD-APP-001")
+}
+
+func TestGetByID_ReturnsOrder(t *testing.T) {
+	orderNum := int64(42)
+	h := handlers.NewOrderHandlers(
+		stubCreateOrder{}, stubCreateAndPlace{}, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{},
+		stubSetCustomer{}, stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
+		stubPlaceOrder{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		stubGetOrder{result: inboundports.GetOrderResult{Order: &domain.Order{
+			ID: testOrderID, TenantID: testTenantID, Status: domain.StatusPlaced,
+			OrderNumber: &orderNum, CreatedAt: testNow, UpdatedAt: testNow,
+		}}},
+		stubListOrders{},
+		noopIdempotencyStore{},
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/orders/"+testOrderID.String(), nil)
+	req = withTenant(req)
+	req = chiRoute(req, "id", testOrderID.String())
+	rec := httptest.NewRecorder()
+
+	h.GetByID(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+
+	var resp dto.OrderResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if resp.ID != testOrderID || resp.Status != string(domain.StatusPlaced) {
+		t.Fatalf("resp = %+v", resp)
+	}
+	if resp.OrderNumber == nil || *resp.OrderNumber != 42 {
+		t.Fatalf("orderNumber = %v", resp.OrderNumber)
+	}
+}
+
+func TestList_DefaultPagination(t *testing.T) {
+	h := handlers.NewOrderHandlers(
+		stubCreateOrder{}, stubCreateAndPlace{}, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{},
+		stubSetCustomer{}, stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
+		stubPlaceOrder{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		stubGetOrder{},
+		stubListOrders{result: inboundports.ListOrdersResult{
+			Orders: []*domain.Order{{ID: testOrderID, TenantID: testTenantID, Status: domain.StatusDraft, CreatedAt: testNow, UpdatedAt: testNow}},
+			Total:  1,
+		}},
+		noopIdempotencyStore{},
+	)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/orders", nil)
+	req = withTenant(req)
+	rec := httptest.NewRecorder()
+
+	h.List(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+
+	var resp dto.ListOrdersResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatal(err)
+	}
+	if resp.Page != 1 || resp.PageSize != 20 {
+		t.Fatalf("pagination = %+v", resp)
+	}
+	if resp.Total != 1 || len(resp.Items) != 1 {
+		t.Fatalf("items = %+v total=%d", resp.Items, resp.Total)
+	}
+}
+
+func TestList_InvalidPageSize_ReturnsORDAPI009(t *testing.T) {
+	h := newTestHandlers(stubCreateOrder{})
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/orders?page=1&pageSize=101", nil)
+	req = withTenant(req)
+	rec := httptest.NewRecorder()
+
+	h.List(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d", rec.Code)
+	}
+	assertProblemCode(t, rec, "ORD-API-009")
+}
+
+func TestList_InvalidStatus_ReturnsORDAPI010(t *testing.T) {
+	h := newTestHandlers(stubCreateOrder{})
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/orders?status=unknown", nil)
+	req = withTenant(req)
+	rec := httptest.NewRecorder()
+
+	h.List(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d", rec.Code)
+	}
+	assertProblemCode(t, rec, "ORD-API-010")
+}
+
 func TestTenantRequired_MissingHeader(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/orders", nil)
 	rec := httptest.NewRecorder()
@@ -304,6 +448,7 @@ func newLifecycleTestHandlers(lifecycle stubLifecycle) *handlers.OrderHandlers {
 		stubCreateOrder{}, stubCreateAndPlace{}, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{}, stubSetCustomer{},
 		stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
 		stubPlaceOrder{}, lifecycle, lifecycle, lifecycle, lifecycle,
+		stubGetOrder{}, stubListOrders{},
 		noopIdempotencyStore{},
 	)
 }
@@ -326,6 +471,7 @@ func newTestHandlers(create inboundports.CreateOrder, extras ...any) *handlers.O
 		create, createAndPlace, add, stubUpdateLineQty{}, stubRemoveLine{}, stubSetCustomer{},
 		stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
 		place, stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		stubGetOrder{}, stubListOrders{},
 		noopIdempotencyStore{},
 	)
 }

@@ -33,6 +33,8 @@ type OrderHandlers struct {
 	start             inboundports.StartOrder
 	complete          inboundports.CompleteOrder
 	cancel            inboundports.CancelOrder
+	getOrder          inboundports.GetOrder
+	listOrders        inboundports.ListOrders
 	idempotency       idempotency.ReplayStore
 }
 
@@ -51,6 +53,8 @@ func NewOrderHandlers(
 	start inboundports.StartOrder,
 	complete inboundports.CompleteOrder,
 	cancel inboundports.CancelOrder,
+	getOrder inboundports.GetOrder,
+	listOrders inboundports.ListOrders,
 	idempotencyStore idempotency.ReplayStore,
 ) *OrderHandlers {
 	return &OrderHandlers{
@@ -68,6 +72,8 @@ func NewOrderHandlers(
 		start:          start,
 		complete:       complete,
 		cancel:         cancel,
+		getOrder:       getOrder,
+		listOrders:     listOrders,
 		idempotency:    idempotencyStore,
 	}
 }
@@ -525,6 +531,62 @@ func (h *OrderHandlers) Complete(w http.ResponseWriter, r *http.Request) {
 
 func (h *OrderHandlers) Cancel(w http.ResponseWriter, r *http.Request) {
 	h.handleLifecycleTransition(w, r, h.cancel.Execute)
+}
+
+func (h *OrderHandlers) GetByID(w http.ResponseWriter, r *http.Request) {
+	tenantID, orderID, ok := h.tenantAndOrderID(w, r)
+	if !ok {
+		return
+	}
+
+	result, err := h.getOrder.Execute(r.Context(), inboundports.GetOrderQuery{
+		TenantID: tenantID,
+		OrderID:  orderID,
+	})
+	if err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	writeOrder(w, http.StatusOK, result.Order)
+}
+
+func (h *OrderHandlers) List(w http.ResponseWriter, r *http.Request) {
+	tenantID, ok := httpmw.TenantIDFromContext(r.Context())
+	if !ok {
+		errors.WriteError(w, r, application.ErrTenantRequired)
+		return
+	}
+
+	pagination, err := dto.ParsePagination(r.URL.Query().Get("page"), r.URL.Query().Get("pageSize"))
+	if err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	query := inboundports.ListOrdersQuery{
+		TenantID: tenantID,
+		Page:     pagination.Page,
+		PageSize: pagination.PageSize,
+	}
+
+	if statusParam := r.URL.Query().Get("status"); statusParam != "" {
+		status, err := dto.ParseOrderStatus(statusParam)
+		if err != nil {
+			errors.WriteError(w, r, err)
+			return
+		}
+		query.Status = &status
+	}
+
+	result, err := h.listOrders.Execute(r.Context(), query)
+	if err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	resp := dto.ListOrdersFromDomain(result.Orders, pagination.Page, pagination.PageSize, result.Total)
+	writeJSONValue(w, http.StatusOK, resp)
 }
 
 type lifecycleExecutor func(context.Context, inboundports.LifecycleTransitionCommand) (inboundports.OrderMutationResult, error)

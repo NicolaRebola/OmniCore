@@ -41,6 +41,10 @@ func (r *fakeOrderRepo) Save(_ context.Context, _ *domain.Order) error {
 	return nil
 }
 
+func (r *fakeOrderRepo) List(_ context.Context, _ postgresports.ListOrdersFilter) (postgresports.ListOrdersPage, error) {
+	return postgresports.ListOrdersPage{}, nil
+}
+
 type fakeSequenceRepo struct {
 	next int64
 }

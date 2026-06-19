@@ -120,6 +120,7 @@ func TestCreate_Replay_ReturnsStoredResponseWithoutExecuting(t *testing.T) {
 		create, stubCreateAndPlace{}, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{},
 		stubSetCustomer{}, stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
 		stubPlaceOrder{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		stubGetOrder{}, stubListOrders{},
 		store,
 	)
 
@@ -145,6 +146,7 @@ func TestCreate_IdempotencyConflict_ReturnsORDAPP006(t *testing.T) {
 		stubCreateOrder{}, stubCreateAndPlace{}, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{},
 		stubSetCustomer{}, stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
 		stubPlaceOrder{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		stubGetOrder{}, stubListOrders{},
 		store,
 	)
 
@@ -168,6 +170,7 @@ func TestPlace_IdempotencyConflict_ReturnsORDAPP006(t *testing.T) {
 		stubCreateOrder{}, stubCreateAndPlace{}, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{},
 		stubSetCustomer{}, stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
 		stubPlaceOrder{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		stubGetOrder{}, stubListOrders{},
 		store,
 	)
 
@@ -197,6 +200,7 @@ func TestPlace_Replay_DoesNotExecutePlace(t *testing.T) {
 		stubCreateOrder{}, stubCreateAndPlace{}, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{},
 		stubSetCustomer{}, stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
 		place, stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		stubGetOrder{}, stubListOrders{},
 		store,
 	)
 
@@ -224,6 +228,7 @@ func TestPlace_Success_SavesPlaceOrderOperation(t *testing.T) {
 		stubCreateOrder{}, stubCreateAndPlace{}, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{},
 		stubSetCustomer{}, stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
 		place, stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		stubGetOrder{}, stubListOrders{},
 		store,
 	)
 
@@ -255,6 +260,7 @@ func TestCreateAndPlace_Replay_ReturnsStoredResponseWithoutExecuting(t *testing.
 		stubCreateOrder{}, createAndPlace, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{},
 		stubSetCustomer{}, stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
 		stubPlaceOrder{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		stubGetOrder{}, stubListOrders{},
 		store,
 	)
 
@@ -280,6 +286,7 @@ func TestCreateAndPlace_IdempotencyConflict_ReturnsORDAPP006(t *testing.T) {
 		stubCreateOrder{}, stubCreateAndPlace{}, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{},
 		stubSetCustomer{}, stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
 		stubPlaceOrder{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		stubGetOrder{}, stubListOrders{},
 		store,
 	)
 
@@ -311,6 +318,7 @@ func TestCreateAndPlace_Success_SavesCreateAndPlaceOperation(t *testing.T) {
 		stubCreateOrder{}, createAndPlace, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{},
 		stubSetCustomer{}, stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
 		stubPlaceOrder{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		stubGetOrder{}, stubListOrders{},
 		store,
 	)
 
