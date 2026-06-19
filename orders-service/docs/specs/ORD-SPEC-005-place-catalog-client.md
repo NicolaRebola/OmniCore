@@ -133,8 +133,8 @@ go test -tags=integration ./adapters/postgres/... -run TestPlaceOrder_Integratio
 |------|------|
 | `POST /api/v1/orders/{id}/place` HTTP handler | ORD-SPEC-008 |
 | `Idempotency-Key` on Place | ORD-SPEC-008 |
-| `application/problem+json` error mapping | ORD-SPEC-008 / ORD-SPEC-010 |
-| Draft mutations REST (Create, AddLine, …) | ORD-SPEC-006 |
+| OpenAPI + full problem+json catalog | ORD-SPEC-010 |
+| Draft mutations REST (Create, AddLine, …) | ORD-SPEC-006 (done) |
 | Full integration events contract | ORD-SPEC-011 |
 | Catalog client batch / per-variant filter optimization | Post-MVP |
 

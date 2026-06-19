@@ -6,7 +6,7 @@ Part of the [OmniCore](../README.md) portfolio. Stack: **Go 1.22+**, hexagonal a
 
 ## Status
 
-**Sprint 3 — ORD-SPEC-001 through ORD-SPEC-005 done.** Domain aggregate, PostgreSQL repositories, Place use case, Catalog HTTP client, transactional `orderNumber`, fx DI, and integration tests. Next: [ORD-SPEC-006](https://app.notion.com/p/383bd6def30d813b8098fe1a62a78bf8) (Draft mutations REST API).
+**Sprint 3 — ORD-SPEC-001 through ORD-SPEC-006 done.** Domain aggregate, PostgreSQL repositories, Place use case, Catalog HTTP client, draft mutations REST API, and integration tests. Next: [ORD-SPEC-007](https://app.notion.com/p/383bd6def30d8122b259f01e7a41410a) (Lifecycle transitions REST API).
 
 ## Documentation
 
@@ -23,6 +23,9 @@ Part of the [OmniCore](../README.md) portfolio. Stack: **Go 1.22+**, hexagonal a
 - [ORD-SPEC-004 — Implementation notes](./docs/specs/ORD-SPEC-004-postgres-repositories.md)
 - [ORD-SPEC-005 — Place + Catalog Client](https://app.notion.com/p/383bd6def30d81f69f3bd5aa858a7438)
 - [ORD-SPEC-005 — Implementation notes](./docs/specs/ORD-SPEC-005-place-catalog-client.md)
+- [ORD-SPEC-006 — Draft Mutations REST API](https://app.notion.com/p/383bd6def30d813b8098fe1a62a78bf8)
+- [ORD-SPEC-006 — Implementation notes](./docs/specs/ORD-SPEC-006-draft-mutations-rest-api.md)
+- [Testing guide](./docs/testing.md)
 
 ## Project Structure
 
@@ -33,9 +36,9 @@ orders-service/
 │   ├── domain/                 # Order aggregate + unit tests (ORD-SPEC-002)
 │   └── application/
 │       ├── ports/              # Inbound/outbound interfaces
-│       └── usecases/           # PlaceOrder + future handlers (ORD-SPEC-005+)
+│       └── usecases/           # PlaceOrder, CreateOrder, draft mutations (005–006)
 ├── adapters/
-│   ├── http/                   # chi router, handlers, middleware
+│   ├── http/                   # chi router, handlers, problem+json, idempotency (006)
 │   ├── postgres/               # pgx repositories + tx (ORD-SPEC-004, 005)
 │   ├── catalog/                # Catalog projection client (ORD-SPEC-005)
 │   └── events/                 # Logging event publisher (ORD-SPEC-005)
@@ -117,18 +120,33 @@ docker compose -f docker-compose.dev.yml up
 
 ## API
 
-### Available (ORD-SPEC-001)
+### Health (ORD-SPEC-001)
 
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/health` | Liveness probe — returns `{"status":"ok"}` |
 | `GET` | `/ready` | Readiness probe — pings PostgreSQL; `{"status":"ready"}` or 503 `not_ready` |
 
+### Draft mutations (ORD-SPEC-006)
+
+Base path: `/api/v1/orders` · Required header: `X-Tenant-Id` · `Idempotency-Key` required on Create.
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `POST` | `/orders` | Create Draft order |
+| `POST` | `/orders/{id}/lines` | Add line |
+| `PATCH` | `/orders/{id}/lines/{lineId}` | Update line quantity |
+| `DELETE` | `/orders/{id}/lines/{lineId}` | Remove line |
+| `PUT` | `/orders/{id}/customer` | Set customer snapshot |
+| `PUT` | `/orders/{id}/address` | Set delivery address |
+| `PUT` | `/orders/{id}/fulfillment` | Set fulfillment type |
+| `PUT` | `/orders/{id}/comments` | Set order comments |
+
+Manual smoke tests: LiteClient collection **Orders** (`.liteclient/collections.json`) or [docs/testing.md](./docs/testing.md).
+
 ### Planned (MVP 1)
 
-Base path: `/api/v1/orders` · Required header: `X-Tenant-Id` · Idempotency on Create, Place, CreateAndPlace.
-
-See Phase 2 API surface in Notion for the full endpoint list.
+Place, lifecycle transitions (Accept/Start/Complete/Cancel), CreateAndPlace, GetById, ListOrders — see [Phase 2 API surface](https://app.notion.com/p/383bd6def30d81a7a6b2cb820b06d3c5) and specs ORD-SPEC-007–010.
 
 ## Persistence
 

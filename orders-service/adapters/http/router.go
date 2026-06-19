@@ -7,10 +7,11 @@ import (
 	chimw "github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"orders-service/adapters/http/handlers"
 	httpmw "orders-service/adapters/http/middleware"
 )
 
-func NewRouter(logger *slog.Logger, pool *pgxpool.Pool) chi.Router {
+func NewRouter(logger *slog.Logger, pool *pgxpool.Pool, orderHandlers *handlers.OrderHandlers) chi.Router {
 	r := chi.NewRouter()
 
 	r.Use(chimw.RequestID)
@@ -21,7 +22,18 @@ func NewRouter(logger *slog.Logger, pool *pgxpool.Pool) chi.Router {
 	r.Get("/ready", ReadyHandler(pool))
 
 	r.Route("/api/v1", func(r chi.Router) {
-		r.Use(httpmw.TenantPlaceholder())
+		r.Use(httpmw.TenantRequired())
+
+		r.Route("/orders", func(r chi.Router) {
+			r.Post("/", orderHandlers.Create)
+			r.Post("/{id}/lines", orderHandlers.AddLine)
+			r.Patch("/{id}/lines/{lineId}", orderHandlers.UpdateLineQuantity)
+			r.Delete("/{id}/lines/{lineId}", orderHandlers.RemoveLine)
+			r.Put("/{id}/customer", orderHandlers.SetCustomer)
+			r.Put("/{id}/address", orderHandlers.SetAddress)
+			r.Put("/{id}/fulfillment", orderHandlers.SetFulfillment)
+			r.Put("/{id}/comments", orderHandlers.SetComments)
+		})
 	})
 
 	return r
