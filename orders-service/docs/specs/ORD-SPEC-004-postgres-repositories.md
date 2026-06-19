@@ -26,7 +26,7 @@ PostgreSQL adapters for the Order aggregate: outbound repository ports, domain r
 | Mappers | `mapper.go`, `order_row.go`, `order_mapper.go` |
 | Repositories | `OrderRepository`, `TenantSequenceRepository`, `IdempotencyRepository` |
 | HTTP | `GET /ready` pings PostgreSQL via pool |
-| Wiring | `cmd/api/main.go` connects `DATABASE_URL` and passes pool to router |
+| Wiring | `cmd/api/main.go` connects `DATABASE_URL` and passes pool to router (superseded by fx in ORD-SPEC-005) |
 | Tests | Integration tests (`//go:build integration`) + CI job with Postgres service |
 
 ## Repository Layout
@@ -95,7 +95,6 @@ curl http://localhost:8081/ready   # {"status":"ready"} when DB is up
 
 | Item | Spec |
 |------|------|
-| Use cases wiring repos (Place transaction) | ORD-SPEC-005 |
 | HTTP idempotency replay / hash mismatch | ORD-SPEC-008 |
 | `external_reference` column mapping | Post-MVP |
 | Append-only transitions without full replace on Save | Post-MVP |
@@ -104,6 +103,7 @@ curl http://localhost:8081/ready   # {"status":"ready"} when DB is up
 ## References
 
 - [Persistence guide](../persistence.md)
+- [ORD-SPEC-005 — Place + Catalog Client](./ORD-SPEC-005-place-catalog-client.md)
 - [ORD-SPEC-003 — Persistence Migrations](./ORD-SPEC-003-persistence-migrations.md)
 - [ORD-SPEC-002 — Domain Model](./ORD-SPEC-002-domain-model.md)
 - [Phase 3 — Architectural Analysis](https://app.notion.com/p/383bd6def30d81a198d7d7b1b05b38a2)

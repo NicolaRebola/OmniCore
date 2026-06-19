@@ -213,7 +213,6 @@ Expected tables: `orders`, `order_lines`, `order_transitions`, `tenant_sequences
 
 | Item | Spec |
 |------|------|
-| Use cases + Place transaction with `NextOrderNumber` | ORD-SPEC-005 |
 | HTTP idempotency replay / hash mismatch | ORD-SPEC-008 |
 | `external_reference` column mapping | Post-MVP |
 | Migration automation in Tilt / app startup | Optional post-MVP |
@@ -221,7 +220,8 @@ Expected tables: `orders`, `order_lines`, `order_transitions`, `tenant_sequences
 
 ## References
 
-- [ORD-SPEC-004 — Implementation notes](./specs/ORD-SPEC-004-postgres-repositories.md)
+- [ORD-SPEC-005 — Place + Catalog Client](./specs/ORD-SPEC-005-place-catalog-client.md)
+- [ORD-SPEC-004 — PostgreSQL Repositories](./specs/ORD-SPEC-004-postgres-repositories.md)
 - [ORD-SPEC-003 — Implementation notes](./specs/ORD-SPEC-003-persistence-migrations.md)
 - [ORD-SPEC-002 — Domain Model](./specs/ORD-SPEC-002-domain-model.md)
 - [Phase 3 — Architectural Analysis](https://app.notion.com/p/383bd6def30d81a198d7d7b1b05b38a2)

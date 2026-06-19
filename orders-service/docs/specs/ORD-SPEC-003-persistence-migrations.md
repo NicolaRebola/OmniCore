@@ -46,7 +46,6 @@ goose -dir migrations postgres "$DATABASE_URL" status
 
 | Item | Spec |
 |------|------|
-| Use cases wiring repositories | ORD-SPEC-005 |
 | HTTP idempotency replay | ORD-SPEC-008 |
 
 ## References
