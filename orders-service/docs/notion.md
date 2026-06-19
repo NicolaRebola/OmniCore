@@ -24,7 +24,7 @@ Planning and technical design for the Order Service live in Notion.
 | [ORD-SPEC-006 - Draft Mutations API](https://app.notion.com/p/383bd6def30d813b8098fe1a62a78bf8) | 3 | Done |
 | [ORD-SPEC-007 - Lifecycle Transitions API](https://app.notion.com/p/383bd6def30d8122b259f01e7a41410a) | 4 | Backlog |
 | [ORD-SPEC-008 - CreateAndPlace + Idempotency](https://app.notion.com/p/383bd6def30d81979498ff0c3b30f741) | 4 | Done |
-| [ORD-SPEC-009 - Order Queries API](https://app.notion.com/p/383bd6def30d8160ae3ac6e58694ce18) | 5 | Backlog |
+| [ORD-SPEC-009 - Order Queries API](https://app.notion.com/p/383bd6def30d8160ae3ac6e58694ce18) | 5 | Done |
 | [ORD-SPEC-010 - REST Contract / OpenAPI](https://app.notion.com/p/383bd6def30d8131a421fb139a2d06b2) | 5 | Backlog |
 | [ORD-SPEC-011 - Integration Events MVP](https://app.notion.com/p/383bd6def30d81a985cccaaaf4ecd69b) | 5 | Backlog |
 

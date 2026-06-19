@@ -45,6 +45,12 @@ var (
 	ErrInvalidActorType = application.AppError{
 		Code: "ORD-API-008", Message: "actor type is invalid", HTTPStatus: http.StatusBadRequest,
 	}
+	ErrInvalidPagination = application.AppError{
+		Code: "ORD-API-009", Message: "page must be >= 1 and pageSize must be between 1 and 100", HTTPStatus: http.StatusBadRequest,
+	}
+	ErrInvalidStatus = application.AppError{
+		Code: "ORD-API-010", Message: "status is invalid", HTTPStatus: http.StatusBadRequest,
+	}
 )
 
 func WriteError(w http.ResponseWriter, r *http.Request, err error) {

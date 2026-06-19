@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -127,6 +128,60 @@ type ActorRequest struct {
 	Reason    string `json:"reason,omitempty"`
 }
 
+type ListOrdersResponse struct {
+	Items    []OrderResponse `json:"items"`
+	Page     int             `json:"page"`
+	PageSize int             `json:"pageSize"`
+	Total    int             `json:"total"`
+}
+
+const (
+	defaultPage     = 1
+	defaultPageSize = 20
+	maxPageSize     = 100
+)
+
+type PaginationParams struct {
+	Page     int
+	PageSize int
+}
+
+func ParsePagination(pageStr, pageSizeStr string) (PaginationParams, error) {
+	page := defaultPage
+	pageSize := defaultPageSize
+
+	if pageStr != "" {
+		p, err := parsePositiveInt(pageStr)
+		if err != nil || p < 1 {
+			return PaginationParams{}, httperrors.ErrInvalidPagination
+		}
+		page = p
+	}
+
+	if pageSizeStr != "" {
+		ps, err := parsePositiveInt(pageSizeStr)
+		if err != nil || ps < 1 || ps > maxPageSize {
+			return PaginationParams{}, httperrors.ErrInvalidPagination
+		}
+		pageSize = ps
+	}
+
+	return PaginationParams{Page: page, PageSize: pageSize}, nil
+}
+
+func ListOrdersFromDomain(orders []*domain.Order, page, pageSize, total int) ListOrdersResponse {
+	items := make([]OrderResponse, 0, len(orders))
+	for _, order := range orders {
+		items = append(items, OrderFromDomain(order))
+	}
+	return ListOrdersResponse{
+		Items:    items,
+		Page:     page,
+		PageSize: pageSize,
+		Total:    total,
+	}
+}
+
 func OrderFromDomain(order *domain.Order) OrderResponse {
 	resp := OrderResponse{
 		ID:              order.ID,
@@ -235,6 +290,24 @@ func ParseActorType(value string) (domain.ActorType, error) {
 	default:
 		return "", httperrors.ErrInvalidActorType
 	}
+}
+
+func ParseOrderStatus(value string) (domain.OrderStatus, error) {
+	switch domain.OrderStatus(value) {
+	case domain.StatusDraft, domain.StatusPlaced, domain.StatusAccepted,
+		domain.StatusInProgress, domain.StatusCompleted, domain.StatusCancelled:
+		return domain.OrderStatus(value), nil
+	default:
+		return "", httperrors.ErrInvalidStatus
+	}
+}
+
+func parsePositiveInt(value string) (int, error) {
+	n, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, err
+	}
+	return n, nil
 }
 
 func ActorFromRequest(req ActorRequest) (domain.Actor, error) {

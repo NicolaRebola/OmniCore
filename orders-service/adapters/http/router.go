@@ -25,7 +25,9 @@ func NewRouter(logger *slog.Logger, pool *pgxpool.Pool, orderHandlers *handlers.
 		r.Use(httpmw.TenantRequired())
 
 		r.Route("/orders", func(r chi.Router) {
+			r.Get("/", orderHandlers.List)
 			r.Post("/", orderHandlers.Create)
+			r.Get("/{id}", orderHandlers.GetByID)
 			r.Post("/create-and-place", orderHandlers.CreateAndPlace)
 			r.Post("/{id}/place", orderHandlers.Place)
 			r.Post("/{id}/lines", orderHandlers.AddLine)

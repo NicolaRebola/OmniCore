@@ -221,6 +221,135 @@ func TestOrderRepository_Save_UpdatesDraftLines(t *testing.T) {
 	}
 }
 
+func TestOrderRepository_List_PaginatedByTenant(t *testing.T) {
+	pool := requireIntegrationDB(t)
+	repo := NewOrderRepository(pool)
+
+	tenantID := uuid.New()
+	otherTenantID := uuid.New()
+	ctx := context.Background()
+
+	saveDraft := func(t *testing.T, tenant uuid.UUID, createdAt time.Time) uuid.UUID {
+		t.Helper()
+		orderID := uuid.New()
+		order, err := domain.NewOrder(orderID, tenant, domain.SourcePOS, domain.FulfillmentTakeaway, createdAt)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := repo.Save(ctx, order); err != nil {
+			t.Fatalf("save: %v", err)
+		}
+		return orderID
+	}
+
+	newestID := saveDraft(t, tenantID, integrationNow.Add(2*time.Hour))
+	middleID := saveDraft(t, tenantID, integrationNow.Add(time.Hour))
+	oldestID := saveDraft(t, tenantID, integrationNow)
+	saveDraft(t, otherTenantID, integrationNow)
+
+	page, err := repo.List(ctx, outboundports.ListOrdersFilter{
+		TenantID: tenantID,
+		Page:     1,
+		PageSize: 2,
+	})
+	if err != nil {
+		t.Fatalf("list: %v", err)
+	}
+	if page.Total != 3 {
+		t.Fatalf("total = %d", page.Total)
+	}
+	if len(page.Orders) != 2 {
+		t.Fatalf("orders = %d", len(page.Orders))
+	}
+	if page.Orders[0].ID != newestID || page.Orders[1].ID != middleID {
+		t.Fatalf("order ids = %s, %s", page.Orders[0].ID, page.Orders[1].ID)
+	}
+
+	page2, err := repo.List(ctx, outboundports.ListOrdersFilter{
+		TenantID: tenantID,
+		Page:     2,
+		PageSize: 2,
+	})
+	if err != nil {
+		t.Fatalf("list page 2: %v", err)
+	}
+	if len(page2.Orders) != 1 || page2.Orders[0].ID != oldestID {
+		t.Fatalf("page2 = %+v", page2.Orders)
+	}
+}
+
+func TestOrderRepository_List_StatusFilter(t *testing.T) {
+	pool := requireIntegrationDB(t)
+	repo := NewOrderRepository(pool)
+
+	tenantID := uuid.New()
+	ctx := context.Background()
+
+	draftID := uuid.New()
+	draft, err := domain.NewOrder(draftID, tenantID, domain.SourcePOS, domain.FulfillmentTakeaway, integrationNow)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := repo.Save(ctx, draft); err != nil {
+		t.Fatalf("save draft: %v", err)
+	}
+
+	placedID := uuid.New()
+	lineID := uuid.New()
+	variantID := uuid.New()
+	placed, err := domain.NewOrder(placedID, tenantID, domain.SourceWeb, domain.FulfillmentTakeaway, integrationNow)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := placed.AddLine(lineID, variantID, 1, integrationNow); err != nil {
+		t.Fatal(err)
+	}
+	if err := placed.SetCustomer(domain.CustomerSnapshot{Name: "Luis"}, integrationNow); err != nil {
+		t.Fatal(err)
+	}
+	price, err := domain.NewMoney(1500, domain.DefaultCurrency)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := placed.Place(domain.PlaceInput{
+		OrderNumber: 1,
+		Variants: []domain.VariantSnapshot{{
+			VariantID:     variantID,
+			CatalogItemID: uuid.New(),
+			Name:          "Burger",
+			UnitPrice:     price,
+			IsActive:      true,
+		}},
+		Actor:      domain.Actor{Type: domain.ActorStaff},
+		OccurredAt: integrationNow,
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := repo.Save(ctx, placed); err != nil {
+		t.Fatalf("save placed: %v", err)
+	}
+
+	status := domain.StatusPlaced
+	page, err := repo.List(ctx, outboundports.ListOrdersFilter{
+		TenantID: tenantID,
+		Status:   &status,
+		Page:     1,
+		PageSize: 20,
+	})
+	if err != nil {
+		t.Fatalf("list: %v", err)
+	}
+	if page.Total != 1 {
+		t.Fatalf("total = %d", page.Total)
+	}
+	if len(page.Orders) != 1 || page.Orders[0].ID != placedID {
+		t.Fatalf("orders = %+v", page.Orders)
+	}
+	if page.Orders[0].Status != domain.StatusPlaced {
+		t.Fatalf("status = %s", page.Orders[0].Status)
+	}
+}
+
 func TestIdempotencyRepository_SaveAndFind(t *testing.T) {
 	pool := requireIntegrationDB(t)
 	repo := NewIdempotencyRepository(pool)

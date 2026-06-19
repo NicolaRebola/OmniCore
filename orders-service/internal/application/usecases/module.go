@@ -64,5 +64,13 @@ var Module = fx.Module("usecases",
 			NewCancelOrderHandler,
 			fx.As(new(inboundports.CancelOrder)),
 		),
+		fx.Annotate(
+			NewGetOrderHandler,
+			fx.As(new(inboundports.GetOrder)),
+		),
+		fx.Annotate(
+			NewListOrdersHandler,
+			fx.As(new(inboundports.ListOrders)),
+		),
 	),
 )

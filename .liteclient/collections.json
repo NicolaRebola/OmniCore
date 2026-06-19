@@ -664,6 +664,67 @@
             "name": "Cancel Order"
           }
         ]
+      },
+      {
+        "id": "mpqa-orders-queries-folder",
+        "name": "Order Queries",
+        "type": "folder",
+        "items": [
+          {
+            "method": "GET",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-get-by-id",
+            "name": "Get Order By Id"
+          },
+          {
+            "method": "GET",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders?page=1&pageSize=20",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-list",
+            "name": "List Orders (paged)"
+          },
+          {
+            "method": "GET",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders?page=1&pageSize=20&status=Placed",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-list-by-status",
+            "name": "List Orders by Status"
+          }
+        ]
       }
     ]
   }

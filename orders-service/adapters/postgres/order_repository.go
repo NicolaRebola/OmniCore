@@ -34,17 +34,99 @@ func (r *OrderRepository) GetByID(ctx context.Context, tenantID, orderID uuid.UU
 		return nil, nil
 	}
 
-	lineRows, err := r.loadLineRows(ctx, tenantID, orderID)
+	return r.loadFullOrder(ctx, *row)
+}
+
+func (r *OrderRepository) List(
+	ctx context.Context,
+	filter outboundports.ListOrdersFilter,
+) (outboundports.ListOrdersPage, error) {
+	var statusFilter *string
+	if filter.Status != nil {
+		s := string(*filter.Status)
+		statusFilter = &s
+	}
+
+	const countSQL = `
+		SELECT COUNT(*)
+		FROM orders
+		WHERE tenant_id = $1
+		  AND ($2::text IS NULL OR status = $2)
+	`
+
+	var total int
+	if err := r.pool.QueryRow(ctx, countSQL, filter.TenantID, statusFilter).Scan(&total); err != nil {
+		return outboundports.ListOrdersPage{}, fmt.Errorf("count orders: %w", err)
+	}
+
+	offset := (filter.Page - 1) * filter.PageSize
+	const listSQL = `
+		SELECT
+			id, tenant_id, order_number, source, fulfillment_type, status,
+			customer_json, address_json, comments, totals_json,
+			created_at, updated_at
+		FROM orders
+		WHERE tenant_id = $1
+		  AND ($2::text IS NULL OR status = $2)
+		ORDER BY created_at DESC, id DESC
+		LIMIT $3 OFFSET $4
+	`
+
+	rows, err := r.pool.Query(ctx, listSQL, filter.TenantID, statusFilter, filter.PageSize, offset)
+	if err != nil {
+		return outboundports.ListOrdersPage{}, fmt.Errorf("list orders: %w", err)
+	}
+	defer rows.Close()
+
+	var orderRows []orderRow
+	for rows.Next() {
+		var row orderRow
+		if err := rows.Scan(
+			&row.ID,
+			&row.TenantID,
+			&row.OrderNumber,
+			&row.Source,
+			&row.FulfillmentType,
+			&row.Status,
+			&row.CustomerJSON,
+			&row.AddressJSON,
+			&row.Comments,
+			&row.TotalsJSON,
+			&row.CreatedAt,
+			&row.UpdatedAt,
+		); err != nil {
+			return outboundports.ListOrdersPage{}, fmt.Errorf("scan order: %w", err)
+		}
+		orderRows = append(orderRows, row)
+	}
+	if err := rows.Err(); err != nil {
+		return outboundports.ListOrdersPage{}, fmt.Errorf("iterate orders: %w", err)
+	}
+
+	orders := make([]*domain.Order, 0, len(orderRows))
+	for _, row := range orderRows {
+		order, err := r.loadFullOrder(ctx, row)
+		if err != nil {
+			return outboundports.ListOrdersPage{}, err
+		}
+		orders = append(orders, order)
+	}
+
+	return outboundports.ListOrdersPage{Orders: orders, Total: total}, nil
+}
+
+func (r *OrderRepository) loadFullOrder(ctx context.Context, row orderRow) (*domain.Order, error) {
+	lineRows, err := r.loadLineRows(ctx, row.TenantID, row.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	transitionRows, err := r.loadTransitionRows(ctx, tenantID, orderID)
+	transitionRows, err := r.loadTransitionRows(ctx, row.TenantID, row.ID)
 	if err != nil {
 		return nil, err
 	}
 
-	return orderRowToDomain(*row, lineRows, transitionRows)
+	return orderRowToDomain(row, lineRows, transitionRows)
 }
 
 func (r *OrderRepository) Save(ctx context.Context, order *domain.Order) error {
