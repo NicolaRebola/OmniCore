@@ -25,6 +25,24 @@ var (
 	testNow      = time.Date(2026, 6, 19, 12, 0, 0, 0, time.UTC)
 )
 
+type stubCreateAndPlace struct {
+	result inboundports.CreateAndPlaceResult
+	err    error
+}
+
+func (s stubCreateAndPlace) Execute(_ context.Context, _ inboundports.CreateAndPlaceCommand) (inboundports.CreateAndPlaceResult, error) {
+	return s.result, s.err
+}
+
+type stubPlaceOrder struct {
+	result inboundports.PlaceOrderResult
+	err    error
+}
+
+func (s stubPlaceOrder) Execute(_ context.Context, _ inboundports.PlaceOrderCommand) (inboundports.PlaceOrderResult, error) {
+	return s.result, s.err
+}
+
 type stubCreateOrder struct {
 	result inboundports.CreateOrderResult
 	err    error
@@ -87,6 +105,25 @@ func (s stubLifecycle) Execute(_ context.Context, _ inboundports.LifecycleTransi
 	return s.result, s.err
 }
 
+type recordingIdempotencyStore struct {
+	getCalls  int
+	saveCalls int
+	replay    []byte
+}
+
+func (s *recordingIdempotencyStore) GetReplay(_ context.Context, _ uuid.UUID, _, _, _ string) ([]byte, bool, error) {
+	s.getCalls++
+	if s.replay != nil {
+		return s.replay, true, nil
+	}
+	return nil, false, nil
+}
+
+func (s *recordingIdempotencyStore) SaveResponse(_ context.Context, _ uuid.UUID, _, _, _ string, _ []byte) error {
+	s.saveCalls++
+	return nil
+}
+
 type noopIdempotencyStore struct{}
 
 func (noopIdempotencyStore) GetReplay(_ context.Context, _ uuid.UUID, _, _, _ string) ([]byte, bool, error) {
@@ -95,6 +132,65 @@ func (noopIdempotencyStore) GetReplay(_ context.Context, _ uuid.UUID, _, _, _ st
 
 func (noopIdempotencyStore) SaveResponse(_ context.Context, _ uuid.UUID, _, _, _ string, _ []byte) error {
 	return nil
+}
+
+func TestPlace_MissingIdempotencyKey_ReturnsORDAPP005(t *testing.T) {
+	h := newTestHandlers(stubCreateOrder{}, stubPlaceOrder{})
+
+	body, _ := json.Marshal(dto.ActorRequest{ActorType: "staff"})
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/orders/"+testOrderID.String()+"/place", bytes.NewReader(body))
+	req = withTenant(req)
+	req = chiRoute(req, "id", testOrderID.String())
+	rec := httptest.NewRecorder()
+
+	h.Place(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d", rec.Code)
+	}
+	assertProblemCode(t, rec, "ORD-APP-005")
+}
+
+func TestPlace_Replay_ReturnsStoredResponse(t *testing.T) {
+	stored, _ := json.Marshal(dto.OrderResponse{ID: testOrderID, Status: string(domain.StatusPlaced)})
+	store := &recordingIdempotencyStore{replay: stored}
+	h := handlers.NewOrderHandlers(
+		stubCreateOrder{}, stubCreateAndPlace{}, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{},
+		stubSetCustomer{}, stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
+		stubPlaceOrder{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		store,
+	)
+
+	body, _ := json.Marshal(dto.ActorRequest{ActorType: "staff"})
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/orders/"+testOrderID.String()+"/place", bytes.NewReader(body))
+	req = withTenant(req)
+	req = chiRoute(req, "id", testOrderID.String())
+	req.Header.Set("Idempotency-Key", "place-key-1")
+	rec := httptest.NewRecorder()
+
+	h.Place(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	if store.getCalls != 1 {
+		t.Fatalf("getCalls = %d", store.getCalls)
+	}
+}
+
+func TestCreateAndPlace_MissingIdempotencyKey_ReturnsORDAPP005(t *testing.T) {
+	h := newTestHandlers(stubCreateOrder{}, stubCreateAndPlace{})
+
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/orders/create-and-place", bytes.NewReader([]byte(`{}`)))
+	req = withTenant(req)
+	rec := httptest.NewRecorder()
+
+	h.CreateAndPlace(rec, req)
+
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d", rec.Code)
+	}
+	assertProblemCode(t, rec, "ORD-APP-005")
 }
 
 func TestCreate_MissingTenant_ReturnsORDAPP002(t *testing.T) {
@@ -205,22 +301,31 @@ func chiRoute(req *http.Request, key, value string) *http.Request {
 
 func newLifecycleTestHandlers(lifecycle stubLifecycle) *handlers.OrderHandlers {
 	return handlers.NewOrderHandlers(
-		stubCreateOrder{}, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{}, stubSetCustomer{},
+		stubCreateOrder{}, stubCreateAndPlace{}, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{}, stubSetCustomer{},
 		stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
-		lifecycle, lifecycle, lifecycle, lifecycle,
+		stubPlaceOrder{}, lifecycle, lifecycle, lifecycle, lifecycle,
 		noopIdempotencyStore{},
 	)
 }
 
-func newTestHandlers(create inboundports.CreateOrder, addLine ...stubAddLine) *handlers.OrderHandlers {
+func newTestHandlers(create inboundports.CreateOrder, extras ...any) *handlers.OrderHandlers {
 	add := stubAddLine{}
-	if len(addLine) > 0 {
-		add = addLine[0]
+	place := stubPlaceOrder{}
+	createAndPlace := stubCreateAndPlace{}
+	for _, extra := range extras {
+		switch v := extra.(type) {
+		case stubAddLine:
+			add = v
+		case stubPlaceOrder:
+			place = v
+		case stubCreateAndPlace:
+			createAndPlace = v
+		}
 	}
 	return handlers.NewOrderHandlers(
-		create, add, stubUpdateLineQty{}, stubRemoveLine{}, stubSetCustomer{},
+		create, createAndPlace, add, stubUpdateLineQty{}, stubRemoveLine{}, stubSetCustomer{},
 		stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
-		stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		place, stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
 		noopIdempotencyStore{},
 	)
 }
