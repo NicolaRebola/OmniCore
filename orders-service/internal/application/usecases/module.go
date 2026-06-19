@@ -44,5 +44,21 @@ var Module = fx.Module("usecases",
 			NewSetCommentsHandler,
 			fx.As(new(inboundports.SetComments)),
 		),
+		fx.Annotate(
+			NewAcceptOrderHandler,
+			fx.As(new(inboundports.AcceptOrder)),
+		),
+		fx.Annotate(
+			NewStartOrderHandler,
+			fx.As(new(inboundports.StartOrder)),
+		),
+		fx.Annotate(
+			NewCompleteOrderHandler,
+			fx.As(new(inboundports.CompleteOrder)),
+		),
+		fx.Annotate(
+			NewCancelOrderHandler,
+			fx.As(new(inboundports.CancelOrder)),
+		),
 	),
 )

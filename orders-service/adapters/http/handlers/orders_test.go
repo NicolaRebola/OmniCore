@@ -78,6 +78,15 @@ func (s stubSetComments) Execute(_ context.Context, _ inboundports.SetCommentsCo
 	return inboundports.OrderMutationResult{}, s.err
 }
 
+type stubLifecycle struct {
+	result inboundports.OrderMutationResult
+	err    error
+}
+
+func (s stubLifecycle) Execute(_ context.Context, _ inboundports.LifecycleTransitionCommand) (inboundports.OrderMutationResult, error) {
+	return s.result, s.err
+}
+
 type noopIdempotencyStore struct{}
 
 func (noopIdempotencyStore) GetReplay(_ context.Context, _ uuid.UUID, _, _, _ string) ([]byte, bool, error) {
@@ -135,6 +144,40 @@ func TestAddLine_WhenPlaced_ReturnsORDDOM002(t *testing.T) {
 	assertProblemCode(t, rec, "ORD-DOM-002")
 }
 
+func TestAccept_FromDraft_ReturnsORDDOM001(t *testing.T) {
+	h := newLifecycleTestHandlers(stubLifecycle{err: domain.ErrInvalidTransition})
+
+	body, _ := json.Marshal(dto.ActorRequest{ActorType: "staff"})
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/orders/"+testOrderID.String()+"/accept", bytes.NewReader(body))
+	req = withTenant(req)
+	req = chiRoute(req, "id", testOrderID.String())
+	rec := httptest.NewRecorder()
+
+	h.Accept(rec, req)
+
+	if rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	assertProblemCode(t, rec, "ORD-DOM-001")
+}
+
+func TestCancel_FromPlaced_WithoutReason_ReturnsORDDOM007(t *testing.T) {
+	h := newLifecycleTestHandlers(stubLifecycle{err: domain.ErrCancelReasonRequired})
+
+	body, _ := json.Marshal(dto.ActorRequest{ActorType: "staff"})
+	req := httptest.NewRequest(http.MethodPost, "/api/v1/orders/"+testOrderID.String()+"/cancel", bytes.NewReader(body))
+	req = withTenant(req)
+	req = chiRoute(req, "id", testOrderID.String())
+	rec := httptest.NewRecorder()
+
+	h.Cancel(rec, req)
+
+	if rec.Code != http.StatusUnprocessableEntity {
+		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	assertProblemCode(t, rec, "ORD-DOM-007")
+}
+
 func TestTenantRequired_MissingHeader(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/orders", nil)
 	rec := httptest.NewRecorder()
@@ -160,6 +203,15 @@ func chiRoute(req *http.Request, key, value string) *http.Request {
 	return req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 }
 
+func newLifecycleTestHandlers(lifecycle stubLifecycle) *handlers.OrderHandlers {
+	return handlers.NewOrderHandlers(
+		stubCreateOrder{}, stubAddLine{}, stubUpdateLineQty{}, stubRemoveLine{}, stubSetCustomer{},
+		stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
+		lifecycle, lifecycle, lifecycle, lifecycle,
+		noopIdempotencyStore{},
+	)
+}
+
 func newTestHandlers(create inboundports.CreateOrder, addLine ...stubAddLine) *handlers.OrderHandlers {
 	add := stubAddLine{}
 	if len(addLine) > 0 {
@@ -167,7 +219,9 @@ func newTestHandlers(create inboundports.CreateOrder, addLine ...stubAddLine) *h
 	}
 	return handlers.NewOrderHandlers(
 		create, add, stubUpdateLineQty{}, stubRemoveLine{}, stubSetCustomer{},
-		stubSetAddress{}, stubSetFulfillment{}, stubSetComments{}, noopIdempotencyStore{},
+		stubSetAddress{}, stubSetFulfillment{}, stubSetComments{},
+		stubLifecycle{}, stubLifecycle{}, stubLifecycle{}, stubLifecycle{},
+		noopIdempotencyStore{},
 	)
 }
 

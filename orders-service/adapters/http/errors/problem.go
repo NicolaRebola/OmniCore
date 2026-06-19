@@ -42,6 +42,9 @@ var (
 	ErrInvalidFulfillmentType = application.AppError{
 		Code: "ORD-API-007", Message: "fulfillment type is invalid", HTTPStatus: http.StatusBadRequest,
 	}
+	ErrInvalidActorType = application.AppError{
+		Code: "ORD-API-008", Message: "actor type is invalid", HTTPStatus: http.StatusBadRequest,
+	}
 )
 
 func WriteError(w http.ResponseWriter, r *http.Request, err error) {
@@ -91,7 +94,10 @@ func problemFromApp(path, traceID string, err application.AppError) Problem {
 
 func problemFromDomain(path, traceID string, err domain.DomainError) Problem {
 	status := http.StatusBadRequest
-	if err.Code == domain.ErrMutationNotInDraft.Code {
+	switch err.Code {
+	case domain.ErrMutationNotInDraft.Code,
+		domain.ErrInvalidTransition.Code,
+		domain.ErrCancelReasonRequired.Code:
 		status = http.StatusUnprocessableEntity
 	}
 
