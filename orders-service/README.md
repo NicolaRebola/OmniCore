@@ -6,7 +6,7 @@ Part of the [OmniCore](../README.md) portfolio. Stack: **Go 1.22+**, hexagonal a
 
 ## Status
 
-**Sprint 1 — ORD-SPEC-001 and ORD-SPEC-002 done.** HTTP scaffold with health checks and local DevEx; pure domain aggregate with MVP state machine and unit tests. Next: [ORD-SPEC-003](https://app.notion.com/p/383bd6def30d8145af33f3e2098f8f05) (PostgreSQL migrations).
+**Sprint 1–2 in progress — ORD-SPEC-001/002 done; ORD-SPEC-003 done.** HTTP scaffold, domain aggregate with unit tests, PostgreSQL schema via goose. Next: [ORD-SPEC-004](https://app.notion.com/p/383bd6def30d81cea233d4acca849068) (PostgreSQL repositories).
 
 ## Documentation
 
@@ -16,6 +16,9 @@ Part of the [OmniCore](../README.md) portfolio. Stack: **Go 1.22+**, hexagonal a
 - [ORD-SPEC-001 — Implementation notes](./docs/specs/ORD-SPEC-001-project-scaffold.md)
 - [ORD-SPEC-002 — Domain Model](https://app.notion.com/p/383bd6def30d817c8422dc0d3065dd88)
 - [ORD-SPEC-002 — Implementation notes](./docs/specs/ORD-SPEC-002-domain-model.md)
+- [ORD-SPEC-003 — Persistence Migrations](https://app.notion.com/p/383bd6def30d8145af33f3e2098f8f05)
+- [Persistence guide](./docs/persistence.md)
+- [ORD-SPEC-003 — Implementation notes](./docs/specs/ORD-SPEC-003-persistence-migrations.md)
 
 ## Project Structure
 
@@ -93,7 +96,7 @@ docker compose -f docker-compose.dev.yml up
 |----------|---------|-------------|
 | `PORT` | `8081` | HTTP listen port |
 | `LOG_LEVEL` | `info` | slog level (`debug`, `info`, `warn`, `error`) |
-| `DATABASE_URL` | — | PostgreSQL connection string (used from ORD-SPEC-004) |
+| `DATABASE_URL` | — | PostgreSQL connection string (`orders` DB; see [persistence.md](./docs/persistence.md)) |
 | `CATALOG_BASE_URL` | `http://localhost:5080` | Catalog service base URL (Place, ORD-SPEC-005) |
 | `SHUTDOWN_TIMEOUT_SEC` | `10` | Graceful shutdown timeout in seconds |
 
@@ -118,3 +121,13 @@ docker compose -f docker-compose.dev.yml up
 Base path: `/api/v1/orders` · Required header: `X-Tenant-Id` · Idempotency on Create, Place, CreateAndPlace.
 
 See Phase 2 API surface in Notion for the full endpoint list.
+
+## Persistence
+
+PostgreSQL database `orders` with goose migrations. See [docs/persistence.md](./docs/persistence.md) for schema, indexes, and migration commands.
+
+```bash
+# After tilt up postgres
+export DATABASE_URL="postgres://omnicore:omnicore@localhost:5433/orders?sslmode=disable"
+goose -dir migrations postgres "$DATABASE_URL" up
+```
