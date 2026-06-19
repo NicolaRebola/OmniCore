@@ -1,6 +1,6 @@
 services:
   orders-api:
-    image: golang:1.23-alpine
+    image: golang:1.25-alpine
     working_dir: /app
     volumes:
       - .:/app
