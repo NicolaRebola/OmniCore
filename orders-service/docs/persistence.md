@@ -2,7 +2,7 @@
 
 PostgreSQL persistence for `orders-service`: dedicated database, goose migrations, and schema aligned to [Phase 3 — Architectural Analysis](https://app.notion.com/p/383bd6def30d81a198d7d7b1b05b38a2).
 
-Schema and migrations: [ORD-SPEC-003](https://app.notion.com/p/383bd6def30d8145af33f3e2098f8f05). Repository adapters and `/ready` DB ping: [ORD-SPEC-004](https://app.notion.com/p/383bd6def30d81cea233d4acca849068).
+Implemented in [ORD-SPEC-003](https://app.notion.com/p/383bd6def30d8145af33f3e2098f8f05). Repository adapters and `/ready` DB ping land in [ORD-SPEC-004](https://app.notion.com/p/383bd6def30d81cea233d4acca849068).
 
 ## Database
 
@@ -116,7 +116,7 @@ Idempotency store for Create, Place, CreateAndPlace (ADR-ORD-006, ORD-SPEC-008).
 | `idx_order_lines_tenant_id` | Tenant-scoped line queries |
 | `idx_order_transitions_order_id` | Load timeline for an order |
 
-## Domain Mapping
+## Domain Mapping (ORD-SPEC-004)
 
 Domain structs stay free of DB tags (ADR-ORD-003). Mappers in `adapters/postgres/` translate:
 
@@ -128,25 +128,6 @@ Domain structs stay free of DB tags (ADR-ORD-003). Mappers in `adapters/postgres
 | `Money` | JSON `{ "amount": int64, "currency": string }` in `*_json` columns |
 | `Totals` | `totals_json` |
 | `OrderTransition` | `order_transitions` row |
-
-## Repositories (ORD-SPEC-004)
-
-| Port | Adapter | Notes |
-|------|---------|-------|
-| `OrderRepository` | `adapters/postgres/order_repository.go` | Save/GetByID aggregate; tenant-scoped |
-| `TenantSequenceRepository` | `adapters/postgres/tenant_sequence_repository.go` | `NextOrderNumber` per tenant |
-| `IdempotencyRepository` | `adapters/postgres/idempotency_repository.go` | Save/Find; HTTP replay in ORD-SPEC-008 |
-
-`DATABASE_URL` is required at startup (`cmd/api/main.go`). `GET /ready` pings the pool before returning 200.
-
-### Integration tests
-
-```bash
-export DATABASE_URL="postgres://omnicore:omnicore@localhost:5433/orders?sslmode=disable"
-go test -tags=integration ./adapters/postgres/... -count=1 -v
-```
-
-Migrations are applied automatically in `TestMain` via goose. CI runs the same tests with a Postgres service container.
 
 ## Running Migrations
 
@@ -201,7 +182,7 @@ Expected tables: `orders`, `order_lines`, `order_transitions`, `tenant_sequences
 | `go run` on host | `postgres://omnicore:omnicore@localhost:5433/orders?sslmode=disable` |
 | Docker / Tilt (`orders-api`) | `postgres://omnicore:omnicore@postgres:5432/orders?sslmode=disable` |
 
-`DATABASE_URL` is required when starting the API (`cmd/api/main.go`). Without a reachable database, the process exits on startup; `/ready` returns 503 if the pool cannot ping PostgreSQL.
+`DATABASE_URL` is loaded in `cmd/api/config.go` but not used until ORD-SPEC-004 wires PostgreSQL adapters and `/ready` performs a DB ping.
 
 ## Multi-Tenant Rules
 
@@ -213,15 +194,14 @@ Expected tables: `orders`, `order_lines`, `order_transitions`, `tenant_sequences
 
 | Item | Spec |
 |------|------|
-| Use cases + Place transaction with `NextOrderNumber` | ORD-SPEC-005 |
-| HTTP idempotency replay / hash mismatch | ORD-SPEC-008 |
-| `external_reference` column mapping | Post-MVP |
+| `OrderRepository`, mappers, `RehydrateOrder` | ORD-SPEC-004 |
+| `/ready` PostgreSQL ping | ORD-SPEC-004 |
+| Idempotency repository | ORD-SPEC-004 / ORD-SPEC-008 |
 | Migration automation in Tilt / app startup | Optional post-MVP |
 | Seed / dev data | Post-MVP |
 
 ## References
 
-- [ORD-SPEC-004 — Implementation notes](./specs/ORD-SPEC-004-postgres-repositories.md)
 - [ORD-SPEC-003 — Implementation notes](./specs/ORD-SPEC-003-persistence-migrations.md)
 - [ORD-SPEC-002 — Domain Model](./specs/ORD-SPEC-002-domain-model.md)
 - [Phase 3 — Architectural Analysis](https://app.notion.com/p/383bd6def30d81a198d7d7b1b05b38a2)

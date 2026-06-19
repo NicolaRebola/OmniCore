@@ -15,6 +15,7 @@ type healthResponse struct {
 
 type readyResponse struct {
 	Status string `json:"status"`
+	// DB check en ORD-SPEC-004
 }
 
 func HealthHandler(w http.ResponseWriter, r *http.Request) {
@@ -30,7 +31,7 @@ func ReadyHandler(pool *pgxpool.Pool) http.HandlerFunc {
 			writeJSON(w, http.StatusServiceUnavailable, readyResponse{Status: "not_ready"})
 			return
 		}
-		writeJSON(w, http.StatusOK, readyResponse{Status: "ready"})
+		writeJSON(w, http.StatusOK, readyResponse{Status: "DB ready"})
 	}
 }
 

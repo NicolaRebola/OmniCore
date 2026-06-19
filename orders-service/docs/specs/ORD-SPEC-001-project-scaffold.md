@@ -21,7 +21,7 @@ Hexagonal Go scaffold for the Order Service: module layout, chi HTTP server with
 | Area | Delivered |
 |------|-----------|
 | Layout | `cmd/api`, `internal/domain`, `internal/application/ports`, `internal/application/usecases`, `adapters/http`, `migrations/` |
-| HTTP | chi router, `GET /health`, `GET /ready` (PostgreSQL ping via ORD-SPEC-004), graceful shutdown |
+| HTTP | chi router, `GET /health`, `GET /ready` (stub), graceful shutdown |
 | Config | `PORT` (8081), `LOG_LEVEL`, `DATABASE_URL`, `CATALOG_BASE_URL`, `SHUTDOWN_TIMEOUT_SEC` |
 | Middleware | Request ID, recoverer, slog JSON logging, `X-Tenant-Id` placeholder on `/api/v1` |
 | DevEx | `Dockerfile`, `docker-compose.dev.yml`, `Tiltfile`, `.dockerignore` |
@@ -59,7 +59,7 @@ tilt up orders-api
 |------|------|
 | Domain model | ORD-SPEC-002 (done) |
 | SQL migrations | ORD-SPEC-003 (done) |
-| PostgreSQL repositories + `/ready` DB ping | ORD-SPEC-004 (done) |
+| PostgreSQL repositories + `/ready` DB ping | ORD-SPEC-004 |
 | Strict `X-Tenant-Id` validation | ORD-SPEC-006 |
 | Business REST endpoints | ORD-SPEC-006+ |
 

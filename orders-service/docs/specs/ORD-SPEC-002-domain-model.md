@@ -74,7 +74,7 @@ go build ./...
 
 | Item | Spec |
 |------|------|
-| `RehydrateOrder` for PostgreSQL | ORD-SPEC-004 (done) |
+| `RehydrateOrder` for PostgreSQL | ORD-SPEC-004 |
 | HTTP REST endpoints | ORD-SPEC-006+ |
 | Catalog client at Place | ORD-SPEC-005 |
 | SQL schema + migrations | ORD-SPEC-003 (done) |
