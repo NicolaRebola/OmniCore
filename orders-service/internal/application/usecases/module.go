@@ -13,6 +13,10 @@ var Module = fx.Module("usecases",
 			fx.As(new(inboundports.PlaceOrder)),
 		),
 		fx.Annotate(
+			NewCreateAndPlaceHandler,
+			fx.As(new(inboundports.CreateAndPlace)),
+		),
+		fx.Annotate(
 			NewCreateOrderHandler,
 			fx.As(new(inboundports.CreateOrder)),
 		),

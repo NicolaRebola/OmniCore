@@ -26,6 +26,8 @@ func NewRouter(logger *slog.Logger, pool *pgxpool.Pool, orderHandlers *handlers.
 
 		r.Route("/orders", func(r chi.Router) {
 			r.Post("/", orderHandlers.Create)
+			r.Post("/create-and-place", orderHandlers.CreateAndPlace)
+			r.Post("/{id}/place", orderHandlers.Place)
 			r.Post("/{id}/lines", orderHandlers.AddLine)
 			r.Patch("/{id}/lines/{lineId}", orderHandlers.UpdateLineQuantity)
 			r.Delete("/{id}/lines/{lineId}", orderHandlers.RemoveLine)

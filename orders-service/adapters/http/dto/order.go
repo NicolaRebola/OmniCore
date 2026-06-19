@@ -74,6 +74,22 @@ type CreateOrderRequest struct {
 	FulfillmentType string `json:"fulfillmentType"`
 }
 
+type CreateAndPlaceLineRequest struct {
+	VariantID uuid.UUID `json:"variantId"`
+	Quantity  int       `json:"quantity"`
+}
+
+type CreateAndPlaceRequest struct {
+	Source          string                      `json:"source"`
+	FulfillmentType string                      `json:"fulfillmentType"`
+	Customer        CustomerRequest             `json:"customer"`
+	Address         *AddressRequest             `json:"address,omitempty"`
+	Comments        string                      `json:"comments,omitempty"`
+	Lines           []CreateAndPlaceLineRequest `json:"lines"`
+	ActorType       string                      `json:"actorType"`
+	ActorID         string                      `json:"actorId,omitempty"`
+}
+
 type AddLineRequest struct {
 	VariantID uuid.UUID `json:"variantId"`
 	Quantity  int       `json:"quantity"`

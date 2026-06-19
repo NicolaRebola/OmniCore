@@ -530,6 +530,55 @@
         ]
       },
       {
+        "id": "mpqa-orders-place-folder",
+        "name": "Place & CreateAndPlace",
+        "type": "folder",
+        "items": [
+          {
+            "method": "POST",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/place",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}",
+              "Idempotency-Key": "{{placeIdempotencyKey}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"actorType\": \"staff\",\n  \"actorId\": \"staff-001\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-place",
+            "name": "Place Order"
+          },
+          {
+            "method": "POST",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/create-and-place",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}",
+              "Idempotency-Key": "{{createAndPlaceIdempotencyKey}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"source\": \"POS\",\n  \"fulfillmentType\": \"TAKEAWAY\",\n  \"customer\": { \"name\": \"Walk-in\" },\n  \"lines\": [{ \"variantId\": \"{{catalogVariantId}}\", \"quantity\": 2 }],\n  \"actorType\": \"staff\",\n  \"actorId\": \"staff-001\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-create-and-place",
+            "name": "CreateAndPlace (POS)"
+          }
+        ]
+      },
+      {
         "id": "mpqa-orders-lifecycle-folder",
         "name": "Lifecycle Transitions",
         "type": "folder",

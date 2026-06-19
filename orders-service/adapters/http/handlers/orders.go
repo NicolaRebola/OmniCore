@@ -20,6 +20,7 @@ import (
 
 type OrderHandlers struct {
 	create            inboundports.CreateOrder
+	createAndPlace    inboundports.CreateAndPlace
 	addLine           inboundports.AddLine
 	updateLineQty     inboundports.UpdateLineQuantity
 	removeLine        inboundports.RemoveLine
@@ -27,6 +28,7 @@ type OrderHandlers struct {
 	setAddress        inboundports.SetAddress
 	setFulfillment    inboundports.SetFulfillmentType
 	setComments       inboundports.SetComments
+	place             inboundports.PlaceOrder
 	accept            inboundports.AcceptOrder
 	start             inboundports.StartOrder
 	complete          inboundports.CompleteOrder
@@ -36,6 +38,7 @@ type OrderHandlers struct {
 
 func NewOrderHandlers(
 	create inboundports.CreateOrder,
+	createAndPlace inboundports.CreateAndPlace,
 	addLine inboundports.AddLine,
 	updateLineQty inboundports.UpdateLineQuantity,
 	removeLine inboundports.RemoveLine,
@@ -43,6 +46,7 @@ func NewOrderHandlers(
 	setAddress inboundports.SetAddress,
 	setFulfillment inboundports.SetFulfillmentType,
 	setComments inboundports.SetComments,
+	place inboundports.PlaceOrder,
 	accept inboundports.AcceptOrder,
 	start inboundports.StartOrder,
 	complete inboundports.CompleteOrder,
@@ -51,6 +55,7 @@ func NewOrderHandlers(
 ) *OrderHandlers {
 	return &OrderHandlers{
 		create:         create,
+		createAndPlace: createAndPlace,
 		addLine:        addLine,
 		updateLineQty:  updateLineQty,
 		removeLine:     removeLine,
@@ -58,6 +63,7 @@ func NewOrderHandlers(
 		setAddress:     setAddress,
 		setFulfillment: setFulfillment,
 		setComments:    setComments,
+		place:          place,
 		accept:         accept,
 		start:          start,
 		complete:       complete,
@@ -139,6 +145,185 @@ func (h *OrderHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusCreated, respBytes)
+}
+
+func (h *OrderHandlers) CreateAndPlace(w http.ResponseWriter, r *http.Request) {
+	tenantID, ok := httpmw.TenantIDFromContext(r.Context())
+	if !ok {
+		errors.WriteError(w, r, application.ErrTenantRequired)
+		return
+	}
+
+	idempotencyKey := r.Header.Get("Idempotency-Key")
+	if idempotencyKey == "" {
+		errors.WriteError(w, r, application.ErrIdempotencyKeyRequired)
+		return
+	}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	requestHash := idempotency.HashRequestBody(body)
+	if replay, found, err := h.idempotency.GetReplay(
+		r.Context(), tenantID, idempotencyKey, idempotency.CreateAndPlaceOperation, requestHash,
+	); err != nil {
+		errors.WriteError(w, r, err)
+		return
+	} else if found {
+		writeJSON(w, http.StatusCreated, replay)
+		return
+	}
+
+	var req dto.CreateAndPlaceRequest
+	if err := json.Unmarshal(body, &req); err != nil {
+		errors.WriteError(w, r, errors.ErrInvalidJSON)
+		return
+	}
+
+	source, err := dto.ParseOrderSource(req.Source)
+	if err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	fulfillment, err := dto.ParseFulfillmentType(req.FulfillmentType)
+	if err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	actor, err := dto.ActorFromRequest(dto.ActorRequest{
+		ActorType: req.ActorType,
+		ActorID:   req.ActorID,
+	})
+	if err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	if len(req.Lines) == 0 {
+		errors.WriteError(w, r, domain.ErrPlaceWithoutLines)
+		return
+	}
+
+	lines := make([]inboundports.CreateAndPlaceLine, len(req.Lines))
+	for i, line := range req.Lines {
+		if line.VariantID == uuid.Nil {
+			errors.WriteError(w, r, errors.ErrInvalidVariantID)
+			return
+		}
+		lines[i] = inboundports.CreateAndPlaceLine{
+			VariantID: line.VariantID,
+			Quantity:  line.Quantity,
+		}
+	}
+
+	cmd := inboundports.CreateAndPlaceCommand{
+		TenantID:        tenantID,
+		Source:          source,
+		FulfillmentType: fulfillment,
+		Customer:        customerFromRequest(req.Customer),
+		Comments:        req.Comments,
+		Lines:           lines,
+		Actor:           actor,
+	}
+	if req.Address != nil {
+		addr := addressFromRequest(*req.Address)
+		cmd.Address = &addr
+	}
+
+	result, err := h.createAndPlace.Execute(r.Context(), cmd)
+	if err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	resp := dto.OrderFromDomain(result.Order)
+	respBytes, err := idempotency.MarshalResponse(resp)
+	if err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	if err := h.idempotency.SaveResponse(
+		r.Context(), tenantID, idempotencyKey, idempotency.CreateAndPlaceOperation, requestHash, respBytes,
+	); err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, respBytes)
+}
+
+func (h *OrderHandlers) Place(w http.ResponseWriter, r *http.Request) {
+	tenantID, orderID, ok := h.tenantAndOrderID(w, r)
+	if !ok {
+		return
+	}
+
+	idempotencyKey := r.Header.Get("Idempotency-Key")
+	if idempotencyKey == "" {
+		errors.WriteError(w, r, application.ErrIdempotencyKeyRequired)
+		return
+	}
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	requestHash := idempotency.HashScopedRequest(orderID.String(), body)
+	if replay, found, err := h.idempotency.GetReplay(
+		r.Context(), tenantID, idempotencyKey, idempotency.PlaceOrderOperation, requestHash,
+	); err != nil {
+		errors.WriteError(w, r, err)
+		return
+	} else if found {
+		writeJSON(w, http.StatusOK, replay)
+		return
+	}
+
+	var req dto.ActorRequest
+	if err := json.Unmarshal(body, &req); err != nil {
+		errors.WriteError(w, r, errors.ErrInvalidJSON)
+		return
+	}
+
+	actor, err := dto.ActorFromRequest(req)
+	if err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	result, err := h.place.Execute(r.Context(), inboundports.PlaceOrderCommand{
+		TenantID: tenantID,
+		OrderID:  orderID,
+		Actor:    actor,
+	})
+	if err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	resp := dto.OrderFromDomain(result.Order)
+	respBytes, err := idempotency.MarshalResponse(resp)
+	if err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	if err := h.idempotency.SaveResponse(
+		r.Context(), tenantID, idempotencyKey, idempotency.PlaceOrderOperation, requestHash, respBytes,
+	); err != nil {
+		errors.WriteError(w, r, err)
+		return
+	}
+
+	writeJSON(w, http.StatusOK, respBytes)
 }
 
 func (h *OrderHandlers) AddLine(w http.ResponseWriter, r *http.Request) {

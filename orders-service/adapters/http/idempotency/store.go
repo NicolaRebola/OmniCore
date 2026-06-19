@@ -14,7 +14,11 @@ import (
 	postgresports "orders-service/internal/application/ports/outbound/repositories/postgres"
 )
 
-const CreateOrderOperation = "create_order"
+const (
+	CreateOrderOperation      = "create_order"
+	PlaceOrderOperation       = "place_order"
+	CreateAndPlaceOperation   = "create_and_place"
+)
 
 type Store struct {
 	repo postgresports.IdempotencyRepository
@@ -27,6 +31,11 @@ func NewStore(repo postgresports.IdempotencyRepository) *Store {
 func HashRequestBody(body []byte) string {
 	sum := sha256.Sum256(body)
 	return hex.EncodeToString(sum[:])
+}
+
+func HashScopedRequest(scope string, body []byte) string {
+	payload := append([]byte(scope+":"), body...)
+	return HashRequestBody(payload)
 }
 
 func (s *Store) GetReplay(
