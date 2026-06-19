@@ -318,5 +318,414 @@
         "name": "Delete Category"
       }
     ]
+  },
+  {
+    "id": "mpqa-orders-collection",
+    "name": "Orders",
+    "variables": [],
+    "items": [
+      {
+        "id": "mpqa-orders-health-folder",
+        "name": "Health",
+        "type": "folder",
+        "items": [
+          {
+            "method": "GET",
+            "url": "http://localhost:{{ordersServicePort}}/health",
+            "headers": {},
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-health",
+            "name": "Health (liveness)"
+          },
+          {
+            "method": "GET",
+            "url": "http://localhost:{{ordersServicePort}}/ready",
+            "headers": {},
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-ready",
+            "name": "Ready (PostgreSQL ping)"
+          }
+        ]
+      },
+      {
+        "id": "mpqa-orders-draft-folder",
+        "name": "Draft Mutations",
+        "type": "folder",
+        "items": [
+          {
+            "method": "POST",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}",
+              "Idempotency-Key": "{{idempotencyKey}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"source\": \"POS\",\n  \"fulfillmentType\": \"TAKEAWAY\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-create",
+            "name": "Create Draft Order"
+          },
+          {
+            "method": "POST",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/lines",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"variantId\": \"{{catalogVariantId}}\",\n  \"quantity\": 2\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-add-line",
+            "name": "Add Line"
+          },
+          {
+            "method": "PATCH",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/lines/{{orderLineId}}",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"quantity\": 3\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-update-line-quantity",
+            "name": "Update Line Quantity"
+          },
+          {
+            "method": "DELETE",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/lines/{{orderLineId}}",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-remove-line",
+            "name": "Remove Line"
+          },
+          {
+            "method": "PUT",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/customer",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-set-customer",
+            "name": "Set Customer"
+          },
+          {
+            "method": "PUT",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/address",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"street\": \"Av. Corrientes\",\n  \"number\": \"1234\",\n  \"apartment\": \"4B\",\n  \"city\": \"Buenos Aires\",\n  \"references\": \"Timbre roto\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-set-address",
+            "name": "Set Address"
+          },
+          {
+            "method": "PUT",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/fulfillment",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"fulfillmentType\": \"DELIVERY\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-set-fulfillment",
+            "name": "Set Fulfillment Type"
+          },
+          {
+            "method": "PUT",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/comments",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"comments\": \"Sin cebolla\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-set-comments",
+            "name": "Set Comments"
+          }
+        ]
+      },
+      {
+        "id": "mpqa-orders-place-folder",
+        "name": "Place & CreateAndPlace",
+        "type": "folder",
+        "items": [
+          {
+            "method": "POST",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/place",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}",
+              "Idempotency-Key": "{{placeIdempotencyKey}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"actorType\": \"staff\",\n  \"actorId\": \"staff-001\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-place",
+            "name": "Place Order"
+          },
+          {
+            "method": "POST",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/create-and-place",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}",
+              "Idempotency-Key": "{{createAndPlaceIdempotencyKey}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"source\": \"POS\",\n  \"fulfillmentType\": \"TAKEAWAY\",\n  \"customer\": { \"name\": \"Walk-in\" },\n  \"lines\": [{ \"variantId\": \"{{catalogVariantId}}\", \"quantity\": 2 }],\n  \"actorType\": \"staff\",\n  \"actorId\": \"staff-001\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-create-and-place",
+            "name": "CreateAndPlace (POS)"
+          }
+        ]
+      },
+      {
+        "id": "mpqa-orders-lifecycle-folder",
+        "name": "Lifecycle Transitions",
+        "type": "folder",
+        "items": [
+          {
+            "method": "POST",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/accept",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"actorType\": \"staff\",\n  \"actorId\": \"staff-001\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-accept",
+            "name": "Accept Order"
+          },
+          {
+            "method": "POST",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/start",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"actorType\": \"staff\",\n  \"actorId\": \"staff-001\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-start",
+            "name": "Start Order"
+          },
+          {
+            "method": "POST",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/complete",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"actorType\": \"staff\",\n  \"actorId\": \"staff-001\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-complete",
+            "name": "Complete Order"
+          },
+          {
+            "method": "POST",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}/cancel",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "raw",
+              "rawType": "json",
+              "value": "{\n  \"actorType\": \"staff\",\n  \"actorId\": \"staff-001\",\n  \"reason\": \"customer request\"\n}"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-cancel",
+            "name": "Cancel Order"
+          }
+        ]
+      },
+      {
+        "id": "mpqa-orders-queries-folder",
+        "name": "Order Queries",
+        "type": "folder",
+        "items": [
+          {
+            "method": "GET",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders/{{orderId}}",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-get-by-id",
+            "name": "Get Order By Id"
+          },
+          {
+            "method": "GET",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders?page=1&pageSize=20",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-list",
+            "name": "List Orders (paged)"
+          },
+          {
+            "method": "GET",
+            "url": "http://localhost:{{ordersServicePort}}/api/v1/orders?page=1&pageSize=20&status=Placed",
+            "headers": {
+              "X-Tenant-Id": "{{tenantId}}"
+            },
+            "body": {
+              "mode": "none"
+            },
+            "auth": {
+              "type": "none"
+            },
+            "preRequestScript": "",
+            "postResponseScript": "",
+            "type": "request",
+            "id": "mpqa-orders-list-by-status",
+            "name": "List Orders by Status"
+          }
+        ]
+      }
+    ]
   }
 ]

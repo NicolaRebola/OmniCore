@@ -37,6 +37,7 @@ The platform is composed of independent services, each responsible for a well-de
 | Service | Language / Stack | Status | Description |
 |---|---|---|---|
 | `catalog-service` | C# / .NET 9 | In Progress | Multi-tenant product catalog with variant and template support |
+| `orders-service` | Go 1.22+ | In Progress (Sprint 2) | Multi-tenant order lifecycle; scaffold through PostgreSQL repos (ORD-SPEC-001–004) |
 
 > More services will be added as the project evolves.
 
@@ -49,6 +50,12 @@ OmniCore/
 ├── catalog-service/       # Product catalog domain service
 │   ├── src/
 │   ├── tests/
+│   ├── docs/
+│   ├── Tiltfile
+│   └── docker-compose.dev.yml
+├── orders-service/        # Order lifecycle service (Go)
+│   ├── cmd/
+│   ├── adapters/
 │   ├── docs/
 │   ├── Tiltfile
 │   └── docker-compose.dev.yml
@@ -220,8 +227,8 @@ Edit the root `Tiltfile` to include only the services you need:
 
 ```python
 # Tiltfile
-include('./catalog-service/Tiltfile')
-# include('./orders-service/Tiltfile')    # uncomment when needed
+include('./catalog-service/Tiltfile')   # Port: 5080
+include('./orders-service/Tiltfile')    # Port: 8081
 # include('./inventory-service/Tiltfile') # uncomment when needed
 ```
 
@@ -234,6 +241,7 @@ Each service maintains its own `README.md` and a `docs/` directory. Strategic do
 | Service | README | Docs | Notion |
 |---|---|---|---|
 | `catalog-service` | [catalog-service/README.md](./catalog-service/README.md) | [Testing Strategy](./catalog-service/docs/testing.md) | [Catalog Notion Workspace](./catalog-service/docs/notion.md) |
+| `orders-service` | [orders-service/README.md](./orders-service/README.md) | [Persistence](./orders-service/docs/persistence.md) · [ORD-SPEC-001](./orders-service/docs/specs/ORD-SPEC-001-project-scaffold.md) · [ORD-SPEC-002](./orders-service/docs/specs/ORD-SPEC-002-domain-model.md) · [ORD-SPEC-003](./orders-service/docs/specs/ORD-SPEC-003-persistence-migrations.md) · [ORD-SPEC-004](./orders-service/docs/specs/ORD-SPEC-004-postgres-repositories.md) | [Orders Notion Workspace](./orders-service/docs/notion.md) |
 
 ## Continuous Integration
 

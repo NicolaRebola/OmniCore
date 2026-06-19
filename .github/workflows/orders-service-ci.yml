@@ -1,0 +1,80 @@
+name: orders-service-ci
+
+on:
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - "orders-service/**"
+      - ".github/workflows/orders-service-ci.yml"
+  push:
+    branches: [develop, main]
+    paths:
+      - "orders-service/**"
+      - ".github/workflows/orders-service-ci.yml"
+  workflow_dispatch: {}
+
+jobs:
+  build-and-test:
+    name: Build and test (orders-service)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: orders-service
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+          cache-dependency-path: orders-service/go.sum
+
+      - name: Build
+        run: go build ./...
+
+      - name: Test
+        run: go test ./... -count=1 -v
+
+      - name: Vet
+        run: go vet ./...
+
+  integration-test:
+    name: Integration test (orders-service)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: orders-service
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: omnicore
+          POSTGRES_PASSWORD: omnicore
+          POSTGRES_DB: orders
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U omnicore -d orders"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23.x"
+          cache-dependency-path: orders-service/go.sum
+
+      - name: Integration test
+        env:
+          DATABASE_URL: postgres://omnicore:omnicore@localhost:5432/orders?sslmode=disable
+        run: go test -tags=integration ./adapters/postgres/... -count=1 -v

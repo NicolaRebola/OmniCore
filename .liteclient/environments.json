@@ -49,6 +49,48 @@
         "initialValue": "bbbbbbbb-0000-0000-0000-000000000001",
         "type": "default",
         "enabled": true
+      },
+      {
+        "id": "mpqa-env-orders-service-port",
+        "name": "ordersServicePort",
+        "initialValue": "8081",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "id": "mpqa-env-order-id",
+        "name": "orderId",
+        "initialValue": "bbbbbbbb-0000-0000-0000-000000000001",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "id": "mpqa-env-order-line-id",
+        "name": "orderLineId",
+        "initialValue": "cccccccc-0000-0000-0000-000000000001",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "id": "mpqa-env-idempotency-key",
+        "name": "idempotencyKey",
+        "initialValue": "create-order-001",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "id": "mpqa-env-place-idempotency-key",
+        "name": "placeIdempotencyKey",
+        "initialValue": "place-order-001",
+        "type": "default",
+        "enabled": true
+      },
+      {
+        "id": "mpqa-env-create-and-place-idempotency-key",
+        "name": "createAndPlaceIdempotencyKey",
+        "initialValue": "create-and-place-001",
+        "type": "default",
+        "enabled": true
       }
     ]
   }
