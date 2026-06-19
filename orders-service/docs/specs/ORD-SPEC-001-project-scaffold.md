@@ -23,7 +23,7 @@ Hexagonal Go scaffold for the Order Service: module layout, chi HTTP server with
 | Layout | `cmd/api`, `internal/domain`, `internal/application/ports`, `internal/application/usecases`, `adapters/http`, `migrations/` |
 | HTTP | chi router, `GET /health`, `GET /ready` (PostgreSQL ping via ORD-SPEC-004), graceful shutdown |
 | Config | `PORT` (8081), `LOG_LEVEL`, `DATABASE_URL`, `CATALOG_BASE_URL`, `SHUTDOWN_TIMEOUT_SEC` |
-| Middleware | Request ID, recoverer, slog JSON logging, `X-Tenant-Id` placeholder on `/api/v1` |
+| Middleware | Request ID, recoverer, slog JSON logging, `TenantRequired` on `/api/v1` (ORD-SPEC-006) |
 | DevEx | `Dockerfile`, `docker-compose.dev.yml`, `Tiltfile`, `.dockerignore` |
 | Infra | Shared PostgreSQL database `orders` in `infra/postgres/init/` |
 
@@ -60,8 +60,9 @@ tilt up orders-api
 | Domain model | ORD-SPEC-002 (done) |
 | SQL migrations | ORD-SPEC-003 (done) |
 | PostgreSQL repositories + `/ready` DB ping | ORD-SPEC-004 (done) |
-| Strict `X-Tenant-Id` validation | ORD-SPEC-006 |
-| Business REST endpoints | ORD-SPEC-006+ |
+| Strict `X-Tenant-Id` validation | ORD-SPEC-006 (done) |
+| Draft mutation REST endpoints | ORD-SPEC-006 (done) |
+| Lifecycle / Place / queries REST | ORD-SPEC-007–009 |
 
 ## References
 

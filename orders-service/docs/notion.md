@@ -21,7 +21,7 @@ Planning and technical design for the Order Service live in Notion.
 | [ORD-SPEC-003 - Persistence Migrations](https://app.notion.com/p/383bd6def30d8145af33f3e2098f8f05) | 2 | Done |
 | [ORD-SPEC-004 - PostgreSQL Repositories](https://app.notion.com/p/383bd6def30d81cea233d4acca849068) | 2 | Done |
 | [ORD-SPEC-005 - Place + Catalog Client](https://app.notion.com/p/383bd6def30d81f69f3bd5aa858a7438) | 3 | Done |
-| [ORD-SPEC-006 - Draft Mutations API](https://app.notion.com/p/383bd6def30d813b8098fe1a62a78bf8) | 3 | Backlog |
+| [ORD-SPEC-006 - Draft Mutations API](https://app.notion.com/p/383bd6def30d813b8098fe1a62a78bf8) | 3 | Done |
 | [ORD-SPEC-007 - Lifecycle Transitions API](https://app.notion.com/p/383bd6def30d8122b259f01e7a41410a) | 4 | Backlog |
 | [ORD-SPEC-008 - CreateAndPlace + Idempotency](https://app.notion.com/p/383bd6def30d81979498ff0c3b30f741) | 4 | Backlog |
 | [ORD-SPEC-009 - Order Queries API](https://app.notion.com/p/383bd6def30d8160ae3ac6e58694ce18) | 5 | Backlog |
@@ -37,6 +37,7 @@ Planning and technical design for the Order Service live in Notion.
 | ORD-SPEC-003 | [Persistence Migrations](./specs/ORD-SPEC-003-persistence-migrations.md) · [persistence.md](./persistence.md) |
 | ORD-SPEC-004 | [PostgreSQL Repositories](./specs/ORD-SPEC-004-postgres-repositories.md) · [persistence.md](./persistence.md) |
 | ORD-SPEC-005 | [Place + Catalog Client](./specs/ORD-SPEC-005-place-catalog-client.md) |
+| ORD-SPEC-006 | [Draft Mutations REST API](./specs/ORD-SPEC-006-draft-mutations-rest-api.md) · [testing.md](./testing.md) |
 
 ## Cross-Service Dependencies
 

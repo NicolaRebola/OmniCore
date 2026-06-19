@@ -96,7 +96,7 @@ Sequential `order_number` per tenant (ADR-ORD-005). Updated with `UPDATE … RET
 
 ### `idempotency_keys`
 
-Idempotency store for Create, Place, CreateAndPlace (ADR-ORD-006, ORD-SPEC-008).
+Idempotency store for Create, Place, CreateAndPlace (ADR-ORD-006). **Create** replay wired in ORD-SPEC-006 (`operation = create_order`); Place/CreateAndPlace in ORD-SPEC-008.
 
 | Column | Type |
 |--------|------|
@@ -135,7 +135,7 @@ Domain structs stay free of DB tags (ADR-ORD-003). Mappers in `adapters/postgres
 |------|---------|-------|
 | `OrderRepository` | `adapters/postgres/order_repository.go` | Save/GetByID aggregate; tenant-scoped |
 | `TenantSequenceRepository` | `adapters/postgres/tenant_sequence_repository.go` | `NextOrderNumber` per tenant |
-| `IdempotencyRepository` | `adapters/postgres/idempotency_repository.go` | Save/Find; HTTP replay in ORD-SPEC-008 |
+| `IdempotencyRepository` | `adapters/postgres/idempotency_repository.go` | Save/Find; Create replay in ORD-SPEC-006; Place/CreateAndPlace in ORD-SPEC-008 |
 
 `DATABASE_URL` is required at startup (`cmd/api/main.go`). `GET /ready` pings the pool before returning 200.
 
@@ -213,13 +213,14 @@ Expected tables: `orders`, `order_lines`, `order_transitions`, `tenant_sequences
 
 | Item | Spec |
 |------|------|
-| HTTP idempotency replay / hash mismatch | ORD-SPEC-008 |
+| HTTP idempotency (Place, CreateAndPlace) | ORD-SPEC-008 |
 | `external_reference` column mapping | Post-MVP |
 | Migration automation in Tilt / app startup | Optional post-MVP |
 | Seed / dev data | Post-MVP |
 
 ## References
 
+- [ORD-SPEC-006 — Draft Mutations REST API](./specs/ORD-SPEC-006-draft-mutations-rest-api.md)
 - [ORD-SPEC-005 — Place + Catalog Client](./specs/ORD-SPEC-005-place-catalog-client.md)
 - [ORD-SPEC-004 — PostgreSQL Repositories](./specs/ORD-SPEC-004-postgres-repositories.md)
 - [ORD-SPEC-003 — Implementation notes](./specs/ORD-SPEC-003-persistence-migrations.md)
