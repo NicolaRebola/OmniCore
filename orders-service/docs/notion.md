@@ -18,7 +18,7 @@ Planning and technical design for the Order Service live in Notion.
 |------|--------|--------|
 | [ORD-SPEC-001 - Project Scaffold](https://app.notion.com/p/383bd6def30d81eb8afed1ba1f41d7b2) | 1 | Done |
 | [ORD-SPEC-002 - Domain Model](https://app.notion.com/p/383bd6def30d817c8422dc0d3065dd88) | 1 | Done |
-| [ORD-SPEC-003 - Persistence Migrations](https://app.notion.com/p/383bd6def30d8145af33f3e2098f8f05) | 2 | Backlog |
+| [ORD-SPEC-003 - Persistence Migrations](https://app.notion.com/p/383bd6def30d8145af33f3e2098f8f05) | 2 | Done |
 | [ORD-SPEC-004 - PostgreSQL Repositories](https://app.notion.com/p/383bd6def30d81cea233d4acca849068) | 2 | Backlog |
 | [ORD-SPEC-005 - Place + Catalog Client](https://app.notion.com/p/383bd6def30d81f69f3bd5aa858a7438) | 3 | Backlog |
 | [ORD-SPEC-006 - Draft Mutations API](https://app.notion.com/p/383bd6def30d813b8098fe1a62a78bf8) | 3 | Backlog |
@@ -34,6 +34,7 @@ Planning and technical design for the Order Service live in Notion.
 |------|-----|
 | ORD-SPEC-001 | [Project Scaffold](./specs/ORD-SPEC-001-project-scaffold.md) |
 | ORD-SPEC-002 | [Domain Model](./specs/ORD-SPEC-002-domain-model.md) |
+| ORD-SPEC-003 | [Persistence Migrations](./specs/ORD-SPEC-003-persistence-migrations.md) · [persistence.md](./persistence.md) |
 
 ## Cross-Service Dependencies
 
