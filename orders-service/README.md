@@ -6,7 +6,7 @@ Part of the [OmniCore](../README.md) portfolio. Stack: **Go 1.22+**, hexagonal a
 
 ## Status
 
-**Sprint 1–2 in progress — ORD-SPEC-001/002 done; ORD-SPEC-003 done.** HTTP scaffold, domain aggregate with unit tests, PostgreSQL schema via goose. Next: [ORD-SPEC-004](https://app.notion.com/p/383bd6def30d81cea233d4acca849068) (PostgreSQL repositories).
+**Sprint 2 done — ORD-SPEC-001 through ORD-SPEC-004.** HTTP scaffold, domain aggregate, PostgreSQL schema, repository adapters, `/ready` DB ping, and integration tests. Next: [ORD-SPEC-005](https://app.notion.com/p/383bd6def30d81f69f3bd5aa858a7438) (Place + Catalog client).
 
 ## Documentation
 
@@ -19,6 +19,8 @@ Part of the [OmniCore](../README.md) portfolio. Stack: **Go 1.22+**, hexagonal a
 - [ORD-SPEC-003 — Persistence Migrations](https://app.notion.com/p/383bd6def30d8145af33f3e2098f8f05)
 - [Persistence guide](./docs/persistence.md)
 - [ORD-SPEC-003 — Implementation notes](./docs/specs/ORD-SPEC-003-persistence-migrations.md)
+- [ORD-SPEC-004 — PostgreSQL Repositories](https://app.notion.com/p/383bd6def30d81cea233d4acca849068)
+- [ORD-SPEC-004 — Implementation notes](./docs/specs/ORD-SPEC-004-postgres-repositories.md)
 
 ## Project Structure
 
@@ -31,7 +33,8 @@ orders-service/
 │       ├── ports/              # Inbound/outbound interfaces
 │       └── usecases/           # Use case handlers
 ├── adapters/
-│   └── http/                   # chi router, handlers, middleware
+│   ├── http/                   # chi router, handlers, middleware
+│   └── postgres/               # pgx repositories + mappers (ORD-SPEC-004)
 ├── migrations/                 # goose SQL (ORD-SPEC-003)
 ├── Dockerfile
 ├── docker-compose.dev.yml
@@ -67,6 +70,7 @@ Build and test:
 ```bash
 go build ./...
 go test ./internal/domain/... -v
+go test -tags=integration ./adapters/postgres/... -v   # requires DATABASE_URL + Postgres
 ```
 
 > Do not run `go run` and the Docker container at the same time — both bind port **8081** on the host.
@@ -114,7 +118,7 @@ docker compose -f docker-compose.dev.yml up
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/health` | Liveness probe — returns `{"status":"ok"}` |
-| `GET` | `/ready` | Readiness probe (stub until ORD-SPEC-004 adds DB ping) |
+| `GET` | `/ready` | Readiness probe — pings PostgreSQL; `{"status":"ready"}` or 503 `not_ready` |
 
 ### Planned (MVP 1)
 
@@ -130,4 +134,5 @@ PostgreSQL database `orders` with goose migrations. See [docs/persistence.md](./
 # After tilt up postgres
 export DATABASE_URL="postgres://omnicore:omnicore@localhost:5433/orders?sslmode=disable"
 goose -dir migrations postgres "$DATABASE_URL" up
+go test -tags=integration ./adapters/postgres/... -count=1 -v
 ```
